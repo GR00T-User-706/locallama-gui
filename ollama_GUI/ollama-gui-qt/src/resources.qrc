@@ -1,0 +1,14 @@
+<RCC>
+        <qresource prefix="/">
+                <file>qml/main.qml</file>
+                <file alias="assets/ollama-gui-qt.png">../assets/ollama-gui-qt.png</file>
+                <file>qml/DeleteModelDialog.qml</file>
+                <file>qml/ModelInfoDialog.qml</file>
+                <file>qml/PullProgressDialog.qml</file>
+                <file>qml/PushDialog.qml</file>
+                <file>qml/CreateModelDialog.qml</file>
+                <file>qml/CopyModelDialog.qml</file>
+                <file>qml/EmbeddingDialog.qml</file>
+                <file>qml/DiagnosticsDialog.qml</file>
+        </qresource>
+</RCC>

@@ -1,0 +1,4 @@
+[Project]
+CreatedFrom=ollama-gui-qt.pro
+Manager=KDevQMakeManager
+Name=ollama-gui-qt

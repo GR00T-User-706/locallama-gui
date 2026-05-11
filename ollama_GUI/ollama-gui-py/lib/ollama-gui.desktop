@@ -1,0 +1,14 @@
+[Desktop Entry]
+Categories=Development;
+Comment=GUI frontend for the Ollama service
+Exec=ollama-gui
+GenericName[en_US]=llm GUI
+GenericName=llm GUI
+Icon=/home/lykthornyx/my-ollama/ollama_GUI/data/new_microchip.png
+Name[en_US]=Ollama GUI
+Name=Ollama GUI
+StartupNotify=true
+Terminal=false
+Type=Application
+X-KDE-SubstituteUID=false
+

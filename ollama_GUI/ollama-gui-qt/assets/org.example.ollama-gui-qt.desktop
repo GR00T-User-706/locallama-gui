@@ -1,0 +1,9 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Name=Ollama GUI Qt
+Comment=Offline Ollama frontend
+Exec=ollama-gui-qt
+Icon=ollama-gui-qt
+Terminal=false
+Type=Application
+Categories=Utility;
