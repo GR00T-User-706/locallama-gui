@@ -24,6 +24,23 @@
 *.so.*
 
 
+.directory
+.*~
+.*.desktop~
+.*.py~
+*.kdev4
+.*.pro~
+.*.stash
+moc_*.o
+moc_*.cpp
+moc_*.h
+*_*.o
+*.o
+.*.qrc~
+.*.cpp~
+.*.h~
+.*.qml~
+
 # Fortran module files
 *.mod
 *.smod
@@ -67,3 +84,6 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+
+/home/lykthornyx/my-ollama/ollama_GUI/ollama-gui-qt/ollama-gui-qt

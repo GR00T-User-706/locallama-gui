@@ -14,8 +14,10 @@ class OllamaManager : public QObject
 {
     Q_OBJECT
 public:
-    explicit OllamaManager(QNetworkAccessManager *net, QObject *parent = nullptr);
+    explicit OllamaManager(QObject *parent = nullptr);  // explicit OllamaManager(QNetworkAccessManager *net, QObject *parent = nullptr);
     ~OllamaManager();
+    QString modelsPath() const;
+    static const QString TAGS_URL;
 
     // Server
     Q_INVOKABLE void checkAndStartServer();
@@ -86,7 +88,6 @@ private:
     void waitForServer();
     void setServerRunning(bool running);
     void updateStatus();
-    QString modelsPath() const;
     void parseStreamResponse(QNetworkReply *reply, QByteArray &buffer,
                              const std::function<void(const QJsonObject&)> &callback);
 
@@ -107,7 +108,6 @@ private:
     QNetworkReply *m_chatReply = nullptr;
 
     static const QString BASE_URL;
-    static const QString TAGS_URL;
     static const QString CHAT_URL;
     static const QString SHOW_URL;
     static const QString DELETE_URL;
@@ -120,6 +120,7 @@ private:
     QByteArray m_pullBuffer;
     QByteArray m_pushBuffer;
     QByteArray m_createBuffer;
+    QByteArray m_chatBuffer;
 };
 
 #endif // OLLAMAMANAGER_H

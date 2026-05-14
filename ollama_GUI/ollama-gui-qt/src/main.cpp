@@ -6,10 +6,10 @@
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    // QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling); // deprecated in Qt6
     QGuiApplication app(argc, argv);
     app.setWindowIcon(QIcon(":/assets/ollama-gui-qt.png"));
-
+    app.setApplicationVersion("1.0.0");
     Backend backend;
     backend.checkAndStartServer(); // initial server check
 

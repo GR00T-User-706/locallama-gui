@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-# VERSION: v1.3.11
-# KEY_SIG_ID: GR00T-User-706
-# CREATOR: Zenrich Shadoestep
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import requests
@@ -195,7 +192,7 @@ class OllamaApp:
     # ---------------- Chat & API ----------------
     def generate(self, prompt, model, system_prompt):
         try:
-            r = requests.post(API_URL,json={"model": model,"messages": [{"role": "system", "content": system_prompt},{"role": "user", "content": prompt},],"stream": False,},)
+            r = requests.post(API_URL,json={"model": model,"messages": [{"role": "system", "content": system_prompt},{"role": "user", "content": prompt},],"stream": True,},)
             return r.json()["message"]["content"]
         except Exception as e:
             return (f"[ERROR] {e}")

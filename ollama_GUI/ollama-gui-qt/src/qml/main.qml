@@ -9,7 +9,7 @@ ApplicationWindow {
     visible: true
     width: 800
     height: 700
-    title: "Local LLM"
+    title: "Local LLM v" + Qt.application.version
 
     // Menu bar
     menuBar: MenuBar {
@@ -267,10 +267,8 @@ ApplicationWindow {
         title: "About"
         standardButtons: Dialog.Ok
         ColumnLayout {
-            Label { text: "Developer: Zenrich ShadowStep" }
-            Label { text: "Contact: crypto_code_weaver_syndicate@proton.me" }
+            Label { text: "Version " + Qt.application.version }
             Label { text: "Local LLM Interface" }
-            LAbel { text: "Version" + Qt.application.version }
             Label { text: "Ollama frontend" }
             Label { text: "Runs completely offline\nModels stored locally" }
         }

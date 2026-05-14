@@ -271,7 +271,19 @@ void OllamaManager::pushModel(const QString &name, const QString &namespace_)
     });
     connect(m_pushReply, &QNetworkReply::readyRead, this, &OllamaManager::onPushReadyRead);
 }
-
+void OllamaManager::onChatReadyRead()
+{
+    if (!m_chatReply) return;
+    m_chatBuffer.append(m_chatReply->readAll());
+    // For streaming chat, each line is a JSON object with a "message" field.
+    // We'll parse and emit incremental updates if needed.
+    parseStreamResponse(m_chatReply, m_chatBuffer, [this](const QJsonObject &obj) {
+        QString content = obj.value("message").toObject().value("content").toString();
+        if (!content.isEmpty()) {
+            emit chatOutputAppended(content);
+        }
+    });
+}
 void OllamaManager::onPushReadyRead()
 {
     if (!m_pushReply) return;
@@ -395,8 +407,9 @@ void OllamaManager::runChat(const QString &system, const QString &user, const QS
     QJsonObject body;
     body["model"] = model;
     body["messages"] = QJsonArray{msg1, msg2};
-    body["stream"] = false;
+    body["stream"] = true;
     m_chatReply = m_netManager->post(req, QJsonDocument(body).toJson());
+    connect(m_chatReply, &QNetworkReply::readyRead, this, &OllamaManager::onChatReadyRead);
     connect(m_chatReply, &QNetworkReply::finished, this, [this]() {
         QNetworkReply *reply = m_chatReply;
         m_chatReply = nullptr;
@@ -472,6 +485,7 @@ void OllamaManager::testConnection()
 void OllamaManager::parseStreamResponse(QNetworkReply *reply, QByteArray &buffer,
                                          const std::function<void(const QJsonObject&)> &callback)
 {
+    (void)reply;
     while (buffer.contains('\n')) {
         int idx = buffer.indexOf('\n');
         QByteArray line = buffer.left(idx).trimmed();
