@@ -7,6 +7,8 @@ import subprocess
 import os
 import time
 import json
+import importlib.util
+from pathlib import Path
 
 LLAMA_URL = "http://localhost:11434/api"
 API_URL = f"{LLAMA_URL}/chat"
@@ -24,6 +26,8 @@ class OllamaApp:
         self.ollama_proc = None
         self.current_mode = "offline"
         self.response_active = False
+        self.ai_monitor_module = None
+        self.ai_monitor_window = None
         # Create menu bar first
         self.create_menu()
         # Setup the rest of the GUI
@@ -88,6 +92,8 @@ class OllamaApp:
         models_menu.add_command(label="Pull Model...", command=self.pull_model)
         models_menu.add_command(label="Remove Model...", command=self.remove_model)
         models_menu.add_command(label="Show Model Info", command=self.show_model_info)
+        models_menu.add_separator()
+        models_menu.add_command(label="Process Monitor", command=self.open_process_monitor)
         models_menu.add_separator()
         # Parameters submenu
         params_menu = tk.Menu(models_menu, tearoff=0)
@@ -270,6 +276,42 @@ class OllamaApp:
             self.menu["menu"].add_command(
                 label=m, command=lambda v=m: self.model_var.set(v)
             )
+
+    def load_ai_monitor_module(self):
+        """Load the bundled AI process monitor module from ai-mon.py."""
+        if self.ai_monitor_module:
+            return self.ai_monitor_module
+
+        monitor_path = Path(__file__).with_name("ai-mon.py")
+        spec = importlib.util.spec_from_file_location("ai_mon", monitor_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Unable to load process monitor from {monitor_path}")
+
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        self.ai_monitor_module = module
+        return module
+
+    def open_process_monitor(self):
+        """Open the Ollama LLM process monitor as a popup window."""
+        if self.ai_monitor_window and self.ai_monitor_window.winfo_exists():
+            self.ai_monitor_window.lift()
+            self.ai_monitor_window.focus_force()
+            return
+
+        try:
+            monitor = self.load_ai_monitor_module()
+            self.ai_monitor_window = monitor.create_monitor_window(self.root)
+            self.ai_monitor_window.transient(self.root)
+
+            def clear_monitor_reference():
+                self.ai_monitor_window.destroy()
+                self.ai_monitor_window = None
+
+            self.ai_monitor_window.protocol("WM_DELETE_WINDOW", clear_monitor_reference)
+        except Exception as e:
+            messagebox.showerror("Process Monitor", f"Unable to open process monitor:\n{e}")
+            self.update_output(f"[Process monitor error: {e}]\n")
 
     # ---------------- Menu commands ----------------
     def load_system_prompt(self):
