@@ -87,3 +87,9 @@ Testing/
 
 
 /home/lykthornyx/my-ollama/ollama_GUI/ollama-gui-qt/ollama-gui-qt
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
