@@ -1,0 +1,32 @@
+name: Active CI
+
+on:
+  pull_request:
+    paths:
+      - 'locallama_gui/**'
+      - 'pyproject.toml'
+      - 'requirements.txt'
+      - '.github/workflows/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'locallama_gui/**'
+      - 'pyproject.toml'
+      - 'requirements.txt'
+      - '.github/workflows/**'
+
+jobs:
+  active-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Validate active package imports
+        run: python -m compileall -q locallama_gui
