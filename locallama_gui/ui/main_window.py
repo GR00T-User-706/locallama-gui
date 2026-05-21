@@ -40,6 +40,7 @@ from locallama_gui.backends.manager import create_backend
 from locallama_gui.core.config import AppConfig
 from locallama_gui.core.domain import ChatMessage, ChatSession, ModelInfo
 from locallama_gui.core.managers import AgentManager, PluginContext, PluginManager, PromptManager, SessionManager
+from locallama_gui.ui.controllers import ChatController, ModelController, PluginController
 from locallama_gui.ui.dialogs import AgentBuilderDialog, EndpointDialog, ModelfileEditor, ParameterDialog, PluginManagerDialog, PromptManagerDialog
 from locallama_gui.ui.theme import DARK_QSS
 from locallama_gui.ui.workers import AsyncTask, StreamTask
@@ -83,6 +84,9 @@ class MainWindow(QMainWindow):
         self.plugin_context = PluginContext(self, config)
         self.plugins = PluginManager(config, self.plugin_context)
         self.models: list[ModelInfo] = []
+        self.chat_controller = ChatController(self.sessions, self.config, self)
+        self.model_controller = ModelController(self.config, self)
+        self.plugin_controller = PluginController(self.plugins, self.config, self)
         self.worker_refs: list[Any] = []
         self.current_stream: StreamTask | None = None
         self._build_ui()
@@ -125,10 +129,10 @@ class MainWindow(QMainWindow):
             a = QAction(text, self); a.triggered.connect(slot)
             if shortcut: a.setShortcut(QKeySequence(shortcut))
             menu.addAction(a); return a
-        file = self.menuBar().addMenu("File"); act(file, "New Chat", self.new_chat, "Ctrl+N"); act(file, "Open Chat", self.open_chat_file, "Ctrl+O"); act(file, "Save", self.save_current, "Ctrl+S"); act(file, "Save As", self.save_as); act(file, "Export", self.export_current); act(file, "Import", self.import_chat); file.addSeparator(); act(file, "Exit", self.close, "Ctrl+Q")
-        models = self.menuBar().addMenu("Models"); act(models, "Pull", self.pull_model); act(models, "Push", self.push_model); act(models, "Clone", self.clone_model); act(models, "Create", self.create_model); act(models, "Delete", self.delete_model); act(models, "Modelfiles", self.open_modelfile_editor); act(models, "Templates", self.open_template_viewer)
+        file = self.menuBar().addMenu("File"); act(file, "New Chat", self.new_chat, "Ctrl+N"); act(file, "Open Chat", lambda: self.chat_controller.open_chat_file(self), "Ctrl+O"); act(file, "Save", self.chat_controller.save_current, "Ctrl+S"); act(file, "Save As", self.save_as); act(file, "Export", self.export_current); act(file, "Import", self.import_chat); file.addSeparator(); act(file, "Exit", self.close, "Ctrl+Q")
+        models = self.menuBar().addMenu("Models"); act(models, "Pull", lambda: self.model_controller.pull_model(self)); act(models, "Push", lambda: self.model_controller.push_model(self)); act(models, "Clone", lambda: self.model_controller.clone_model(self)); act(models, "Create", self.model_controller.create_model); act(models, "Delete", lambda: self.model_controller.delete_model(self)); act(models, "Modelfiles", self.open_modelfile_editor); act(models, "Templates", self.open_template_viewer)
         agents = self.menuBar().addMenu("Agents"); act(agents, "Create", self.open_agent_builder); act(agents, "Manage", self.open_agent_builder); act(agents, "Import", self.import_agent); act(agents, "Export", self.export_agent)
-        plugins = self.menuBar().addMenu("Plugins"); act(plugins, "Plugin Manager", self.open_plugins); act(plugins, "Install", self.install_plugin); act(plugins, "Reload", self.reload_plugins); act(plugins, "Developer Mode", self.open_plugin_docs)
+        plugins = self.menuBar().addMenu("Plugins"); act(plugins, "Plugin Manager", self.open_plugins); act(plugins, "Install", lambda: self.plugin_controller.install_plugin(self)); act(plugins, "Reload", self.plugin_controller.reload_plugins); act(plugins, "Developer Mode", self.open_plugin_docs)
         settings = self.menuBar().addMenu("Settings"); act(settings, "API Endpoints", self.open_endpoints); act(settings, "Parameters", self.open_parameters); act(settings, "Themes", self.toggle_theme); act(settings, "Keyboard Shortcuts", self.show_shortcuts); act(settings, "Model Settings", self.refresh_backend)
         view = self.menuBar().addMenu("View"); act(view, "Toggle Panels", self.toggle_all_docks); act(view, "Layout Presets", self.reset_layout); act(view, "Logs", lambda: self.log_view.parent().show()); act(view, "Terminal", lambda: self.terminal.parent().show())
         dev = self.menuBar().addMenu("Developer"); act(dev, "Logs", lambda: self.log_view.parent().show()); act(dev, "Request Viewer", lambda: self.request_view.parent().show()); act(dev, "Token Viewer", lambda: self.token_view.parent().show()); act(dev, "API Inspector", self.inspect_api); act(dev, "Debug Console", lambda: self.terminal.parent().show())
@@ -145,53 +149,17 @@ class MainWindow(QMainWindow):
 
 
     def _wire_chat_tab(self, tab: ChatTab) -> None:
-        tab.send.clicked.connect(self.send_message)
+        tab.send.clicked.connect(self.chat_controller.send_message)
         tab.stop.clicked.connect(self.stop_generation)
-        tab.regen.clicked.connect(self.regenerate)
-        tab.retry.clicked.connect(self.retry)
-        tab.copy_last.clicked.connect(self.copy_last_message)
-        tab.edit_msg.clicked.connect(self.edit_message)
-        tab.delete_msg.clicked.connect(self.delete_message)
+        tab.regen.clicked.connect(self.chat_controller.regenerate)
+        tab.retry.clicked.connect(self.chat_controller.retry)
+        tab.copy_last.clicked.connect(self.chat_controller.copy_last_message)
+        tab.edit_msg.clicked.connect(lambda: self.chat_controller.edit_message(self))
+        tab.delete_msg.clicked.connect(lambda: self.chat_controller.delete_message(self))
 
-    def copy_last_message(self) -> None:
-        tab = self.current_tab()
-        if tab and tab.session.messages:
-            QApplication.clipboard().setText(tab.session.messages[-1].content)
-            self.log("Copied last message to clipboard")
-
-    def edit_message(self) -> None:
-        tab = self.current_tab()
-        if not tab or not tab.session.messages:
-            return
-        number, ok = QInputDialog.getInt(self, "Edit Message", "Message number:", len(tab.session.messages), 1, len(tab.session.messages))
-        if not ok:
-            return
-        msg = tab.session.messages[number - 1]
-        text, ok = QInputDialog.getMultiLineText(self, "Edit Message", f"{msg.role} content:", msg.content)
-        if ok:
-            msg.content = text
-            tab.render()
-            self.sessions.save(tab.session)
-
-    def delete_message(self) -> None:
-        tab = self.current_tab()
-        if not tab or not tab.session.messages:
-            return
-        number, ok = QInputDialog.getInt(self, "Delete Message", "Message number:", len(tab.session.messages), 1, len(tab.session.messages))
-        if ok:
-            del tab.session.messages[number - 1]
-            tab.render()
-            self.sessions.save(tab.session)
 
     def close_tab(self, idx: int) -> None:
         if self.tabs.count() > 1: self.tabs.removeTab(idx)
-
-    def send_message(self) -> None:
-        tab = self.current_tab()
-        if not tab: return
-        text = tab.input.toPlainText().strip()
-        if not text: return
-        tab.input.clear(); tab.session.messages.append(ChatMessage("user", text)); tab.session.title = text[:48]; self.tabs.setTabText(self.tabs.currentIndex(), tab.session.title); tab.render(); self._generate(tab)
 
     def _generate(self, tab: ChatTab) -> None:
         profile = self.config.active_profile(); backend = create_backend(profile); model = self.model_combo.currentText() or profile.default_model
@@ -221,11 +189,6 @@ class MainWindow(QMainWindow):
     def stop_generation(self) -> None:
         if self.current_stream: self.current_stream.cancel(); self.status.showMessage("idle")
 
-    def regenerate(self) -> None:
-        tab = self.current_tab()
-        if tab and tab.session.messages and tab.session.messages[-1].role == "assistant": tab.session.messages.pop(); tab.render(); self._generate(tab)
-
-    def retry(self) -> None: self.regenerate()
     def model_changed(self, text: str) -> None:
         tab = self.current_tab()
         if tab: tab.session.model = text
@@ -269,10 +232,6 @@ class MainWindow(QMainWindow):
         else: tab.session.messages.insert(0, ChatMessage("system", content))
         tab.render()
 
-    def save_current(self) -> None:
-        tab = self.current_tab();
-        if tab: self.sessions.save(tab.session); self.refresh_sessions(); self.log("Saved chat session")
-
     def save_as(self) -> None:
         tab = self.current_tab();
         if not tab: return
@@ -282,12 +241,7 @@ class MainWindow(QMainWindow):
     def open_session(self, session_id: str) -> None:
         session = self.sessions.load(session_id); tab = ChatTab(session); self._wire_chat_tab(tab); self.tabs.addTab(tab, session.title); self.tabs.setCurrentWidget(tab)
 
-    def open_chat_file(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(self, "Open Chat", filter="JSON (*.json)")
-        if path:
-            session = ChatSession.from_file(Path(path)); session.save(self.config.paths.sessions_dir); self.open_session(session.id)
-
-    def import_chat(self) -> None: self.open_chat_file()
+    def import_chat(self) -> None: self.chat_controller.open_chat_file(self)
     def export_current(self) -> None:
         tab = self.current_tab();
         if not tab: return
@@ -297,22 +251,26 @@ class MainWindow(QMainWindow):
         content = tab.session.to_json() if p.suffix == ".json" else tab.session.export_text() if p.suffix == ".txt" else tab.session.export_markdown()
         p.write_text(content, encoding="utf-8")
 
-    def pull_model(self) -> None: self._model_stream_op("Pull model", "pull_model")
-    def push_model(self) -> None: self._model_stream_op("Push model", "push_model")
-    def create_model(self) -> None: self.open_modelfile_editor()
-    def clone_model(self) -> None:
-        source = self.model_combo.currentText(); dest, ok = QInputDialog.getText(self, "Clone Model", "Destination model name:")
-        if ok and source and dest: self._async(lambda: create_backend(self.config.active_profile()).copy_model(source, dest), "Model cloned")
-    def delete_model(self) -> None:
-        name = self.model_combo.currentText()
-        if name and QMessageBox.question(self, "Delete", f"Delete {name}?") == QMessageBox.StandardButton.Yes: self._async(lambda: create_backend(self.config.active_profile()).delete_model(name), "Model deleted")
-    def _model_stream_op(self, title: str, method: str) -> None:
-        name, ok = QInputDialog.getText(self, title, "Model name:", text=self.model_combo.currentText())
-        if not ok or not name: return
-        backend = create_backend(self.config.active_profile()); task = StreamTask(lambda: getattr(backend, method)(name)); self.worker_refs.append(task); task.token.connect(lambda t: self.terminal.insertPlainText(t + "\n")); task.completed.connect(lambda _: self.refresh_backend()); task.error.connect(lambda e: QMessageBox.critical(self, title, e)); task.start()
-
     def _async(self, coro_factory, done_msg: str) -> None:
         task = AsyncTask(coro_factory); self.worker_refs.append(task); task.finished_ok.connect(lambda: (self.log(done_msg), self.refresh_backend())); task.error.connect(lambda e: QMessageBox.critical(self, "Error", e)); task.start()
+
+    def set_tab_title(self, title: str) -> None:
+        self.tabs.setTabText(self.tabs.currentIndex(), title)
+
+    def render_tab(self, tab: ChatTab) -> None:
+        tab.render()
+
+    def generate_for_tab(self, tab: ChatTab) -> None:
+        self._generate(tab)
+
+    def model_name(self) -> str:
+        return self.model_combo.currentText()
+
+    def append_terminal(self, text: str) -> None:
+        self.terminal.insertPlainText(text)
+
+    def add_worker(self, worker: Any) -> None:
+        self.worker_refs.append(worker)
 
     def open_modelfile_editor(self) -> None: ModelfileEditor(self.config, self).exec()
 
@@ -339,11 +297,6 @@ class MainWindow(QMainWindow):
         if EndpointDialog(self.config, self).exec(): self.provider_combo.clear(); self.provider_combo.addItems([p.name for p in self.config.provider_profiles]); self.refresh_backend()
     def open_parameters(self) -> None: ParameterDialog(self.config, self).exec()
     def open_plugins(self) -> None: PluginManagerDialog(self.plugins, self).exec()
-    def reload_plugins(self) -> None: self.plugins.reload(); self.log("Plugins reloaded")
-    def install_plugin(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(self, "Install Plugin", filter="Python (*.py)")
-        if path:
-            dest = self.config.paths.plugins_dir / Path(path).name; dest.write_text(Path(path).read_text(encoding="utf-8"), encoding="utf-8"); self.log(f"Installed plugin {dest}")
     def open_plugin_docs(self) -> None: self._show_text_dialog("Plugin SDK", (Path.cwd()/"docs"/"PLUGIN_SDK.md").read_text(encoding="utf-8"))
     def open_agent_builder(self) -> None: AgentBuilderDialog(self.agents, [m.name for m in self.models], list(self.plugins.loaded), self).exec()
     def import_agent(self) -> None: self.open_agent_builder()
