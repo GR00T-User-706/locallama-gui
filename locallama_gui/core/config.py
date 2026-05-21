@@ -110,6 +110,8 @@ class AppConfig:
     parameters: GenerationParameters = field(default_factory=GenerationParameters)
     parameter_presets: dict[str, dict[str, Any]] = field(default_factory=dict)
     enabled_plugins: dict[str, bool] = field(default_factory=dict)
+    trusted_plugins: list[str] = field(default_factory=list)
+    developer_mode: bool = False
     ui: UISettings = field(default_factory=UISettings)
     global_system_prompt: str = "You are a helpful, precise assistant."
 
@@ -134,6 +136,8 @@ class AppConfig:
             parameters=GenerationParameters(**data.get("parameters", {})),
             parameter_presets=data.get("parameter_presets", {}),
             enabled_plugins=data.get("enabled_plugins", {}),
+            trusted_plugins=data.get("trusted_plugins", []),
+            developer_mode=data.get("developer_mode", False),
             ui=UISettings(**data.get("ui", {})),
             global_system_prompt=data.get("global_system_prompt", "You are a helpful, precise assistant."),
         )
@@ -146,6 +150,8 @@ class AppConfig:
             "parameters": asdict(self.parameters),
             "parameter_presets": self.parameter_presets,
             "enabled_plugins": self.enabled_plugins,
+            "trusted_plugins": self.trusted_plugins,
+            "developer_mode": self.developer_mode,
             "ui": asdict(self.ui),
             "global_system_prompt": self.global_system_prompt,
         }

@@ -1,6 +1,8 @@
 # LocalLama GUI Plugin SDK
 
-Drop a `.py` file into the user plugin directory shown in **Help → Diagnostics** or into the repository `plugins/` directory during development. A plugin exposes a `Plugin` class with a `manifest`, `activate(context)`, and `deactivate()`.
+By default, LocalLama only discovers plugins from the **user plugin directory** shown in **Help → Diagnostics**. Repository `plugins/` is only scanned when `developer_mode` is enabled in config.
+
+A plugin exposes a `Plugin` class with a `manifest`, `activate(context)`, and `deactivate()`.
 
 ```python
 class Plugin:
@@ -15,6 +17,31 @@ class Plugin:
     def deactivate(self):
         print("my_plugin deactivated")
 ```
+
+## Manifest validation
+
+Plugin manifests must contain all required keys:
+
+- `id`
+- `name`
+- `version`
+
+Plugins with missing keys are treated as invalid and cannot be enabled.
+
+## Trust boundary
+
+Plugins are loaded as Python code in the same process as the app. Before a plugin can be enabled, its manifest `id` must be explicitly added to `trusted_plugins` in the app config.
+
+Being discoverable is **not** the same as being trusted.
+
+## Threat model notes
+
+- A trusted plugin can execute arbitrary Python in-process.
+- A malicious plugin may read or modify local files accessible to the user.
+- A plugin can intercept chat traffic through chat interceptors.
+- A plugin can register commands/tools that trigger external process or network actions.
+
+Only trust plugin IDs from vetted sources, and review plugin source code before adding to `trusted_plugins`.
 
 ## Capabilities
 

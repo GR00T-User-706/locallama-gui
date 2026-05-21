@@ -143,11 +143,19 @@ class PluginManager:
         self.context = context
         self.loaded: dict[str, LoadedPlugin] = {}
 
+    def _validate_manifest(self, manifest: dict[str, Any], path: Path) -> dict[str, Any]:
+        required = ("id", "name", "version")
+        missing = [key for key in required if not manifest.get(key)]
+        if missing:
+            raise ValueError(f"Plugin {path.name} manifest missing required keys: {', '.join(missing)}")
+        return manifest
+
     def plugin_paths(self) -> list[Path]:
-        repo_plugins = Path.cwd() / "plugins"
         paths = list(self.config.paths.plugins_dir.glob("*.py"))
-        if repo_plugins.exists():
-            paths.extend(repo_plugins.glob("*.py"))
+        if self.config.developer_mode:
+            repo_plugins = Path.cwd() / "plugins"
+            if repo_plugins.exists():
+                paths.extend(repo_plugins.glob("*.py"))
         return sorted(set(paths))
 
     def discover(self) -> list[dict[str, Any]]:
@@ -160,7 +168,7 @@ class PluginManager:
                     module = self._load_module(path)
                     cls = getattr(module, "Plugin", None)
                     if cls:
-                        manifest.update(getattr(cls(), "manifest", {}))
+                        manifest.update(self._validate_manifest(getattr(cls(), "manifest", {}), path))
             except Exception as exc:  # noqa: BLE001
                 manifest["error"] = str(exc)
             discovered.append(manifest)
@@ -169,15 +177,18 @@ class PluginManager:
     def load_enabled(self) -> None:
         for path in self.plugin_paths():
             plugin_id = path.stem
-            if self.config.enabled_plugins.get(plugin_id, plugin_id == "sample_plugin"):
+            if self.config.enabled_plugins.get(plugin_id, False):
                 self.enable(path)
 
     def enable(self, path: Path) -> None:
         module = self._load_module(path)
         cls = getattr(module, "Plugin")
         instance = cls()
+        manifest = self._validate_manifest(getattr(instance, "manifest", {}), path)
+        plugin_id = manifest["id"]
+        if plugin_id not in self.config.trusted_plugins:
+            raise PermissionError(f"Plugin '{plugin_id}' is not trusted. Add it to trusted_plugins before enabling.")
         instance.activate(self.context)
-        plugin_id = instance.manifest.get("id", path.stem)
         self.loaded[plugin_id] = LoadedPlugin(path, module, instance)
         self.config.enabled_plugins[plugin_id] = True
         self.config.save()
