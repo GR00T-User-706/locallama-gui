@@ -17,7 +17,7 @@ LocalLama GUI is a production-oriented PySide6 desktop control center for local 
 
 ## Requirements
 
-- Python 3.13+
+- Python 3.11+ (tested in CI on 3.11, 3.12, and 3.13)
 - A local or remote LLM backend:
   - Ollama at `http://localhost:11434` by default, or
   - OpenAI-compatible `/v1` endpoint, or
@@ -26,12 +26,14 @@ LocalLama GUI is a production-oriented PySide6 desktop control center for local 
 ## Installation
 
 ```bash
-python3.13 -m venv .venv
+python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 ```
 
-If your platform uses `python3` for Python 3.13, substitute accordingly.
+If your platform uses `python3` for Python 3.11+, substitute accordingly.
+
+Tested version matrix: Python 3.11, 3.12, and 3.13.
 
 ## Run
 

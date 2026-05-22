@@ -7,7 +7,7 @@ name = "locallama-gui"
 version = "1.0.0"
 description = "A production-grade PySide6 desktop control center for local and remote LLMs."
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [{name = "locallama-gui contributors"}]
 dependencies = [
@@ -30,4 +30,4 @@ include = ["locallama_gui*"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py313"
+target-version = "py311"
