@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0.7 - 2026-05-24
+
+### Added
+- Added a hidden app-level system prompt guardrail so LocalLama sessions consistently behave as an in-app assistant.
+- Added a user-editable "Default System Prompt" settings action for new chats.
+- Added Request Viewer and Token Viewer copy/clear controls.
+
+### Changed
+- Improved chat message formatting and spacing with clearer role labels.
+- Improved generation UX by disabling/enabling chat controls during streaming and restoring state on stop/error/complete.
+- Improved backend status line to include provider and current model.
+- Added timestamped entries in the log panel.
+
+### Fixed
+- Fixed misleading Ctrl+Enter prompt behavior by handling both Ctrl+Enter and Ctrl+Return in the composer.
+- Improved auto-scroll behavior so chat doesn't forcibly jump while users read previous content.
+
 ## 1.0.4 - 2026-05-24
 
 ### Fixed
