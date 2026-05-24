@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3 - 2026-05-24
+
+### Fixed
+- Stopped CI Ruff failure gremlins by excluding legacy non-production trees (`llm_studio/`, `ollama_GUI/`) from repository-wide lint scope.
+- Kept lint focus on maintained production package and tests so `ruff check .` can pass consistently.
+
 ## 1.0.2 - 2026-05-24
 
 ### Fixed
