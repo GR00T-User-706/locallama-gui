@@ -149,7 +149,7 @@ class MainWindow(QMainWindow):
         self.addToolBar(self.toolbar)
         for label, slot in [
             ("New Chat", self.new_chat),
-            ("Save", self.save_current),
+            ("Save", self.chat_controller.save_current),
             ("Refresh Models", self.refresh_backend),
             ("Parameters", self.open_parameters),
             ("Plugins", self.open_plugins),
