@@ -532,15 +532,16 @@ class ParameterDialog(QDialog):
         form.addRow("stop (| separated)", self.stop)
         self.preset_name = QLineEdit("default")
         form.addRow("preset name", self.preset_name)
-        self.thinking = QCheckBox("Thinking mode")
-        self.thinking.setChecked(p.thinking_mode)
-        self.plan = QCheckBox("Plan mode")
-        self.plan.setChecked(p.plan_mode)
-        self.normal = QCheckBox("Normal mode")
-        self.normal.setChecked(p.normal_mode)
-        form.addRow(self.thinking)
-        form.addRow(self.plan)
-        form.addRow(self.normal)
+        self.reasoning_mode = QComboBox()
+        self.reasoning_mode.addItems(["normal", "thinking", "plan"])
+        self.reasoning_mode.setCurrentText(p.reasoning_mode)
+        self.reasoning_mode.setToolTip(
+            "Reasoning mode for the next request. "
+            "'thinking' maps to Ollama option think=true, "
+            "'plan' maps to Ollama option plan=true, and "
+            "'normal' is app-default mode (no mode option sent)."
+        )
+        form.addRow("reasoning mode", self.reasoning_mode)
         save_preset = QPushButton("Save Preset")
         save_preset.clicked.connect(self.save_preset)
         load_preset = QPushButton("Load Preset")
@@ -564,9 +565,7 @@ class ParameterDialog(QDialog):
         for name, widget in self.widgets.items():
             values[name] = widget.value() if isinstance(widget, QSpinBox) else float(widget.text())
         values["stop"] = [x for x in self.stop.text().split("|") if x]
-        values["thinking_mode"] = self.thinking.isChecked()
-        values["plan_mode"] = self.plan.isChecked()
-        values["normal_mode"] = self.normal.isChecked()
+        values["reasoning_mode"] = self.reasoning_mode.currentText()
         return values
 
     def save_preset(self) -> None:
@@ -587,9 +586,15 @@ class ParameterDialog(QDialog):
                 else:
                     widget.setText(str(value))
         self.stop.setText("|".join(preset.get("stop", [])))
-        self.thinking.setChecked(bool(preset.get("thinking_mode", False)))
-        self.plan.setChecked(bool(preset.get("plan_mode", False)))
-        self.normal.setChecked(bool(preset.get("normal_mode", True)))
+        preset_mode = str(preset.get("reasoning_mode", "normal"))
+        if preset_mode not in {"normal", "thinking", "plan"}:
+            if bool(preset.get("thinking_mode", False)):
+                preset_mode = "thinking"
+            elif bool(preset.get("plan_mode", False)):
+                preset_mode = "plan"
+            else:
+                preset_mode = "normal"
+        self.reasoning_mode.setCurrentText(preset_mode)
 
     def accept(self) -> None:
         p = self.config.parameters

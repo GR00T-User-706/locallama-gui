@@ -81,12 +81,26 @@ class GenerationParameters:
     num_ctx: int = 4096
     num_batch: int = 512
     num_gpu: int = -1
+    reasoning_mode: str = "normal"
     thinking_mode: bool = False
     plan_mode: bool = False
     normal_mode: bool = True
 
+    def __post_init__(self) -> None:
+        # Backward compatibility for older configs/presets that used booleans.
+        if self.reasoning_mode not in {"normal", "thinking", "plan"}:
+            self.reasoning_mode = "normal"
+        if self.reasoning_mode == "normal":
+            if self.thinking_mode:
+                self.reasoning_mode = "thinking"
+            elif self.plan_mode:
+                self.reasoning_mode = "plan"
+        self.thinking_mode = self.reasoning_mode == "thinking"
+        self.plan_mode = self.reasoning_mode == "plan"
+        self.normal_mode = self.reasoning_mode == "normal"
+
     def to_backend_options(self) -> dict[str, Any]:
-        return {
+        options = {
             "temperature": self.temperature,
             "top_k": self.top_k,
             "top_p": self.top_p,
@@ -104,6 +118,11 @@ class GenerationParameters:
             "num_batch": self.num_batch,
             "num_gpu": self.num_gpu,
         }
+        if self.reasoning_mode == "thinking":
+            options["think"] = True
+        elif self.reasoning_mode == "plan":
+            options["plan"] = True
+        return options
 
 
 @dataclass(slots=True)

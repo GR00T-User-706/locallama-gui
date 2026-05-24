@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.9 - 2026-05-24
+
+### Added
+- Added tests covering reasoning-mode exclusivity, config persistence, and request payload mapping.
+
+### Changed
+- Replaced independent thinking/plan/normal checkboxes in Generation Parameters with a single reasoning-mode dropdown and explicit default (`normal`).
+- Added reasoning mode tooltip text that clarifies Ollama mapping (`think`/`plan`) versus app default behavior.
+
+### Fixed
+- Ensured request options emit at most one reasoning mode flag and omit flags for `normal`.
+- Added backward-compatible migration from legacy boolean mode fields to the new persisted `reasoning_mode` value.
+
 ## 1.0.8 - 2026-05-24
 
 ### Fixed
