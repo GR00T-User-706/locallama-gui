@@ -3,6 +3,9 @@ from __future__ import annotations
 import os
 import sys
 
+if __package__ in {None, ""}:
+    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
@@ -23,3 +26,7 @@ def main() -> int:
     win = MainWindow(config)
     win.show()
     return app.exec()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
