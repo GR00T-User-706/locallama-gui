@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "locallama-gui"
-version = "1.0.3"
+version = "1.0.4"
 description = "A production-grade PySide6 desktop control center for local and remote LLMs."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -34,4 +34,4 @@ target-version = "py311"
 extend-exclude = ["llm_studio", "ollama_GUI"]
 
 [tool.ruff.lint]
-ignore = ["E701", "E702", "E703", "E402", "F401", "F841"]
+ignore = ["E702", "E703", "E402", "F401", "F841"]
