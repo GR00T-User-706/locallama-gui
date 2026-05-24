@@ -120,7 +120,8 @@ class ModelfileEditor(QDialog):
     def save(self) -> None:
         if not self.path:
             path, _ = QFileDialog.getSaveFileName(self, "Save Modelfile", str(self.config.paths.modelfiles_dir / "Modelfile"))
-            if not path: return
+            if not path:
+                return
             self.path = Path(path)
         self.path.write_text(self.editor.toPlainText(), encoding="utf-8")
         version_dir = self.config.paths.modelfiles_dir / ".versions" / self.path.stem
@@ -179,10 +180,12 @@ class PromptManagerDialog(QDialog):
 
     def refresh(self) -> None:
         self.prompts = self.manager.list(); self.listw.clear()
-        for p in self.prompts: self.listw.addItem(("★ " if p.favorite else "") + f"{p.category}: {p.title}")
+        for p in self.prompts:
+            self.listw.addItem(("★ " if p.favorite else "") + f"{p.category}: {p.title}")
 
     def load_selected(self, row: int) -> None:
-        if row < 0 or row >= len(self.prompts): return
+        if row < 0 or row >= len(self.prompts):
+            return
         p = self.prompts[row]; self.current_id = p.id; self.title.setText(p.title); self.category.setText(p.category); self.favorite.setChecked(p.favorite); self.editor.setPlainText(p.content)
 
     def new(self) -> None:
@@ -193,15 +196,21 @@ class PromptManagerDialog(QDialog):
         self.manager.upsert(p); self.current_id = p.id; self.refresh()
 
     def delete(self) -> None:
-        if self.current_id: self.manager.delete(self.current_id); self.refresh(); self.new()
+        if self.current_id:
+            self.manager.delete(self.current_id)
+            self.refresh()
+            self.new()
 
     def import_prompt(self) -> None:
         path, _ = QFileDialog.getOpenFileName(self, "Import Prompt")
-        if path: self.manager.import_file(Path(path)); self.refresh()
+        if path:
+            self.manager.import_file(Path(path))
+            self.refresh()
 
     def export_prompts(self) -> None:
         path, _ = QFileDialog.getSaveFileName(self, "Export Prompts", "prompts.json")
-        if path: self.manager.export(Path(path))
+        if path:
+            self.manager.export(Path(path))
 
 
 class AgentBuilderDialog(QDialog):
@@ -227,7 +236,8 @@ class AgentBuilderDialog(QDialog):
         self.items = self.manager.list(); self.agents.clear(); [self.agents.addItem(a.name) for a in self.items]
 
     def load_selected(self, row: int) -> None:
-        if row < 0 or row >= len(self.items): return
+        if row < 0 or row >= len(self.items):
+            return
         a = self.items[row]; self.current_id = a.id; self.name.setText(a.name); self.model.setCurrentText(a.model); self.reasoning.setCurrentText(a.reasoning_mode); self.behavior.setCurrentText(a.behavior); self.memory.setCurrentText(a.memory_mode); self.policy.setCurrentText(a.execution_policy); self.tools.setText(",".join(a.tools)); self.plugins.setText(",".join(a.plugins))
 
     def new(self) -> None: self.current_id = ""; self.name.setText("New Agent")
@@ -236,10 +246,13 @@ class AgentBuilderDialog(QDialog):
     def save(self) -> None: self.manager.upsert(self._agent()); self.refresh()
     def import_agent(self) -> None:
         path, _ = QFileDialog.getOpenFileName(self, "Import Agent", filter="JSON (*.json)")
-        if path: self.manager.upsert(AgentProfile(**__import__('json').loads(Path(path).read_text(encoding='utf-8')))); self.refresh()
+        if path:
+            self.manager.upsert(AgentProfile(**__import__('json').loads(Path(path).read_text(encoding='utf-8'))))
+            self.refresh()
     def export_agent(self) -> None:
         path, _ = QFileDialog.getSaveFileName(self, "Export Agent", "agent.json")
-        if path: Path(path).write_text(__import__('json').dumps(asdict(self._agent()), indent=2), encoding='utf-8')
+        if path:
+            Path(path).write_text(__import__('json').dumps(asdict(self._agent()), indent=2), encoding='utf-8')
 
 class PluginManagerDialog(QDialog):
     def __init__(self, manager: PluginManager, parent: QWidget | None = None) -> None:
