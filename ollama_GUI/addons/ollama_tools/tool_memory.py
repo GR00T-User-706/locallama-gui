@@ -17,7 +17,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-DEFAULT_MEMORY_DIR  = Path.home() / ".ollama_tools"
+DEFAULT_MEMORY_DIR = Path.home() / ".ollama_tools"
 DEFAULT_MEMORY_FILE = DEFAULT_MEMORY_DIR / "memory.json"
 
 # Reserved key used to store structured entries inside the namespace dict.
@@ -31,7 +31,7 @@ class MemoryStore:
     """
 
     def __init__(self, path: Path = DEFAULT_MEMORY_FILE, namespace: str = "default"):
-        self.path      = Path(path)
+        self.path = Path(path)
         self.namespace = namespace
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._data: Dict[str, Any] = self._load()
@@ -60,8 +60,7 @@ class MemoryStore:
 
     # ------------------------------------------------------------------ public k/v API (UNCHANGED signatures)
 
-    def remember(self, key: str, value: str,
-                 source: str = "user", trusted: bool = False) -> str:
+    def remember(self, key: str, value: str, source: str = "user", trusted: bool = False) -> str:
         """
         Store a key/value pair.
         v3: entries now include 'source' and 'trusted' fields (FIX 1).
@@ -71,10 +70,10 @@ class MemoryStore:
         if not key:
             return "Error: key cannot be empty."
         self._ns()[key] = {
-            "value":   value,
+            "value": value,
             "updated": datetime.now().isoformat(timespec="seconds"),
-            "source":  source,    # --- NEW (FIX 1)
-            "trusted": trusted,   # --- NEW (FIX 1)
+            "source": source,  # --- NEW (FIX 1)
+            "trusted": trusted,  # --- NEW (FIX 1)
         }
         self._save()
         return f"Remembered: '{key}' = '{value}'"
@@ -90,19 +89,19 @@ class MemoryStore:
                 if k == _STRUCT_KEY:
                     continue
                 trust = "trusted" if entry.get("trusted") else "unverified"
-                lines.append(f"  • {k}  [{trust}]  (last updated: {entry.get('updated','?')})")
+                lines.append(f"  • {k}  [{trust}]  (last updated: {entry.get('updated', '?')})")
             return "\n".join(lines)
         key = key.strip()
         if key not in ns:
             return f"Nothing stored for key '{key}'."
         entry = ns[key]
         trust = "trusted" if entry.get("trusted") else "unverified"
-        return f"{key}: {entry['value']}  [{trust}]  (stored: {entry.get('updated','?')})"
+        return f"{key}: {entry['value']}  [{trust}]  (stored: {entry.get('updated', '?')})"
 
     def forget(self, key: str) -> str:
         """Delete a key from memory."""
         key = key.strip()
-        ns  = self._ns()
+        ns = self._ns()
         if key not in ns:
             return f"Key '{key}' was not found in memory — nothing to forget."
         del ns[key]
@@ -114,7 +113,7 @@ class MemoryStore:
         Return all stored memory as a string for the system prompt.
         v3 (FIX 1): untrusted entries carry a '[User-provided, not verified]' label.
         """
-        ns    = self._ns()
+        ns = self._ns()
         plain = {k: v for k, v in ns.items() if k != _STRUCT_KEY}
         if not plain:
             return ""
@@ -140,7 +139,7 @@ class MemoryStore:
         if not isinstance(obj, dict):
             return "Error: structured entry must be a JSON object (dict)."
         self._struct_ns()[name] = {
-            "data":    obj,
+            "data": obj,
             "updated": datetime.now().isoformat(timespec="seconds"),
         }
         self._save()
@@ -154,7 +153,7 @@ class MemoryStore:
                 return "No structured entries stored yet."
             lines = ["Structured memory entries:"]
             for k, entry in sn.items():
-                lines.append(f"  • {k}  (updated: {entry.get('updated','?')})")
+                lines.append(f"  • {k}  (updated: {entry.get('updated', '?')})")
             return "\n".join(lines)
         name = name.strip()
         if name not in sn:
@@ -164,7 +163,7 @@ class MemoryStore:
     def forget_struct(self, name: str) -> str:
         """Delete a named structured entry."""
         name = name.strip()
-        sn   = self._struct_ns()
+        sn = self._struct_ns()
         if name not in sn:
             return f"No structured entry named '{name}' — nothing to forget."
         del sn[name]
@@ -200,17 +199,26 @@ MEMORY_TOOL_SCHEMA = {
             "properties": {
                 "operation": {
                     "type": "string",
-                    "enum": ["remember", "recall", "forget",
-                             "remember_struct", "recall_struct", "forget_struct"],
+                    "enum": [
+                        "remember",
+                        "recall",
+                        "forget",
+                        "remember_struct",
+                        "recall_struct",
+                        "forget_struct",
+                    ],
                     "description": (
                         "remember/recall/forget — simple key/value pairs.\n"
                         "remember_struct/recall_struct/forget_struct — named JSON objects."
                     ),
                 },
-                "key":   {"type": "string", "description": "Key name for k/v operations."},
+                "key": {"type": "string", "description": "Key name for k/v operations."},
                 "value": {"type": "string", "description": "Value to store (k/v only)."},
-                "name":  {"type": "string", "description": "Entry name for structured operations."},
-                "data":  {"type": "object", "description": "JSON object to store (structured only)."},
+                "name": {"type": "string", "description": "Entry name for structured operations."},
+                "data": {
+                    "type": "object",
+                    "description": "JSON object to store (structured only).",
+                },
             },
             "required": ["operation"],
         },
@@ -219,29 +227,35 @@ MEMORY_TOOL_SCHEMA = {
 
 
 def dispatch_memory_tool(args: dict, store: MemoryStore) -> str:
-    op    = args.get("operation", "").strip().lower()
-    key   = args.get("key",   "")
+    op = args.get("operation", "").strip().lower()
+    key = args.get("key", "")
     value = args.get("value", "")
-    name  = args.get("name",  "")
-    data  = args.get("data",  {})
+    name = args.get("name", "")
+    data = args.get("data", {})
 
     if op == "remember":
-        if not key:   return "Error: 'remember' requires a 'key'."
-        if not value: return "Error: 'remember' requires a 'value'."
+        if not key:
+            return "Error: 'remember' requires a 'key'."
+        if not value:
+            return "Error: 'remember' requires a 'value'."
         return store.remember(key, value)
     elif op == "recall":
         return store.recall(key or None)
     elif op == "forget":
-        if not key: return "Error: 'forget' requires a 'key'."
+        if not key:
+            return "Error: 'forget' requires a 'key'."
         return store.forget(key)
     elif op == "remember_struct":
-        if not name:              return "Error: 'remember_struct' requires a 'name'."
-        if not isinstance(data, dict): return "Error: 'remember_struct' requires a 'data' object."
+        if not name:
+            return "Error: 'remember_struct' requires a 'name'."
+        if not isinstance(data, dict):
+            return "Error: 'remember_struct' requires a 'data' object."
         return store.remember_struct(name, data)
     elif op == "recall_struct":
         return store.recall_struct(name or None)
     elif op == "forget_struct":
-        if not name: return "Error: 'forget_struct' requires a 'name'."
+        if not name:
+            return "Error: 'forget_struct' requires a 'name'."
         return store.forget_struct(name)
     else:
         return f"Error: Unknown memory operation '{op}'."

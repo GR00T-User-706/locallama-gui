@@ -23,20 +23,28 @@ logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------
 DEFAULT_SANDBOX_DIR = Path.home() / ".ollama_tools" / "sandbox"
-MAX_WRITE_BYTES     = 512 * 1024
-MAX_READ_BYTES      = 128 * 1024
+MAX_WRITE_BYTES = 512 * 1024
+MAX_READ_BYTES = 128 * 1024
 
 BLOCKED_EXTENSIONS = {
-    ".sh", ".bash", ".zsh", ".fish",
-    ".py", ".pl", ".rb", ".php",
-    ".elf", ".so", ".out",
+    ".sh",
+    ".bash",
+    ".zsh",
+    ".fish",
+    ".py",
+    ".pl",
+    ".rb",
+    ".php",
+    ".elf",
+    ".so",
+    ".out",
     ".desktop",
 }
 
 # --- NEW (FIX 4): tighter filename validation ---
 _MAX_FILENAME_LEN = 128
-_BAD_FILENAME_RE  = re.compile(r'[/\x00-\x1f\x7f]')   # slash + all control chars
-_RESERVED_NAMES   = {".", "..", "~"}
+_BAD_FILENAME_RE = re.compile(r"[/\x00-\x1f\x7f]")  # slash + all control chars
+_RESERVED_NAMES = {".", "..", "~"}
 
 
 def _validate_filename(raw: str) -> str:
@@ -45,14 +53,14 @@ def _validate_filename(raw: str) -> str:
     Returns the cleaned filename, or raises ValueError with a clear reason.
     Replaces the old inline strip().lstrip() logic in _safe_path.
     """
-    name = raw.strip()                              # FIX 4: strip whitespace
+    name = raw.strip()  # FIX 4: strip whitespace
     if not name:
         raise ValueError("Filename cannot be empty.")
     if name in _RESERVED_NAMES:
         raise ValueError(f"'{name}' is a reserved name.")
     if len(name) > _MAX_FILENAME_LEN:
         raise ValueError(f"Filename too long ({len(name)} chars, max {_MAX_FILENAME_LEN}).")
-    if _BAD_FILENAME_RE.search(name):              # FIX 4: reject control chars
+    if _BAD_FILENAME_RE.search(name):  # FIX 4: reject control chars
         raise ValueError(f"Filename '{name}' contains illegal characters.")
     clean = name.lstrip("/").lstrip(".")
     if not clean:
@@ -72,11 +80,11 @@ class SandboxedFileStore:
 
     def __init__(
         self,
-        sandbox_dir:             Path          = DEFAULT_SANDBOX_DIR,
-        use_firejail:            Optional[bool] = None,
-        allow_firejail_fallback: bool           = False,   # --- NEW (FIX 5)
+        sandbox_dir: Path = DEFAULT_SANDBOX_DIR,
+        use_firejail: Optional[bool] = None,
+        allow_firejail_fallback: bool = False,  # --- NEW (FIX 5)
     ):
-        self.sandbox                 = Path(sandbox_dir).resolve()
+        self.sandbox = Path(sandbox_dir).resolve()
         self.allow_firejail_fallback = allow_firejail_fallback
         self.sandbox.mkdir(parents=True, exist_ok=True)
 
@@ -85,7 +93,7 @@ class SandboxedFileStore:
         else:
             self.use_firejail = use_firejail
 
-        backend  = "firejail" if self.use_firejail else "pure-Python"
+        backend = "firejail" if self.use_firejail else "pure-Python"
         fallback = "allowed" if allow_firejail_fallback else "disabled (secure)"
         print(f"  [Sandbox] Directory : {self.sandbox}")
         print(f"  [Sandbox] Backend   : {backend}  (fallback: {fallback})")
@@ -97,14 +105,12 @@ class SandboxedFileStore:
         Validate filename and resolve to an absolute path inside the sandbox.
         v3: delegates to _validate_filename() for FIX 4 checks.
         """
-        clean     = _validate_filename(filename)
+        clean = _validate_filename(filename)
         candidate = (self.sandbox / clean).resolve()
         try:
             candidate.relative_to(self.sandbox)
         except ValueError:
-            raise ValueError(
-                f"Path traversal detected: '{filename}' resolves outside the sandbox."
-            )
+            raise ValueError(f"Path traversal detected: '{filename}' resolves outside the sandbox.")
         return candidate
 
     def _check_extension(self, path: Path) -> None:
@@ -122,8 +128,8 @@ class SandboxedFileStore:
             return "The sandbox directory is empty."
         lines = [f"Files in sandbox ({self.sandbox}):"]
         for f in files:
-            size     = f.stat().st_size
-            size_str = f"{size:,} bytes" if size < 1024 else f"{size/1024:.1f} KB"
+            size = f.stat().st_size
+            size_str = f"{size:,} bytes" if size < 1024 else f"{size / 1024:.1f} KB"
             lines.append(f"  {f.name:<40} {size_str}")
         return "\n".join(lines)
 
@@ -139,8 +145,8 @@ class SandboxedFileStore:
         size = path.stat().st_size
         if size > MAX_READ_BYTES:
             return (
-                f"Error: File '{filename}' is {size/1024:.1f} KB, "
-                f"exceeds read limit of {MAX_READ_BYTES//1024} KB."
+                f"Error: File '{filename}' is {size / 1024:.1f} KB, "
+                f"exceeds read limit of {MAX_READ_BYTES // 1024} KB."
             )
         try:
             return path.read_text(encoding="utf-8")
@@ -156,7 +162,7 @@ class SandboxedFileStore:
         except ValueError as e:
             return f"Error: {e}"
         if len(content.encode("utf-8")) > MAX_WRITE_BYTES:
-            return f"Error: Content exceeds write limit of {MAX_WRITE_BYTES//1024} KB."
+            return f"Error: Content exceeds write limit of {MAX_WRITE_BYTES // 1024} KB."
         path.parent.mkdir(parents=True, exist_ok=True)
         mode = "a" if append else "w"
         if self.use_firejail:
@@ -195,25 +201,36 @@ class SandboxedFileStore:
         v3 (FIX 5): failure is logged clearly; fallback requires explicit opt-in.
         """
         import base64
+
         encoded = base64.b64encode(content.encode("utf-8")).decode("ascii")
-        helper  = (
+        helper = (
             f"import base64; "
             f"content = base64.b64decode('{encoded}').decode('utf-8'); "
             f"open('{path}', '{mode}', encoding='utf-8').write(content); "
             f"print('OK')"
         )
         cmd = [
-            "firejail", "--quiet", "--private-tmp", "--noroot",
-            "--nosound", "--nodvd", "--no3d",
-            f"--whitelist={self.sandbox}", "--read-only=/",
-            "python3", "-c", helper,
+            "firejail",
+            "--quiet",
+            "--private-tmp",
+            "--noroot",
+            "--nosound",
+            "--nodvd",
+            "--no3d",
+            f"--whitelist={self.sandbox}",
+            "--read-only=/",
+            "python3",
+            "-c",
+            helper,
         ]
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=10, shell=False)
             if result.returncode != 0:
                 return self._handle_firejail_failure(
-                    path, content, mode,
-                    reason=f"exited with code {result.returncode}: {result.stderr.strip()[:200]}"
+                    path,
+                    content,
+                    mode,
+                    reason=f"exited with code {result.returncode}: {result.stderr.strip()[:200]}",
                 )
             verb = "Appended to" if mode == "a" else "Wrote"
             return f"{verb} '{path.name}' in sandbox via firejail ({len(content)} chars)."
@@ -280,25 +297,31 @@ SANDBOX_FILE_TOOL_SCHEMA = {
 
 
 def dispatch_sandbox_file_tool(args: dict, store: SandboxedFileStore) -> str:
-    op       = args.get("operation", "").strip().lower()
-    filename = args.get("filename",  "")
-    content  = args.get("content",   "")
+    op = args.get("operation", "").strip().lower()
+    filename = args.get("filename", "")
+    content = args.get("content", "")
 
     if op == "list":
         return store.list_files()
     elif op == "read":
-        if not filename: return "Error: 'read' requires a 'filename'."
+        if not filename:
+            return "Error: 'read' requires a 'filename'."
         return store.read_file(filename)
     elif op == "write":
-        if not filename: return "Error: 'write' requires a 'filename'."
-        if content == "": return "Error: 'write' requires 'content'."
+        if not filename:
+            return "Error: 'write' requires a 'filename'."
+        if content == "":
+            return "Error: 'write' requires 'content'."
         return store.write_file(filename, content, append=False)
     elif op == "append":
-        if not filename: return "Error: 'append' requires a 'filename'."
-        if content == "": return "Error: 'append' requires 'content'."
+        if not filename:
+            return "Error: 'append' requires a 'filename'."
+        if content == "":
+            return "Error: 'append' requires 'content'."
         return store.write_file(filename, content, append=True)
     elif op == "delete":
-        if not filename: return "Error: 'delete' requires a 'filename'."
+        if not filename:
+            return "Error: 'delete' requires a 'filename'."
         return store.delete_file(filename)
     else:
         return f"Error: Unknown file operation '{op}'. Use list, read, write, append, or delete."

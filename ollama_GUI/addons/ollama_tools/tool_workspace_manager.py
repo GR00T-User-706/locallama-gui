@@ -28,15 +28,24 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-MAX_FILE_BYTES    = 128 * 1024   # 128 KB per file
-MAX_PROJECT_NAME  = 64
-MAX_FILENAME_LEN  = 128
-_BAD_NAME_RE      = re.compile(r'[/\x00-\x1f\x7f]')
+MAX_FILE_BYTES = 128 * 1024  # 128 KB per file
+MAX_PROJECT_NAME = 64
+MAX_FILENAME_LEN = 128
+_BAD_NAME_RE = re.compile(r"[/\x00-\x1f\x7f]")
 
 BLOCKED_EXTENSIONS = {
-    ".sh", ".bash", ".zsh", ".fish",
-    ".py", ".pl", ".rb", ".php",
-    ".elf", ".so", ".out", ".desktop",
+    ".sh",
+    ".bash",
+    ".zsh",
+    ".fish",
+    ".py",
+    ".pl",
+    ".rb",
+    ".php",
+    ".elf",
+    ".so",
+    ".out",
+    ".desktop",
 }
 
 
@@ -73,14 +82,14 @@ class WorkspaceManagerStore:
     """
 
     def __init__(self, sandbox: Path):
-        self.sandbox    = Path(sandbox).resolve()
+        self.sandbox = Path(sandbox).resolve()
         self.workspaces = self.sandbox / "workspaces"
         self.workspaces.mkdir(parents=True, exist_ok=True)
 
     # ---- helpers ----
 
     def _project_dir(self, project: str) -> Path:
-        name      = _validate_project_name(project)
+        name = _validate_project_name(project)
         candidate = (self.workspaces / name).resolve()
         try:
             candidate.relative_to(self.workspaces.resolve())
@@ -89,7 +98,7 @@ class WorkspaceManagerStore:
         return candidate
 
     def _file_path(self, project_dir: Path, filename: str) -> Path:
-        clean     = _validate_filename(filename)
+        clean = _validate_filename(filename)
         candidate = (project_dir / clean).resolve()
         try:
             candidate.relative_to(project_dir.resolve())
@@ -105,10 +114,10 @@ class WorkspaceManagerStore:
             return f"Error: Project '{project}' already exists."
         pd.mkdir(parents=True)
         meta = {
-            "project":     project,
+            "project": project,
             "description": description,
-            "created":     datetime.now().isoformat(timespec="seconds"),
-            "files":       [],
+            "created": datetime.now().isoformat(timespec="seconds"),
+            "files": [],
         }
         (pd / ".meta.json").write_text(
             json.dumps(meta, indent=2, ensure_ascii=False), encoding="utf-8"
@@ -123,7 +132,7 @@ class WorkspaceManagerStore:
 
     def read_project_file(self, project: str, filename: str) -> str:
         try:
-            pd   = self._project_dir(project)
+            pd = self._project_dir(project)
             path = self._file_path(pd, filename)
         except ValueError as e:
             return f"Error: {e}"
@@ -135,7 +144,7 @@ class WorkspaceManagerStore:
             return f"Error: '{filename}' is not a regular file."
         size = path.stat().st_size
         if size > MAX_FILE_BYTES:
-            return f"Error: File '{filename}' is {size//1024} KB, exceeds read limit of {MAX_FILE_BYTES//1024} KB."
+            return f"Error: File '{filename}' is {size // 1024} KB, exceeds read limit of {MAX_FILE_BYTES // 1024} KB."
         try:
             return path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
@@ -143,14 +152,14 @@ class WorkspaceManagerStore:
 
     def write_project_file(self, project: str, filename: str, content: str) -> str:
         try:
-            pd   = self._project_dir(project)
+            pd = self._project_dir(project)
             path = self._file_path(pd, filename)
         except ValueError as e:
             return f"Error: {e}"
         if not pd.exists():
             return f"Error: Project '{project}' does not exist. Use create_project first."
         if len(content.encode("utf-8")) > MAX_FILE_BYTES:
-            return f"Error: Content exceeds max file size ({MAX_FILE_BYTES//1024} KB)."
+            return f"Error: Content exceeds max file size ({MAX_FILE_BYTES // 1024} KB)."
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
         return f"Wrote '{filename}' in project '{project}' ({len(content)} chars)."
@@ -168,7 +177,7 @@ class WorkspaceManagerStore:
         lines = [f"Snapshot of project '{project}':"]
         total = 0
         for f in files:
-            rel  = f.relative_to(pd)
+            rel = f.relative_to(pd)
             size = f.stat().st_size
             total += size
             lines.append(f"  {str(rel):<48} {size:>8,} bytes")
@@ -195,16 +204,24 @@ WORKSPACE_MANAGER_TOOL_SCHEMA = {
                 "operation": {
                     "type": "string",
                     "enum": [
-                        "create_project", "list_projects",
-                        "read_project_file", "write_project_file",
+                        "create_project",
+                        "list_projects",
+                        "read_project_file",
+                        "write_project_file",
                         "snapshot_project",
                     ],
                     "description": "The workspace operation to perform.",
                 },
-                "project":     {"type": "string", "description": "Project name."},
-                "description": {"type": "string", "description": "Project description (create_project only)."},
-                "filename":    {"type": "string", "description": "File name within the project."},
-                "content":     {"type": "string", "description": "File content (write_project_file only)."},
+                "project": {"type": "string", "description": "Project name."},
+                "description": {
+                    "type": "string",
+                    "description": "Project description (create_project only).",
+                },
+                "filename": {"type": "string", "description": "File name within the project."},
+                "content": {
+                    "type": "string",
+                    "description": "File content (write_project_file only).",
+                },
             },
             "required": ["operation"],
         },
@@ -213,25 +230,32 @@ WORKSPACE_MANAGER_TOOL_SCHEMA = {
 
 
 def dispatch_workspace_manager_tool(args: dict, store: WorkspaceManagerStore) -> str:
-    op      = args.get("operation", "").strip().lower()
-    project = args.get("project",  "")
+    op = args.get("operation", "").strip().lower()
+    project = args.get("project", "")
     try:
         if op == "create_project":
-            if not project: return "Error: 'create_project' requires 'project'."
+            if not project:
+                return "Error: 'create_project' requires 'project'."
             return store.create_project(project, args.get("description", ""))
         elif op == "list_projects":
             return store.list_projects()
         elif op == "read_project_file":
-            if not project:              return "Error: 'read_project_file' requires 'project'."
-            if not args.get("filename"): return "Error: 'read_project_file' requires 'filename'."
+            if not project:
+                return "Error: 'read_project_file' requires 'project'."
+            if not args.get("filename"):
+                return "Error: 'read_project_file' requires 'filename'."
             return store.read_project_file(project, args["filename"])
         elif op == "write_project_file":
-            if not project:              return "Error: 'write_project_file' requires 'project'."
-            if not args.get("filename"): return "Error: 'write_project_file' requires 'filename'."
-            if args.get("content") is None: return "Error: 'write_project_file' requires 'content'."
+            if not project:
+                return "Error: 'write_project_file' requires 'project'."
+            if not args.get("filename"):
+                return "Error: 'write_project_file' requires 'filename'."
+            if args.get("content") is None:
+                return "Error: 'write_project_file' requires 'content'."
             return store.write_project_file(project, args["filename"], args["content"])
         elif op == "snapshot_project":
-            if not project: return "Error: 'snapshot_project' requires 'project'."
+            if not project:
+                return "Error: 'snapshot_project' requires 'project'."
             return store.snapshot_project(project)
         else:
             return f"Error: Unknown workspace_manager operation '{op}'."

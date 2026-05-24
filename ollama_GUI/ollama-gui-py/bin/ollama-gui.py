@@ -36,18 +36,21 @@ class OllamaApp:
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         # Check if server is running; start it if needed
         self.check_and_start_server()
+
     # ---------------- Mode toggle ----------------
 
     def toggle_mode(self):
         """Toggle between online/offline mode and restart server if needed"""
         self.current_mode = "online" if self.mode_var_menu.get() else "offline"
         self.update_output(f"[Switched to {self.current_mode.upper()} mode]\n")
-        self.status_label.config(text=(
-            f"🟢 {self.current_mode.capitalize()
-        }"
-        if self.current_mode == "online" else "🟡 Offline"
-        ),
-        fg="green" if self.current_mode == "online" else "orange",)
+        self.status_label.config(
+            text=(
+                f"🟢 {self.current_mode.capitalize()}"
+                if self.current_mode == "online"
+                else "🟡 Offline"
+            ),
+            fg="green" if self.current_mode == "online" else "orange",
+        )
         # Stop current Ollama process if running
         self.stop_ollama()
         # Start server in new mode
@@ -62,7 +65,9 @@ class OllamaApp:
                 self.root.after(0, lambda: self.set_chat_enabled(True))
 
                 if models:
-                    self.root.after(0, lambda: self.update_output(f"[Models: {', '.join(models)}]\n"))
+                    self.root.after(
+                        0, lambda: self.update_output(f"[Models: {', '.join(models)}]\n")
+                    )
             else:
                 self.root.after(0, lambda: self.update_output("[ERROR: Server failed to start]\n"))
                 self.root.after(0, lambda: self.set_chat_enabled(False))
@@ -98,15 +103,21 @@ class OllamaApp:
         # Parameters submenu
         params_menu = tk.Menu(models_menu, tearoff=0)
         models_menu.add_cascade(label="Set Parameters", menu=params_menu)
-        params_menu.add_command(label="Temperature...", command=lambda: self.set_param("temperature"))
+        params_menu.add_command(
+            label="Temperature...", command=lambda: self.set_param("temperature")
+        )
         params_menu.add_command(label="Top P...", command=lambda: self.set_param("top_p"))
-        params_menu.add_command(label="Context Length...", command=lambda: self.set_param("num_ctx"))
+        params_menu.add_command(
+            label="Context Length...", command=lambda: self.set_param("num_ctx")
+        )
         # Settings menu
         settings_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Settings", menu=settings_menu)
         # Mode toggle (checkbutton)
         self.mode_var_menu = tk.BooleanVar(value=False)  # False = offline, True = online
-        settings_menu.add_checkbutton(label="Online Mode", variable=self.mode_var_menu, command=self.toggle_mode)
+        settings_menu.add_checkbutton(
+            label="Online Mode", variable=self.mode_var_menu, command=self.toggle_mode
+        )
         settings_menu.add_separator()
         settings_menu.add_command(label="Server Options...", command=self.server_options)
         # Help menu
@@ -141,7 +152,8 @@ class OllamaApp:
         self.sys_prompt.config(state=state)
         self.entry.config(state=state)
         self.btn.config(state=state if enabled else "disabled")
-# ---------------- Ollama server management ----------------
+
+    # ---------------- Ollama server management ----------------
 
     def start_ollama(self, mode):
         env = os.environ.copy()
@@ -184,11 +196,15 @@ class OllamaApp:
                 self.root.after(0, lambda: self.status_label.config(text="🟢 Running", fg="green"))
                 self.root.after(0, lambda: self.set_chat_enabled(True))
                 if models:
-                    self.root.after(0, lambda: self.update_output(f"[Models: {', '.join(models)}]\n"),)
+                    self.root.after(
+                        0,
+                        lambda: self.update_output(f"[Models: {', '.join(models)}]\n"),
+                    )
             else:
                 self.root.after(0, lambda: self.update_output("[ERROR: Server failed to start]\n"))
                 self.root.after(0, lambda: self.status_label.config(text="🔴 Failed", fg="red"))
                 self.root.after(0, lambda: self.set_chat_enabled(False))
+
         threading.Thread(target=do_start, daemon=True).start()
 
     def restart_server_dialog(self):
@@ -198,10 +214,20 @@ class OllamaApp:
     # ---------------- Chat & API ----------------
     def generate(self, prompt, model, system_prompt):
         try:
-            r = requests.post(API_URL,json={"model": model,"messages": [{"role": "system", "content": system_prompt},{"role": "user", "content": prompt},],"stream": True,},)
+            r = requests.post(
+                API_URL,
+                json={
+                    "model": model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "stream": True,
+                },
+            )
             return r.json()["message"]["content"]
         except Exception as e:
-            return (f"[ERROR] {e}")
+            return f"[ERROR] {e}"
 
     def update_output(self, result):
         self.output.insert(tk.END, f"{result}\n")
@@ -255,7 +281,7 @@ class OllamaApp:
             return []
 
     def load_model_params(self, model):
-        config_path = (f"/home/lykthornyx/.ollama/models/manifests/registry.ollama.ai/library/{model}/config.json")
+        config_path = f"/home/lykthornyx/.ollama/models/manifests/registry.ollama.ai/library/{model}/config.json"
         if os.path.exists(config_path):
             with open(config_path, "r") as f:
                 cfg = json.load(f)
@@ -265,7 +291,7 @@ class OllamaApp:
         else:
             self.temperature = 0.7
             self.top_p = 0.9
-            self.num_ctx = 8192 # 16384
+            self.num_ctx = 8192  # 16384
 
     def refresh_model_menu(self, models):
         if models:
@@ -273,9 +299,7 @@ class OllamaApp:
             self.load_model_params(models[0])
             self.menu["menu"].delete(0, "end")
         for m in models:
-            self.menu["menu"].add_command(
-                label=m, command=lambda v=m: self.model_var.set(v)
-            )
+            self.menu["menu"].add_command(label=m, command=lambda v=m: self.model_var.set(v))
 
     def load_ai_monitor_module(self):
         """Load the bundled AI process monitor module from ai-mon.py."""
@@ -358,9 +382,7 @@ class OllamaApp:
                         ["ollama", "pull", model], capture_output=True, text=True
                     )
                     if process.returncode == 0:
-                        self.root.after(
-                            0, lambda: self.update_output(f"[Pulled {model}]\n")
-                        )
+                        self.root.after(0, lambda: self.update_output(f"[Pulled {model}]\n"))
                         self.root.after(0, self.refresh_models)
                     else:
                         self.root.after(
@@ -411,11 +433,21 @@ class OllamaApp:
                     self.root.after(0, lambda: self.update_output("\n".join(lines) + "\n"))
                 if "details" in data:
                     details = data["details"]
-                    self.root.after(0, lambda: self.update_output(f"\nFormat: {details.get('format', 'N/A')}\n"))
-                    self.root.after(0, lambda: self.update_output(f"Family: {details.get('family', 'N/A')}\n"))
-                    self.root.after(0, lambda: self.update_output(f"Parameter size: {details.get('parameter_size', 'N/A')}\n"))
+                    self.root.after(
+                        0, lambda: self.update_output(f"\nFormat: {details.get('format', 'N/A')}\n")
+                    )
+                    self.root.after(
+                        0, lambda: self.update_output(f"Family: {details.get('family', 'N/A')}\n")
+                    )
+                    self.root.after(
+                        0,
+                        lambda: self.update_output(
+                            f"Parameter size: {details.get('parameter_size', 'N/A')}\n"
+                        ),
+                    )
             except Exception as e:
-                self.root.after(0, lambda: self.update_output(f"Error: {e}\n"))
+                error_msg = str(e)
+                self.root.after(0, lambda: self.update_output(f"Error: {error_msg}\n"))
 
         threading.Thread(target=get_info, daemon=True).start()
 
@@ -424,7 +456,7 @@ class OllamaApp:
         dialog.title(f"Set {param}")
         dialog.geometry("300x100")
         tk.Label(dialog, text=f"{param} value:").pack(pady=5)
-        default = ("0.7" if param == "temperature" else "0.9" if param == "top_p" else "8192")
+        default = "0.7" if param == "temperature" else "0.9" if param == "top_p" else "8192"
         entry = tk.Entry(dialog)
         entry.insert(0, default)
         entry.pack(pady=5)
@@ -436,7 +468,7 @@ class OllamaApp:
             if not model:
                 self.update_output("[No model selected]\n")
                 return
-            config_path = (f"/home/lykthornyx/.ollama/models/manifests/registry.ollama.ai/library/{model}/config.json")
+            config_path = f"/home/lykthornyx/.ollama/models/manifests/registry.ollama.ai/library/{model}/config.json"
             cfg = {}
             if os.path.exists(config_path):
                 with open(config_path, "r") as f:
@@ -454,14 +486,23 @@ class OllamaApp:
         dialog.geometry("400x250")
         tk.Label(dialog, text="Server Configuration", font=("Arial", 12, "bold")).pack(pady=5)
         tk.Label(dialog, text=f"OLLAMA_HOST: 127.0.0.1:11434").pack(anchor="w", padx=10, pady=2)
-        tk.Label(dialog, text=f"Current mode: {self.current_mode}").pack(anchor="w", padx=10, pady=2)
-        path = ("/home/lykthornyx/.ollama/models" if self.current_mode == "offline" else "~/.ollama/models")
+        tk.Label(dialog, text=f"Current mode: {self.current_mode}").pack(
+            anchor="w", padx=10, pady=2
+        )
+        path = (
+            "/home/lykthornyx/.ollama/models"
+            if self.current_mode == "offline"
+            else "~/.ollama/models"
+        )
         tk.Label(dialog, text=f"Models path: {path}").pack(anchor="w", padx=10, pady=2)
         status = "Running" if self.ollama_proc else "Stopped"
         tk.Label(dialog, text=f"Server status: {status}").pack(anchor="w", padx=10, pady=10)
 
     def about(self):
-        messagebox.showinfo("About","Local LLM Interface\n\nOllama frontend\nRuns completely offline\nModels stored locally",)
+        messagebox.showinfo(
+            "About",
+            "Local LLM Interface\n\nOllama frontend\nRuns completely offline\nModels stored locally",
+        )
 
     def on_closing(self):
         self.stop_ollama()

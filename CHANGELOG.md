@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2 - 2026-05-24
+
+### Fixed
+- Fixed Ruff E701 lint errors caused by one-line conditional return statements.
+- Fixed Ruff F821 lambda exception capture issue in `ollama_GUI/ollama-gui-py/bin/ollama-gui.py`.
+- CI lint job should now pass.
+
 ## 1.0.1 - 2026-05-24
 
 ### Added
