@@ -100,6 +100,7 @@ class UISettings:
     geometry_hex: str = ""
     state_hex: str = ""
     active_session_id: str = ""
+    font_size: int = 12
 
 
 @dataclass(slots=True)

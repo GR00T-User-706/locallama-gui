@@ -7,7 +7,7 @@ from typing import Any
 from dataclasses import asdict
 
 import psutil
-from PySide6.QtCore import QByteArray, Qt
+from PySide6.QtCore import QByteArray, Qt, Signal
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
@@ -55,7 +55,7 @@ from locallama_gui.ui.dialogs import (
     PluginManagerDialog,
     PromptManagerDialog,
 )
-from locallama_gui.ui.theme import DARK_QSS
+from locallama_gui.ui.theme import DARK_QSS, dark_qss
 from locallama_gui.ui.workers import AsyncTask, StreamTask
 
 LOG = logging.getLogger(__name__)
@@ -67,8 +67,8 @@ class ChatTab(QWidget):
         self.session = session
         self.chat = QTextEdit()
         self.chat.setReadOnly(True)
-        self.input = QPlainTextEdit()
-        self.input.setPlaceholderText("Write a message. Ctrl+Enter sends.")
+        self.input = ComposerTextEdit()
+        self.input.setPlaceholderText("Write a message. Press Ctrl+Enter (or Ctrl+Return) to send.")
         self.input.setMaximumHeight(140)
         self.streaming = QCheckBox("Stream")
         self.streaming.setChecked(True)
@@ -113,13 +113,48 @@ class ChatTab(QWidget):
         self.chat.verticalScrollBar().setValue(self.chat.verticalScrollBar().maximum())
 
 
+
+
+class ComposerTextEdit(QPlainTextEdit):
+    send_requested = Signal()
+    zoom_requested = Signal(int)
+
+    def keyPressEvent(self, event) -> None:
+        if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+                self.send_requested.emit()
+                event.accept()
+                return
+            if event.key() in (Qt.Key.Key_Plus, Qt.Key.Key_Equal):
+                self.zoom_requested.emit(1)
+                event.accept()
+                return
+            if event.key() == Qt.Key.Key_Minus:
+                self.zoom_requested.emit(-1)
+                event.accept()
+                return
+            if event.key() == Qt.Key.Key_0:
+                self.zoom_requested.emit(0)
+                event.accept()
+                return
+        super().keyPressEvent(event)
+
+    def wheelEvent(self, event) -> None:
+        if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            delta = event.angleDelta().y()
+            if delta:
+                self.zoom_requested.emit(1 if delta > 0 else -1)
+                event.accept()
+                return
+        super().wheelEvent(event)
+
 class MainWindow(QMainWindow):
     def __init__(self, config: AppConfig) -> None:
         super().__init__()
         self.config = config
         self.setWindowTitle("LocalLama Control Center")
         self.resize(1440, 900)
-        self.setStyleSheet(DARK_QSS)
+        self.setStyleSheet(dark_qss(self.config.ui.font_size))
         self.sessions = SessionManager(config)
         self.prompts = PromptManager(config)
         self.agents = AgentManager(config)
@@ -274,6 +309,9 @@ class MainWindow(QMainWindow):
         self._menu_action(settings_menu, "Parameters", self.open_parameters)
         self._menu_action(settings_menu, "Themes", self.toggle_theme)
         self._menu_action(settings_menu, "Keyboard Shortcuts", self.show_shortcuts)
+        self._menu_action(settings_menu, "Increase Font Size", lambda: self.adjust_font_size(1), "Ctrl++")
+        self._menu_action(settings_menu, "Decrease Font Size", lambda: self.adjust_font_size(-1), "Ctrl+-")
+        self._menu_action(settings_menu, "Reset Font Size", lambda: self.adjust_font_size(0), "Ctrl+0")
         self._menu_action(settings_menu, "Model Settings", self.refresh_backend)
 
     def _build_view_menu(self) -> None:
@@ -318,6 +356,8 @@ class MainWindow(QMainWindow):
 
     def _wire_chat_tab(self, tab: ChatTab) -> None:
         tab.send.clicked.connect(self.chat_controller.send_message)
+        tab.input.send_requested.connect(self.chat_controller.send_message)
+        tab.input.zoom_requested.connect(self.adjust_font_size)
         tab.stop.clicked.connect(self.stop_generation)
         tab.regen.clicked.connect(self.chat_controller.regenerate)
         tab.retry.clicked.connect(self.chat_controller.retry)
@@ -624,13 +664,26 @@ class MainWindow(QMainWindow):
         self.open_agent_builder()
 
     def toggle_theme(self) -> None:
-        self.setStyleSheet("" if self.styleSheet() else DARK_QSS)
+        self.setStyleSheet("" if self.styleSheet() else dark_qss(self.config.ui.font_size))
 
     def show_shortcuts(self) -> None:
         self._show_text_dialog(
             "Keyboard Shortcuts",
-            "Ctrl+N New Chat\nCtrl+O Open Chat\nCtrl+S Save\nCtrl+Q Exit\nCtrl+Enter Send from composer",
+            "Ctrl+N New Chat\nCtrl+O Open Chat\nCtrl+S Save\nCtrl+Q Exit\n"
+            "Ctrl+Enter Send from composer\n"
+            "Ctrl++ Increase text size\nCtrl+- Decrease text size\nCtrl+0 Reset text size\n"
+            "Ctrl+Mouse Wheel Zoom text in/out",
         )
+
+    def adjust_font_size(self, delta: int) -> None:
+        current = self.config.ui.font_size or 12
+        new_size = 12 if delta == 0 else max(10, min(28, current + delta))
+        if new_size == current:
+            return
+        self.config.ui.font_size = new_size
+        self.setStyleSheet(dark_qss(new_size))
+        self.config.save()
+        self.status.showMessage(f"Font size: {new_size}px")
 
     def toggle_all_docks(self) -> None:
         docks = self.findChildren(QDockWidget)
