@@ -104,7 +104,8 @@ The older experimental Tkinter and Qt5/QML artifacts remain under `ollama_GUI/` 
 
 ## Screenshots
 
-- Placeholder: screenshots will be added in a dedicated UI polish pass.
+<img width="1453" height="979" alt="1_2026_05_24" src="https://github.com/user-attachments/assets/64dca141-3edf-4d59-9093-c78629dcd7e7" />
+<img width="1920" height="1023" alt="2_2026_05_24" src="https://github.com/user-attachments/assets/20f4e35c-8989-4e62-8d90-20255fe75b99" />
 
 ## Versioning and changelog
 
