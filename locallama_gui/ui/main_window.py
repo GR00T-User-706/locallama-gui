@@ -124,19 +124,87 @@ class MainWindow(QMainWindow):
     def add_plugin_panel(self, title: str, widget: QWidget, area: Any = None) -> None:
         self._dock(title, widget, area or Qt.DockWidgetArea.RightDockWidgetArea)
 
+    def _menu_action(self, menu, text, slot, shortcut: str | None = None):
+        action = QAction(text, self)
+        action.triggered.connect(slot)
+        if shortcut:
+            action.setShortcut(QKeySequence(shortcut))
+        menu.addAction(action)
+        return action
+
     def _build_menus(self) -> None:
-        def act(menu, text, slot, shortcut: str | None = None):
-            a = QAction(text, self); a.triggered.connect(slot)
-            if shortcut: a.setShortcut(QKeySequence(shortcut))
-            menu.addAction(a); return a
-        file = self.menuBar().addMenu("File"); act(file, "New Chat", self.new_chat, "Ctrl+N"); act(file, "Open Chat", lambda: self.chat_controller.open_chat_file(self), "Ctrl+O"); act(file, "Save", self.chat_controller.save_current, "Ctrl+S"); act(file, "Save As", self.save_as); act(file, "Export", self.export_current); act(file, "Import", self.import_chat); file.addSeparator(); act(file, "Exit", self.close, "Ctrl+Q")
-        models = self.menuBar().addMenu("Models"); act(models, "Pull", lambda: self.model_controller.pull_model(self)); act(models, "Push", lambda: self.model_controller.push_model(self)); act(models, "Clone", lambda: self.model_controller.clone_model(self)); act(models, "Create", self.model_controller.create_model); act(models, "Delete", lambda: self.model_controller.delete_model(self)); act(models, "Modelfiles", self.open_modelfile_editor); act(models, "Templates", self.open_template_viewer)
-        agents = self.menuBar().addMenu("Agents"); act(agents, "Create", self.open_agent_builder); act(agents, "Manage", self.open_agent_builder); act(agents, "Import", self.import_agent); act(agents, "Export", self.export_agent)
-        plugins = self.menuBar().addMenu("Plugins"); act(plugins, "Plugin Manager", self.open_plugins); act(plugins, "Install", lambda: self.plugin_controller.install_plugin(self)); act(plugins, "Reload", self.plugin_controller.reload_plugins); act(plugins, "Developer Mode", self.open_plugin_docs)
-        settings = self.menuBar().addMenu("Settings"); act(settings, "API Endpoints", self.open_endpoints); act(settings, "Parameters", self.open_parameters); act(settings, "Themes", self.toggle_theme); act(settings, "Keyboard Shortcuts", self.show_shortcuts); act(settings, "Model Settings", self.refresh_backend)
-        view = self.menuBar().addMenu("View"); act(view, "Toggle Panels", self.toggle_all_docks); act(view, "Layout Presets", self.reset_layout); act(view, "Logs", lambda: self.log_view.parent().show()); act(view, "Terminal", lambda: self.terminal.parent().show())
-        dev = self.menuBar().addMenu("Developer"); act(dev, "Logs", lambda: self.log_view.parent().show()); act(dev, "Request Viewer", lambda: self.request_view.parent().show()); act(dev, "Token Viewer", lambda: self.token_view.parent().show()); act(dev, "API Inspector", self.inspect_api); act(dev, "Debug Console", lambda: self.terminal.parent().show())
-        helpm = self.menuBar().addMenu("Help"); act(helpm, "Documentation", self.open_docs); act(helpm, "About", self.about); act(helpm, "Diagnostics", self.diagnostics)
+        self._build_file_menu()
+        self._build_models_menu()
+        self._build_agents_menu()
+        self._build_plugins_menu()
+        self._build_settings_menu()
+        self._build_view_menu()
+        self._build_developer_menu()
+        self._build_help_menu()
+
+    def _build_file_menu(self) -> None:
+        file_menu = self.menuBar().addMenu("File")
+        self._menu_action(file_menu, "New Chat", self.new_chat, "Ctrl+N")
+        self._menu_action(file_menu, "Open Chat", lambda: self.chat_controller.open_chat_file(self), "Ctrl+O")
+        self._menu_action(file_menu, "Save", self.chat_controller.save_current, "Ctrl+S")
+        self._menu_action(file_menu, "Save As", self.save_as)
+        self._menu_action(file_menu, "Export", self.export_current)
+        self._menu_action(file_menu, "Import", self.import_chat)
+        file_menu.addSeparator()
+        self._menu_action(file_menu, "Exit", self.close, "Ctrl+Q")
+
+    def _build_models_menu(self) -> None:
+        models_menu = self.menuBar().addMenu("Models")
+        self._menu_action(models_menu, "Pull", lambda: self.model_controller.pull_model(self))
+        self._menu_action(models_menu, "Push", lambda: self.model_controller.push_model(self))
+        self._menu_action(models_menu, "Clone", lambda: self.model_controller.clone_model(self))
+        self._menu_action(models_menu, "Create", self.model_controller.create_model)
+        self._menu_action(models_menu, "Delete", lambda: self.model_controller.delete_model(self))
+        self._menu_action(models_menu, "Modelfiles", self.open_modelfile_editor)
+        self._menu_action(models_menu, "Templates", self.open_template_viewer)
+
+    def _build_agents_menu(self) -> None:
+        agents_menu = self.menuBar().addMenu("Agents")
+        self._menu_action(agents_menu, "Create", self.open_agent_builder)
+        self._menu_action(agents_menu, "Manage", self.open_agent_builder)
+        self._menu_action(agents_menu, "Import", self.import_agent)
+        self._menu_action(agents_menu, "Export", self.export_agent)
+
+    def _build_plugins_menu(self) -> None:
+        plugins_menu = self.menuBar().addMenu("Plugins")
+        self._menu_action(plugins_menu, "Plugin Manager", self.open_plugins)
+        self._menu_action(plugins_menu, "Install", lambda: self.plugin_controller.install_plugin(self))
+        self._menu_action(plugins_menu, "Reload", self.plugin_controller.reload_plugins)
+        self._menu_action(plugins_menu, "Developer Mode", self.open_plugin_docs)
+
+    def _build_settings_menu(self) -> None:
+        settings_menu = self.menuBar().addMenu("Settings")
+        self._menu_action(settings_menu, "API Endpoints", self.open_endpoints)
+        self._menu_action(settings_menu, "Parameters", self.open_parameters)
+        self._menu_action(settings_menu, "Themes", self.toggle_theme)
+        self._menu_action(settings_menu, "Keyboard Shortcuts", self.show_shortcuts)
+        self._menu_action(settings_menu, "Model Settings", self.refresh_backend)
+
+    def _build_view_menu(self) -> None:
+        view_menu = self.menuBar().addMenu("View")
+        self._menu_action(view_menu, "Toggle Panels", self.toggle_all_docks)
+        self._menu_action(view_menu, "Layout Presets", self.reset_layout)
+        self._menu_action(view_menu, "Logs", lambda: self.log_view.parent().show())
+        self._menu_action(view_menu, "Terminal", lambda: self.terminal.parent().show())
+
+    def _build_developer_menu(self) -> None:
+        developer_menu = self.menuBar().addMenu("Developer")
+        self._menu_action(developer_menu, "Logs", lambda: self.log_view.parent().show())
+        self._menu_action(developer_menu, "Request Viewer", lambda: self.request_view.parent().show())
+        self._menu_action(developer_menu, "Token Viewer", lambda: self.token_view.parent().show())
+        self._menu_action(developer_menu, "API Inspector", self.inspect_api)
+        self._menu_action(developer_menu, "Debug Console", lambda: self.terminal.parent().show())
+
+    def _build_help_menu(self) -> None:
+        help_menu = self.menuBar().addMenu("Help")
+        self._menu_action(help_menu, "Documentation", self.open_docs)
+        self._menu_action(help_menu, "About", self.about)
+        self._menu_action(help_menu, "Diagnostics", self.diagnostics)
 
     def current_tab(self) -> ChatTab | None:
         w = self.tabs.currentWidget(); return w if isinstance(w, ChatTab) else None
@@ -159,7 +227,8 @@ class MainWindow(QMainWindow):
 
 
     def close_tab(self, idx: int) -> None:
-        if self.tabs.count() > 1: self.tabs.removeTab(idx)
+        if self.tabs.count() > 1:
+            self.tabs.removeTab(idx)
 
     def _generate(self, tab: ChatTab) -> None:
         profile = self.config.active_profile(); backend = create_backend(profile); model = self.model_combo.currentText() or profile.default_model
@@ -187,11 +256,14 @@ class MainWindow(QMainWindow):
         self.status.showMessage("idle"); self.sessions.save(tab.session); self.refresh_sessions(); tab.render()
 
     def stop_generation(self) -> None:
-        if self.current_stream: self.current_stream.cancel(); self.status.showMessage("idle")
+        if self.current_stream:
+            self.current_stream.cancel()
+            self.status.showMessage("idle")
 
     def model_changed(self, text: str) -> None:
         tab = self.current_tab()
-        if tab: tab.session.model = text
+        if tab:
+            tab.session.model = text
 
     def refresh_backend(self) -> None:
         profile = self.config.active_profile(); self.status.showMessage(f"testing {profile.base_url}")
@@ -201,14 +273,42 @@ class MainWindow(QMainWindow):
         task = AsyncTask(work); self.worker_refs.append(task); task.result.connect(self._backend_refreshed); task.error.connect(lambda e: self.log(f"Backend refresh error: {e}")); task.start()
 
     def _backend_refreshed(self, result: Any) -> None:
-        status, self.models = result; self.status.showMessage(f"{status.state} | {status.latency_ms:.0f} ms | {self.config.active_profile().base_url}"); self.log(f"Backend {status.state}: {status.detail}")
-        self.model_combo.blockSignals(True); self.model_combo.clear(); self.model_combo.addItems([m.name for m in self.models]); self.model_combo.blockSignals(False)
+        status, self.models = result
+        self._update_backend_status(status.state, status.latency_ms, status.detail)
+        self._refresh_model_combo()
+        self._refresh_model_table()
+
+    def _update_backend_status(self, state: str, latency_ms: float, detail: str) -> None:
+        self.status.showMessage(f"{state} | {latency_ms:.0f} ms | {self.config.active_profile().base_url}")
+        self.log(f"Backend {state}: {detail}")
+
+    def _refresh_model_combo(self) -> None:
+        self.model_combo.blockSignals(True)
+        self.model_combo.clear()
+        self.model_combo.addItems([model.name for model in self.models])
+        self.model_combo.blockSignals(False)
+
+    def _refresh_model_table(self) -> None:
         self.model_table.setRowCount(0)
-        for m in self.models:
-            r = self.model_table.rowCount(); self.model_table.insertRow(r)
-            ram = m.size_display if m.size else "backend reported"
-            vals = [m.name, m.size_display, m.quantization, m.parameter_size, str(m.context_size or ""), m.backend, ram, json.dumps(m.metadata)[:400]]
-            for c, v in enumerate(vals): self.model_table.setItem(r, c, QTableWidgetItem(v))
+        for model in self.models:
+            self._insert_model_table_row(model)
+
+    def _insert_model_table_row(self, model: ModelInfo) -> None:
+        row = self.model_table.rowCount()
+        self.model_table.insertRow(row)
+        ram = model.size_display if model.size else "backend reported"
+        values = [
+            model.name,
+            model.size_display,
+            model.quantization,
+            model.parameter_size,
+            str(model.context_size or ""),
+            model.backend,
+            ram,
+            json.dumps(model.metadata)[:400],
+        ]
+        for column, value in enumerate(values):
+            self.model_table.setItem(row, column, QTableWidgetItem(value))
 
     def switch_provider(self, name: str) -> None:
         self.config.active_provider = name; self.config.save(); self.refresh_backend()
@@ -222,21 +322,27 @@ class MainWindow(QMainWindow):
     def refresh_prompts(self) -> None:
         self.prompt_list.clear()
         for p in self.prompts.list():
-            self.prompt_list.addItem(("★ " if p.favorite else "") + f"{p.category}: {p.title}"); self.prompt_list.item(self.prompt_list.count()-1).setData(Qt.ItemDataRole.UserRole, p.content)
+            self.prompt_list.addItem(("★ " if p.favorite else "") + f"{p.category}: {p.title}")
+            self.prompt_list.item(self.prompt_list.count()-1).setData(Qt.ItemDataRole.UserRole, p.content)
 
     def apply_prompt_item(self, item) -> None:
         tab = self.current_tab()
-        if not tab: return
+        if not tab:
+            return
         content = item.data(Qt.ItemDataRole.UserRole); tab.session.system_prompt = content
-        if tab.session.messages and tab.session.messages[0].role == "system": tab.session.messages[0].content = content
-        else: tab.session.messages.insert(0, ChatMessage("system", content))
+        if tab.session.messages and tab.session.messages[0].role == "system":
+            tab.session.messages[0].content = content
+        else:
+            tab.session.messages.insert(0, ChatMessage("system", content))
         tab.render()
 
     def save_as(self) -> None:
         tab = self.current_tab();
-        if not tab: return
+        if not tab:
+            return
         path, _ = QFileDialog.getSaveFileName(self, "Save Chat As", f"{tab.session.title}.json", "JSON (*.json)")
-        if path: Path(path).write_text(tab.session.to_json(), encoding="utf-8")
+        if path:
+            Path(path).write_text(tab.session.to_json(), encoding="utf-8")
 
     def open_session(self, session_id: str) -> None:
         session = self.sessions.load(session_id); tab = ChatTab(session); self._wire_chat_tab(tab); self.tabs.addTab(tab, session.title); self.tabs.setCurrentWidget(tab)
@@ -244,9 +350,11 @@ class MainWindow(QMainWindow):
     def import_chat(self) -> None: self.chat_controller.open_chat_file(self)
     def export_current(self) -> None:
         tab = self.current_tab();
-        if not tab: return
+        if not tab:
+            return
         path, selected = QFileDialog.getSaveFileName(self, "Export Chat", f"{tab.session.title}.md", "Markdown (*.md);;JSON (*.json);;Text (*.txt)")
-        if not path: return
+        if not path:
+            return
         p = Path(path)
         content = tab.session.to_json() if p.suffix == ".json" else tab.session.export_text() if p.suffix == ".txt" else tab.session.export_markdown()
         p.write_text(content, encoding="utf-8")
@@ -287,14 +395,18 @@ class MainWindow(QMainWindow):
         task.start()
     def open_template_viewer(self) -> None:
         model = self.model_combo.currentText();
-        if not model: return
+        if not model:
+            return
         async def show(): return await create_backend(self.config.active_profile()).show_model(model)
         task = AsyncTask(show); self.worker_refs.append(task); task.result.connect(lambda data: self._show_text_dialog("Template Viewer", json.dumps(data, indent=2))); task.error.connect(lambda e: QMessageBox.critical(self, "Template Viewer", e)); task.start()
     def _show_text_dialog(self, title: str, text: str) -> None:
         d = QMessageBox(self); d.setWindowTitle(title); d.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse); d.setDetailedText(text); d.setText(text[:1000]); d.exec()
 
     def open_endpoints(self) -> None:
-        if EndpointDialog(self.config, self).exec(): self.provider_combo.clear(); self.provider_combo.addItems([p.name for p in self.config.provider_profiles]); self.refresh_backend()
+        if EndpointDialog(self.config, self).exec():
+            self.provider_combo.clear()
+            self.provider_combo.addItems([p.name for p in self.config.provider_profiles])
+            self.refresh_backend()
     def open_parameters(self) -> None: ParameterDialog(self.config, self).exec()
     def open_plugins(self) -> None: PluginManagerDialog(self.plugins, self).exec()
     def open_plugin_docs(self) -> None: self._show_text_dialog("Plugin SDK", (Path.cwd()/"docs"/"PLUGIN_SDK.md").read_text(encoding="utf-8"))
@@ -315,7 +427,9 @@ class MainWindow(QMainWindow):
         mem = psutil.virtual_memory(); self.terminal.appendPlainText(f"CPU cores: {psutil.cpu_count()}\nRAM: {mem.available/1024**3:.1f} GiB available / {mem.total/1024**3:.1f} GiB total\nConfig: {self.config.file_path}\nData: {self.config.paths.data_dir}\nLogs: {self.config.paths.logs_dir}\n")
     def log(self, text: str) -> None: LOG.info(text); self.log_view.appendPlainText(text)
     def _restore_state(self) -> None:
-        if self.config.ui.geometry_hex: self.restoreGeometry(QByteArray.fromHex(self.config.ui.geometry_hex.encode()))
-        if self.config.ui.state_hex: self.restoreState(QByteArray.fromHex(self.config.ui.state_hex.encode()))
+        if self.config.ui.geometry_hex:
+            self.restoreGeometry(QByteArray.fromHex(self.config.ui.geometry_hex.encode()))
+        if self.config.ui.state_hex:
+            self.restoreState(QByteArray.fromHex(self.config.ui.state_hex.encode()))
     def closeEvent(self, event) -> None:
         self.config.ui.geometry_hex = bytes(self.saveGeometry().toHex()).decode(); self.config.ui.state_hex = bytes(self.saveState().toHex()).decode(); self.config.save(); super().closeEvent(event)
