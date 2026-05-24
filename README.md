@@ -95,3 +95,22 @@ docs/                    # plugin SDK and user documentation
 ## Legacy Code
 
 The older experimental Tkinter and Qt5/QML artifacts remain under `ollama_GUI/` for historical reference. The supported production application is the PySide6 package exposed by `locallama-gui`.
+
+## Troubleshooting
+
+- If model refresh fails, confirm Ollama is running: `ollama serve`.
+- For remote servers, open **Settings → API Endpoints** and verify the base URL.
+- If plugins fail to load, disable untrusted plugins and review diagnostics logs.
+
+## Screenshots
+
+- Placeholder: screenshots will be added in a dedicated UI polish pass.
+
+## Versioning and changelog
+
+This project uses semantic versioning (`MAJOR.MINOR.PATCH`):
+- `PATCH` for fixes/documentation/test improvements.
+- `MINOR` for new backward-compatible features.
+- `MAJOR` for breaking changes.
+
+See `CHANGELOG.md` for release history and `docs/REPO_ANALYSIS.md` for current architecture/cleanup status.
