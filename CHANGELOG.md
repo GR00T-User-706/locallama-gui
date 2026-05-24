@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.8 - 2026-05-24
+
+### Fixed
+- Fixed startup crash in dock creation by building Request Viewer and Token Viewer wrappers before attaching them to `QDockWidget`.
+- Removed invalid `setWidget` calls on plain `QWidget` parents that caused `AttributeError` on launch.
+
 ## 1.0.7 - 2026-05-24
 
 ### Added
