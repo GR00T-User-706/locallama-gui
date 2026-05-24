@@ -8,6 +8,18 @@ from typing import Any
 from platformdirs import user_config_dir, user_data_dir, user_log_dir
 
 APP_NAME = "locallama-gui"
+APP_SYSTEM_PROMPT = """You are running inside LocalLama Control Center, a PySide6 desktop frontend for Ollama.
+
+You are the active local assistant selected by the user through LocalLama.
+
+Answer the user directly.
+Do not explain what Ollama is unless asked.
+Do not ask what frontend the user means when the user is clearly using LocalLama.
+Do not provide generic setup instructions unless the user requests setup help.
+Use the selected model and current conversation context.
+Be concise, useful, and technically accurate.
+When the user asks about LocalLama, treat it as this application.
+When the user asks about models, prompts, parameters, requests, tokens, or logs, assume they are referring to the current LocalLama session unless stated otherwise."""
 
 
 @dataclass(slots=True)
@@ -100,6 +112,7 @@ class UISettings:
     geometry_hex: str = ""
     state_hex: str = ""
     active_session_id: str = ""
+    font_size: int = 12
 
 
 @dataclass(slots=True)
@@ -113,7 +126,7 @@ class AppConfig:
     trusted_plugins: list[str] = field(default_factory=list)
     developer_mode: bool = False
     ui: UISettings = field(default_factory=UISettings)
-    global_system_prompt: str = "You are a helpful, precise assistant."
+    global_system_prompt: str = "You are a helpful, concise assistant."
 
     @property
     def file_path(self) -> Path:
@@ -139,7 +152,7 @@ class AppConfig:
             trusted_plugins=data.get("trusted_plugins", []),
             developer_mode=data.get("developer_mode", False),
             ui=UISettings(**data.get("ui", {})),
-            global_system_prompt=data.get("global_system_prompt", "You are a helpful, precise assistant."),
+            global_system_prompt=data.get("global_system_prompt", "You are a helpful, concise assistant."),
         )
         return cfg
 

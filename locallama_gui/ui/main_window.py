@@ -5,9 +5,10 @@ import logging
 from pathlib import Path
 from typing import Any
 from dataclasses import asdict
+from datetime import datetime
 
 import psutil
-from PySide6.QtCore import QByteArray, Qt
+from PySide6.QtCore import QByteArray, Qt, Signal
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
@@ -37,7 +38,7 @@ from PySide6.QtWidgets import (
 )
 
 from locallama_gui.backends.manager import create_backend
-from locallama_gui.core.config import AppConfig
+from locallama_gui.core.config import APP_SYSTEM_PROMPT, AppConfig
 from locallama_gui.core.domain import ChatMessage, ChatSession, ModelInfo
 from locallama_gui.core.managers import (
     AgentManager,
@@ -55,7 +56,7 @@ from locallama_gui.ui.dialogs import (
     PluginManagerDialog,
     PromptManagerDialog,
 )
-from locallama_gui.ui.theme import DARK_QSS
+from locallama_gui.ui.theme import DARK_QSS, dark_qss
 from locallama_gui.ui.workers import AsyncTask, StreamTask
 
 LOG = logging.getLogger(__name__)
@@ -67,8 +68,8 @@ class ChatTab(QWidget):
         self.session = session
         self.chat = QTextEdit()
         self.chat.setReadOnly(True)
-        self.input = QPlainTextEdit()
-        self.input.setPlaceholderText("Write a message. Ctrl+Enter sends.")
+        self.input = ComposerTextEdit()
+        self.input.setPlaceholderText("Write a message. Press Ctrl+Enter (or Ctrl+Return) to send.")
         self.input.setMaximumHeight(140)
         self.streaming = QCheckBox("Stream")
         self.streaming.setChecked(True)
@@ -95,6 +96,7 @@ class ChatTab(QWidget):
         layout.addWidget(self.input)
         layout.addLayout(row)
         self.render()
+        self.set_generating(False)
 
     def render(self) -> None:
         html = []
@@ -107,11 +109,54 @@ class ChatTab(QWidget):
                 .replace("\n", "<br>")
             )
             html.append(
-                f"<div style='margin:8px 0;padding:8px;border-left:3px solid {colors.get(msg.role, '#ccc')};background:#171a21'><b>{idx + 1}. {msg.role}</b><br>{safe}</div>"
+                f"<div style='margin:10px 0;padding:10px;border-left:3px solid {colors.get(msg.role, '#ccc')};background:#171a21;border-radius:6px'><b>{idx + 1}. {msg.role.upper()}</b><br>{safe}</div>"
             )
         self.chat.setHtml("".join(html))
-        self.chat.verticalScrollBar().setValue(self.chat.verticalScrollBar().maximum())
+        if self.chat.verticalScrollBar().value() >= self.chat.verticalScrollBar().maximum() - 120:
+            self.chat.verticalScrollBar().setValue(self.chat.verticalScrollBar().maximum())
 
+    def set_generating(self, generating: bool) -> None:
+        self.send.setEnabled(not generating)
+        self.stop.setEnabled(generating)
+        self.retry.setEnabled(not generating)
+        self.regen.setEnabled(not generating)
+        self.input.setReadOnly(generating)
+
+
+
+
+class ComposerTextEdit(QPlainTextEdit):
+    send_requested = Signal()
+    zoom_requested = Signal(int)
+
+    def keyPressEvent(self, event) -> None:
+        if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+                self.send_requested.emit()
+                event.accept()
+                return
+            if event.key() in (Qt.Key.Key_Plus, Qt.Key.Key_Equal):
+                self.zoom_requested.emit(1)
+                event.accept()
+                return
+            if event.key() == Qt.Key.Key_Minus:
+                self.zoom_requested.emit(-1)
+                event.accept()
+                return
+            if event.key() == Qt.Key.Key_0:
+                self.zoom_requested.emit(0)
+                event.accept()
+                return
+        super().keyPressEvent(event)
+
+    def wheelEvent(self, event) -> None:
+        if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            delta = event.angleDelta().y()
+            if delta:
+                self.zoom_requested.emit(1 if delta > 0 else -1)
+                event.accept()
+                return
+        super().wheelEvent(event)
 
 class MainWindow(QMainWindow):
     def __init__(self, config: AppConfig) -> None:
@@ -119,7 +164,7 @@ class MainWindow(QMainWindow):
         self.config = config
         self.setWindowTitle("LocalLama Control Center")
         self.resize(1440, 900)
-        self.setStyleSheet(DARK_QSS)
+        self.setStyleSheet(dark_qss(self.config.ui.font_size))
         self.sessions = SessionManager(config)
         self.prompts = PromptManager(config)
         self.agents = AgentManager(config)
@@ -189,9 +234,35 @@ class MainWindow(QMainWindow):
         self.request_view = QPlainTextEdit()
         self.request_view.setReadOnly(True)
         self._dock("Request Viewer", self.request_view, Qt.DockWidgetArea.BottomDockWidgetArea)
+        self.request_copy = QPushButton("Copy Request")
+        self.request_clear = QPushButton("Clear Request")
+        self.request_copy.clicked.connect(lambda: QApplication.clipboard().setText(self.request_view.toPlainText()))
+        self.request_clear.clicked.connect(self.request_view.clear)
+        req_row = QHBoxLayout()
+        req_row.addWidget(self.request_copy)
+        req_row.addWidget(self.request_clear)
+        req_wrap = QWidget()
+        req_layout = QVBoxLayout(req_wrap)
+        req_layout.setContentsMargins(0, 0, 0, 0)
+        req_layout.addWidget(self.request_view)
+        req_layout.addLayout(req_row)
+        self.request_view.parent().setWidget(req_wrap)
         self.token_view = QPlainTextEdit()
         self.token_view.setReadOnly(True)
         self._dock("Token Viewer", self.token_view, Qt.DockWidgetArea.BottomDockWidgetArea)
+        self.token_copy = QPushButton("Copy Tokens")
+        self.token_clear = QPushButton("Clear Tokens")
+        self.token_copy.clicked.connect(lambda: QApplication.clipboard().setText(self.token_view.toPlainText()))
+        self.token_clear.clicked.connect(self.token_view.clear)
+        tok_row = QHBoxLayout()
+        tok_row.addWidget(self.token_copy)
+        tok_row.addWidget(self.token_clear)
+        tok_wrap = QWidget()
+        tok_layout = QVBoxLayout(tok_wrap)
+        tok_layout.setContentsMargins(0, 0, 0, 0)
+        tok_layout.addWidget(self.token_view)
+        tok_layout.addLayout(tok_row)
+        self.token_view.parent().setWidget(tok_wrap)
         self.terminal = QPlainTextEdit()
         self.terminal.setReadOnly(True)
         self.terminal.setPlainText(
@@ -274,6 +345,10 @@ class MainWindow(QMainWindow):
         self._menu_action(settings_menu, "Parameters", self.open_parameters)
         self._menu_action(settings_menu, "Themes", self.toggle_theme)
         self._menu_action(settings_menu, "Keyboard Shortcuts", self.show_shortcuts)
+        self._menu_action(settings_menu, "Default System Prompt", self.edit_default_system_prompt)
+        self._menu_action(settings_menu, "Increase Font Size", lambda: self.adjust_font_size(1), "Ctrl++")
+        self._menu_action(settings_menu, "Decrease Font Size", lambda: self.adjust_font_size(-1), "Ctrl+-")
+        self._menu_action(settings_menu, "Reset Font Size", lambda: self.adjust_font_size(0), "Ctrl+0")
         self._menu_action(settings_menu, "Model Settings", self.refresh_backend)
 
     def _build_view_menu(self) -> None:
@@ -318,6 +393,8 @@ class MainWindow(QMainWindow):
 
     def _wire_chat_tab(self, tab: ChatTab) -> None:
         tab.send.clicked.connect(self.chat_controller.send_message)
+        tab.input.send_requested.connect(self.chat_controller.send_message)
+        tab.input.zoom_requested.connect(self.adjust_font_size)
         tab.stop.clicked.connect(self.stop_generation)
         tab.regen.clicked.connect(self.chat_controller.regenerate)
         tab.retry.clicked.connect(self.chat_controller.retry)
@@ -338,7 +415,8 @@ class MainWindow(QMainWindow):
             return
         tab.session.model = model
         tab.session.provider = profile.name
-        messages = list(tab.session.messages)
+        messages = [ChatMessage("system", APP_SYSTEM_PROMPT)]
+        messages.extend(tab.session.messages)
         for interceptor in self.plugin_context.chat_interceptors:
             messages = interceptor(messages)
         self.request_view.setPlainText(
@@ -355,6 +433,8 @@ class MainWindow(QMainWindow):
             )
         )
         self.status.showMessage("generating" if not tab.streaming.isChecked() else "streaming")
+        tab.set_generating(True)
+        self.token_view.clear()
         assistant = ChatMessage("assistant", "")
         tab.session.messages.append(assistant)
         tab.render()
@@ -380,11 +460,15 @@ class MainWindow(QMainWindow):
 
     def _stream_error(self, error: str) -> None:
         self.status.showMessage("idle")
+        tab = self.current_tab()
+        if tab:
+            tab.set_generating(False)
         self.log(f"Generation error: {error}")
         QMessageBox.critical(self, "Generation Error", error)
 
     def _stream_done(self, tab: ChatTab) -> None:
         self.status.showMessage("idle")
+        tab.set_generating(False)
         self.sessions.save(tab.session)
         self.refresh_sessions()
         tab.render()
@@ -392,7 +476,11 @@ class MainWindow(QMainWindow):
     def stop_generation(self) -> None:
         if self.current_stream:
             self.current_stream.cancel()
+            tab = self.current_tab()
+            if tab:
+                tab.set_generating(False)
             self.status.showMessage("idle")
+            self.log("Generation stopped by user.")
 
     def model_changed(self, text: str) -> None:
         tab = self.current_tab()
@@ -422,8 +510,9 @@ class MainWindow(QMainWindow):
         self._refresh_model_table()
 
     def _update_backend_status(self, state: str, latency_ms: float, detail: str) -> None:
+        model = self.model_combo.currentText() or "(none)"
         self.status.showMessage(
-            f"{state} | {latency_ms:.0f} ms | {self.config.active_profile().base_url}"
+            f"{state} | {latency_ms:.0f} ms | {self.config.active_profile().name} | {model}"
         )
         self.log(f"Backend {state}: {detail}")
 
@@ -604,6 +693,18 @@ class MainWindow(QMainWindow):
     def open_parameters(self) -> None:
         ParameterDialog(self.config, self).exec()
 
+    def edit_default_system_prompt(self) -> None:
+        text, ok = QInputDialog.getMultiLineText(
+            self,
+            "Default System Prompt",
+            "User-editable default system prompt for new chats:",
+            self.config.global_system_prompt,
+        )
+        if ok:
+            self.config.global_system_prompt = text.strip() or "You are a helpful, concise assistant."
+            self.config.save()
+            self.status.showMessage("Default system prompt saved.")
+
     def open_plugins(self) -> None:
         PluginManagerDialog(self.plugins, self).exec()
 
@@ -624,13 +725,26 @@ class MainWindow(QMainWindow):
         self.open_agent_builder()
 
     def toggle_theme(self) -> None:
-        self.setStyleSheet("" if self.styleSheet() else DARK_QSS)
+        self.setStyleSheet("" if self.styleSheet() else dark_qss(self.config.ui.font_size))
 
     def show_shortcuts(self) -> None:
         self._show_text_dialog(
             "Keyboard Shortcuts",
-            "Ctrl+N New Chat\nCtrl+O Open Chat\nCtrl+S Save\nCtrl+Q Exit\nCtrl+Enter Send from composer",
+            "Ctrl+N New Chat\nCtrl+O Open Chat\nCtrl+S Save\nCtrl+Q Exit\n"
+            "Ctrl+Enter Send from composer\n"
+            "Ctrl++ Increase text size\nCtrl+- Decrease text size\nCtrl+0 Reset text size\n"
+            "Ctrl+Mouse Wheel Zoom text in/out",
         )
+
+    def adjust_font_size(self, delta: int) -> None:
+        current = self.config.ui.font_size or 12
+        new_size = 12 if delta == 0 else max(10, min(28, current + delta))
+        if new_size == current:
+            return
+        self.config.ui.font_size = new_size
+        self.setStyleSheet(dark_qss(new_size))
+        self.config.save()
+        self.status.showMessage(f"Font size: {new_size}px")
 
     def toggle_all_docks(self) -> None:
         docks = self.findChildren(QDockWidget)
@@ -666,7 +780,7 @@ class MainWindow(QMainWindow):
 
     def log(self, text: str) -> None:
         LOG.info(text)
-        self.log_view.appendPlainText(text)
+        self.log_view.appendPlainText(f"[{datetime.now().strftime('%H:%M:%S')}] {text}")
 
     def _restore_state(self) -> None:
         if self.config.ui.geometry_hex:
