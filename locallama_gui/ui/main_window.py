@@ -62,6 +62,12 @@ from locallama_gui.ui.workers import AsyncTask, StreamTask
 LOG = logging.getLogger(__name__)
 
 
+def _build_readonly_table_item(value: str) -> QTableWidgetItem:
+    item = QTableWidgetItem(value)
+    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+    return item
+
+
 class ChatTab(QWidget):
     def __init__(self, session: ChatSession) -> None:
         super().__init__()
@@ -540,7 +546,7 @@ class MainWindow(QMainWindow):
             json.dumps(model.metadata)[:400],
         ]
         for column, value in enumerate(values):
-            self.model_table.setItem(row, column, QTableWidgetItem(value))
+            self.model_table.setItem(row, column, _build_readonly_table_item(value))
 
     def switch_provider(self, name: str) -> None:
         self.config.active_provider = name

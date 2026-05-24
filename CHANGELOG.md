@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.9 - 2026-05-24
+
+### Fixed
+- Made model metadata table cells explicitly non-editable while keeping item selection and enabled behavior intact.
+- Kept model lifecycle actions (create/copy/delete) on explicit dialogs/actions rather than inline table edits.
+
 ## 1.0.8 - 2026-05-24
 
 ### Fixed
