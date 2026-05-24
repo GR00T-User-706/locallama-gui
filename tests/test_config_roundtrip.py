@@ -61,3 +61,37 @@ def test_config_load_save_roundtrip(monkeypatch, tmp_path):
     assert loaded.ui.theme == "light"
     assert loaded.ui.active_session_id == "sess-1"
     assert loaded.global_system_prompt == "system"
+
+
+def test_reasoning_mode_persists_in_config(monkeypatch, tmp_path):
+    def _fake_create():
+        base = tmp_path / "app"
+        return AppPaths(
+            config_dir=base / "config",
+            data_dir=base / "data",
+            logs_dir=base / "logs",
+            sessions_dir=base / "data" / "sessions",
+            prompts_dir=base / "data" / "prompts",
+            agents_dir=base / "data" / "agents",
+            modelfiles_dir=base / "data" / "modelfiles",
+            plugins_dir=base / "data" / "plugins",
+        )
+
+    monkeypatch.setattr("locallama_gui.core.config.AppPaths.create", _fake_create)
+    paths = _fake_create()
+    paths.config_dir.mkdir(parents=True, exist_ok=True)
+
+    cfg = AppConfig(paths=paths, parameters=GenerationParameters(reasoning_mode="plan"))
+    cfg.save()
+    loaded = AppConfig.load()
+
+    assert loaded.parameters.reasoning_mode == "plan"
+
+
+def test_reasoning_mode_is_exclusive_via_single_enum():
+    params = GenerationParameters(reasoning_mode="thinking")
+
+    assert params.reasoning_mode == "thinking"
+    assert params.thinking_mode is True
+    assert params.plan_mode is False
+    assert params.normal_mode is False

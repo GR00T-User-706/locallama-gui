@@ -34,6 +34,12 @@ class _FakeAsyncClient:
             raise self._error
         return self._response
 
+    async def post(self, _url, json=None):
+        if self._error:
+            raise self._error
+        self.last_json = json
+        return self._response or _FakeResponse(payload={"message": {"content": "ok"}})
+
 
 def test_list_models_parses_missing_and_partial_fields(monkeypatch):
     payload = {
@@ -96,3 +102,30 @@ def test_test_connection_returns_disconnected_on_timeout(monkeypatch):
 
     assert status.state == "disconnected"
     assert "timeout" in status.detail
+
+
+def test_chat_payload_emits_only_selected_reasoning_mode(monkeypatch):
+    captured = {}
+
+    class _CaptureClient(_FakeAsyncClient):
+        async def post(self, _url, json=None):
+            captured["payload"] = json
+            return _FakeResponse(payload={"message": {"content": "ok"}})
+
+    monkeypatch.setattr(
+        "locallama_gui.backends.ollama.httpx.AsyncClient",
+        lambda **kwargs: _CaptureClient(**kwargs),
+    )
+
+    backend = OllamaBackend("http://localhost:11434")
+    asyncio.run(
+        backend.chat(
+            "llama3",
+            [],
+            {"temperature": 0.7, "plan": True},
+            stream=False,
+        ).__anext__()
+    )
+
+    assert captured["payload"]["options"]["plan"] is True
+    assert "think" not in captured["payload"]["options"]
