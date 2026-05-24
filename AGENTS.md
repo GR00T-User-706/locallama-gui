@@ -263,6 +263,34 @@ The GUI must not freeze during:
 
 ---
 
+## 9.1 UI Action Integrity
+
+Every visible UI action must have clear and honest operational status.
+
+### Integrity requirements
+
+- Every visible control must be one of the following: fully working, explicitly disabled, intentionally hidden, or documented as not implemented.
+- Active dead placeholders are prohibited.
+- Ambiguous dialogs are prohibited; prompts and confirmations must clearly state what action is happening and what outcome to expect.
+
+### New UI action delivery checklist
+
+When introducing a new user-triggered UI action, wire all required implementation responsibilities:
+
+- Action logic and signal/handler wiring.
+- User-facing error handling and recovery messaging.
+- Logging and status/progress updates where applicable.
+- Documentation updates for user/developer visibility.
+- Relevant tests or validation coverage updates where practical.
+- Required version bump updates.
+- Required `CHANGELOG.md` entry updates.
+
+### Scope guardrail
+
+For small UI requests, implement the smallest responsible change that completes the requested action without rewrite-the-universe refactors.
+
+---
+
 ## 10. Ollama Integration Rules
 
 Prefer a clean integration layer.
