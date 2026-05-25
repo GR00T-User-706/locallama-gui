@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.0.12 - 2026-05-25
+
+### Fixed
+- Synchronized `docs/VERSIONING.md` current-state snapshot with actual repository version metadata and latest changelog heading.
+
+### Documentation
+- Corrected version references in `docs/VERSIONING.md` to reflect reality after the 1.0.11 release.
+
+## 1.0.11 - 2026-05-25
+
+### Changed
+- Reconciled `docs/STATE_OF_REPO.md` with current docs inventory and corrected stale version references from 1.0.9 to 1.0.10.
+- Updated `docs/VERSIONING.md` snapshot values to match the 1.0.10 baseline before this release bump.
+
+### Documentation
+- Completed a read-only documentation reconciliation pass for the `docs/` folder and aligned status tables with files that now exist.
+
 ## 1.0.10 - 2026-05-25
 
 ### Changed

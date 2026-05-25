@@ -99,9 +99,9 @@ Current likely CI failure reason:
 
 | Location | Version Found | Should Be Source of Truth | In Sync | Notes |
 | -------- | ------------- | ------------------------- | ------- | ----- |
-| `pyproject.toml` | `1.0.10` | Yes (primary package metadata) | Yes | Packaging/source of release metadata. |
-| `locallama_gui/__init__.py` | `1.0.10` | Secondary mirrored runtime constant | Yes | Matches `pyproject.toml`. |
-| `CHANGELOG.md` latest heading | `1.0.10` | Release history source | Yes (number/date) | Contains duplicate `### Changed` blocks within 1.0.9 section (format quality issue). |
+| `pyproject.toml` | `1.0.12` | Yes (primary package metadata) | Yes | Packaging/source of release metadata. |
+| `locallama_gui/__init__.py` | `1.0.12` | Secondary mirrored runtime constant | Yes | Matches `pyproject.toml`. |
+| `CHANGELOG.md` latest heading | `1.0.12` | Release history source | Yes (number/date) | Contains duplicate `### Changed` blocks within 1.0.9 section (format quality issue). |
 | `VERSION` file | Missing | Optional single-source file | N/A | No standalone `VERSION` file. |
 | `setup.py` | Missing | Not needed if using pyproject-only packaging | N/A | Expected absence for modern PEP 621 layout. |
 | `setup.cfg` | Missing | Optional | N/A | Not used currently. |
@@ -110,15 +110,15 @@ Current likely CI failure reason:
 | `docs/VERSIONING.md` | Present | Recommended by AGENTS policy | Yes | Dedicated versioning policy document exists. |
 
 Answers:
-- Current version appears to be **1.0.10**.
-- Main authoritative version locations (`pyproject`, `__init__`, changelog latest entry) are aligned on 1.0.10.
+- Current version appears to be **1.0.12**.
+- Main authoritative version locations (`pyproject`, `__init__`, changelog latest entry) are aligned on 1.0.12.
 - A dedicated explicit version policy doc (`docs/VERSIONING.md`) is present.
 
 ## Changelog State
 
 - `CHANGELOG.md` exists.
-- Latest listed version: `1.0.9` (dated 2026-05-24).
-- Latest version matches package metadata (`1.0.9`).
+- Latest listed version: `1.0.12` (dated 2026-05-25).
+- Latest version matches package metadata (`1.0.12`).
 - Format mostly consistent but has structural quality issues (duplicate section headers under 1.0.9 and mixed chronology depth/detail).
 
 | Expected Entry | Present | Notes |
@@ -142,14 +142,14 @@ Answers:
 | `README.md` | Yes | Current (partial) | User/developer overview + run instructions | Doesn’t include launcher/install integration docs requested in mission. | Expand after audit phase. |
 | `AGENTS.md` | Yes | Current | Repository operating policy | Missing explicit desktop naming scheme + explicit CI-ignore-archive rule language. | Update policy in a follow-up governance patch. |
 | `docs/STATE_OF_REPO.md` | Yes (this file) | Current | Full repo state audit | New baseline only; requires maintenance. | Keep as live status doc. |
-| `docs/PRODUCTION_CODE_MAP.md` | No | Missing | Canonical active code map | Missing dedicated map; info is dispersed. | Create in Phase 1. |
-| `docs/FUNCTIONALITY_AUDIT.md` | No | Missing | Detailed feature status | Missing. | Create in UI audit phase. |
-| `docs/UI_ACTION_AUDIT.md` | No | Missing | UI action integrity matrix | Missing. | Create before UI repairs. |
-| `docs/QA_CHECKLIST.md` | No | Missing | Validation process checklist | Missing. | Create for release discipline. |
-| `docs/MENU_MAP.md` | No | Missing | Menu/action ownership map | Missing. | Create before menu cleanup. |
-| `docs/PARAMETERS.md` | No | Missing | Parameter semantics and backend mapping | Missing. | Create before parameter UX fixes. |
+| `docs/PRODUCTION_CODE_MAP.md` | Yes | Current | Canonical active code map | None identified in this RO pass. | Keep updated as code map evolves. |
+| `docs/FUNCTIONALITY_AUDIT.md` | Yes | Current | Detailed feature status | None identified in this RO pass. | Keep synchronized with UI changes. |
+| `docs/UI_ACTION_AUDIT.md` | Yes | Current | UI action integrity matrix | None identified in this RO pass. | Continue using as action integrity tracker. |
+| `docs/QA_CHECKLIST.md` | Yes | Current | Validation process checklist | None identified in this RO pass. | Keep release checks aligned with reality. |
+| `docs/MENU_MAP.md` | Yes | Current | Menu/action ownership map | None identified in this RO pass. | Keep aligned with `MainWindow` action wiring. |
+| `docs/PARAMETERS.md` | Yes | Current | Parameter semantics and backend mapping | None identified in this RO pass. | Keep in sync with settings UI and backend behavior. |
 | `docs/LAUNCHING.md` | No | Missing | launcher/desktop install/run guide | Missing. | Create in launcher phase. |
-| `docs/VERSIONING.md` | No | Missing | explicit versioning process | Missing despite AGENTS expectations. | Create in Phase 1. |
+| `docs/VERSIONING.md` | Yes | Current | explicit versioning process | Version snapshot references required periodic refresh. | Updated in this RO pass. |
 | `docs/ARCHITECTURE.md` | No | Missing | architecture reference | Missing (only `REPO_ANALYSIS.md` exists). | Add scoped architecture doc later. |
 | `archive/ARCHIVE_INDEX.md` | Yes | Current (partial) | archival provenance tracking | Tracks plans more than completed moves. | Update during archive sweep. |
 
@@ -208,7 +208,7 @@ What appears to have been expected but not actually completed:
 - UI action integrity policy is strong in AGENTS, but **no concrete UI action audit artifact exists** to enforce it.
 
 Missing/stale pieces (high confidence):
-- Missing: `docs/PRODUCTION_CODE_MAP.md`, `docs/FUNCTIONALITY_AUDIT.md`, `docs/UI_ACTION_AUDIT.md`, `docs/QA_CHECKLIST.md`, `docs/MENU_MAP.md`, `docs/PARAMETERS.md`, `docs/LAUNCHING.md`, `docs/VERSIONING.md`, `docs/ARCHITECTURE.md`.
+- Missing: `docs/LAUNCHING.md`, `docs/ARCHITECTURE.md`.
 - Pending archive moves: `ollama_GUI/*` (except maybe selected retained references), experimental `llm_studio` regions, with human review for any still-useful subsets.
 - Pending CI fixes: pytest discovery scoping/ignores for legacy+archive trees.
 - Pending launcher pieces: executable launcher + installers + canonical desktop file.
