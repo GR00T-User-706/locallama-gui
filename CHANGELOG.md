@@ -3,6 +3,11 @@
 ## 1.0.9 - 2026-05-24
 
 ### Added
+- Added a new **UI Action Integrity** section in `AGENTS.md` near the existing UI guidance to require explicit control state clarity, ban active dead placeholders, and ban ambiguous dialogs.
+
+### Changed
+- Added explicit delivery checklist requirements for new UI actions (logic wiring, error handling, logs/status updates, docs, tests, version bump, and changelog updates).
+- Added a scope guardrail reinforcing minimal-change behavior for small UI requests to prevent rewrite-the-universe responses.
 - Added tests covering reasoning-mode exclusivity, config persistence, and request payload mapping.
 
 ### Changed
