@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.10 - 2026-05-25
+
+### Changed
+- Reconciled documentation references to archived legacy trees so active docs point to `archive/old_apps/ollama_GUI/` and `archive/legacy_code/llm_studio/`.
+- Updated audit/analysis docs to reflect that legacy trees are already archived in the current repository state.
+
+### Archived
+- Updated `archive/ARCHIVE_INDEX.md` with a completed archive move reconciliation table including original paths, archive destinations, dates, reasons, and retention notes.
+
+### Documentation
+- Clarified legacy code location in `README.md` and synchronized archive status language across repository docs.
+
 ## 1.0.9 - 2026-05-24
 
 ### Fixed

@@ -11,10 +11,10 @@ Top-level structure (apparent purpose):
 - `locallama_gui/` — active PySide6 production package.
 - `tests/` — active pytest suite for production package.
 - `docs/` — project docs (currently partial).
-- `archive/` — archive policy docs/manifests; not yet full physical legacy-code relocation.
+- `archive/` — archive policy docs/manifests and archived legacy trees.
 - `plugins/` — sample/development plugin(s) for active app.
-- `llm_studio/` — parallel/legacy experimental code tree.
-- `ollama_GUI/` — legacy old GUI trees (Python and Qt/QML variants).
+- `archive/legacy_code/llm_studio/` — archived parallel/legacy experimental code tree.
+- `archive/old_apps/ollama_GUI/` — archived legacy GUI trees (Python and Qt/QML variants).
 - `pyproject.toml` — packaging, script entry point, Ruff config, version.
 - `requirements.txt` — dependency list.
 - `README.md` — user/developer high-level documentation.
@@ -99,20 +99,20 @@ Current likely CI failure reason:
 
 | Location | Version Found | Should Be Source of Truth | In Sync | Notes |
 | -------- | ------------- | ------------------------- | ------- | ----- |
-| `pyproject.toml` | `1.0.9` | Yes (primary package metadata) | Yes | Packaging/source of release metadata. |
-| `locallama_gui/__init__.py` | `1.0.9` | Secondary mirrored runtime constant | Yes | Matches `pyproject.toml`. |
-| `CHANGELOG.md` latest heading | `1.0.9` | Release history source | Yes (number/date) | Contains duplicate `### Changed` blocks within 1.0.9 section (format quality issue). |
+| `pyproject.toml` | `1.0.10` | Yes (primary package metadata) | Yes | Packaging/source of release metadata. |
+| `locallama_gui/__init__.py` | `1.0.10` | Secondary mirrored runtime constant | Yes | Matches `pyproject.toml`. |
+| `CHANGELOG.md` latest heading | `1.0.10` | Release history source | Yes (number/date) | Contains duplicate `### Changed` blocks within 1.0.9 section (format quality issue). |
 | `VERSION` file | Missing | Optional single-source file | N/A | No standalone `VERSION` file. |
 | `setup.py` | Missing | Not needed if using pyproject-only packaging | N/A | Expected absence for modern PEP 621 layout. |
 | `setup.cfg` | Missing | Optional | N/A | Not used currently. |
 | README explicit numeric version | None | Not required but optional | N/A | README references semver policy, not current numeric tag. |
 | GUI About/version display | Unknown/unverified | Should expose app version in UI | UNKNOWN | Need explicit UI audit pass to verify display. |
-| `docs/VERSIONING.md` | Missing | Recommended by AGENTS policy | No | Policy exists in README/AGENTS, but dedicated doc absent. |
+| `docs/VERSIONING.md` | Present | Recommended by AGENTS policy | Yes | Dedicated versioning policy document exists. |
 
 Answers:
-- Current version appears to be **1.0.9**.
-- Main authoritative version locations (`pyproject`, `__init__`, changelog latest entry) are aligned on 1.0.9.
-- A dedicated explicit version policy doc (`docs/VERSIONING.md`) is missing.
+- Current version appears to be **1.0.10**.
+- Main authoritative version locations (`pyproject`, `__init__`, changelog latest entry) are aligned on 1.0.10.
+- A dedicated explicit version policy doc (`docs/VERSIONING.md`) is present.
 
 ## Changelog State
 

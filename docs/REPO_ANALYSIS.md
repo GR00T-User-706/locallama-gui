@@ -14,9 +14,9 @@ Supporting project files:
 - `tests/`
 - `docs/`
 
-Legacy/parallel trees:
-- `ollama_GUI/` (legacy Python + Qt/QML implementations)
-- `llm_studio/` (parallel app and harvested experimental modules)
+Archived legacy/parallel trees:
+- `archive/old_apps/ollama_GUI/` (legacy Python + Qt/QML implementations)
+- `archive/legacy_code/llm_studio/` (parallel app and harvested experimental modules)
 
 ## 2. Entry points
 
@@ -56,19 +56,16 @@ Legacy/parallel trees:
 
 ## 8. Dead/duplicate/experimental/obsolete candidates
 
-- `ollama_GUI/`: legacy codebase not used by current entrypoint.
-- `llm_studio/`: parallel code tree and `CODEX_harvest_THESE_functions/` experimental content.
+- `archive/old_apps/ollama_GUI/`: archived legacy codebase not used by current entrypoint.
+- `archive/legacy_code/llm_studio/`: archived parallel code tree and experimental content.
 
-These should be treated as archive candidates, not deleted.
+These are now archived and should remain preserved for historical reference.
 
-## 9. Files to archive (recommended plan)
+## 9. Archive status
 
-Archive in phases to reduce risk:
-1. `llm_studio/CODEX_harvest_THESE_functions/` -> `archive/experimental/llm_studio/CODEX_harvest_THESE_functions/`
-2. `ollama_GUI/ollama-gui-qt/` -> `archive/old/ollama_GUI/ollama-gui-qt/`
-3. Remaining non-runtime `ollama_GUI/` and legacy scripts after ownership check.
+Previously recommended archive candidates have now been physically moved under `archive/` in this repository state.
 
-Each move must be logged in `archive/ARCHIVE_INDEX.md` with provenance and reason.
+Maintain `archive/ARCHIVE_INDEX.md` for any additional future archive moves with provenance and reason.
 
 ## 10. Security, stability, packaging issues
 

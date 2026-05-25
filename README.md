@@ -94,7 +94,7 @@ docs/                    # plugin SDK and user documentation
 
 ## Legacy Code
 
-The older experimental Tkinter and Qt5/QML artifacts remain under `ollama_GUI/` for historical reference. The supported production application is the PySide6 package exposed by `locallama-gui`.
+The older experimental Tkinter and Qt5/QML artifacts are archived under `archive/old_apps/ollama_GUI/` for historical reference. Additional legacy parallel code is archived under `archive/legacy_code/llm_studio/`. The supported production application is the PySide6 package exposed by `locallama-gui`.
 
 ## Troubleshooting
 
