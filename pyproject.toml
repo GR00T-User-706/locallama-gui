@@ -35,3 +35,7 @@ extend-exclude = ["llm_studio", "ollama_GUI"]
 
 [tool.ruff.lint]
 ignore = ["E702", "E703", "E402", "F401", "F841"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
