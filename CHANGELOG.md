@@ -2,6 +2,9 @@
 
 ## 1.0.9 - 2026-05-24
 
+### Fixed
+- Made model metadata table cells explicitly non-editable while keeping item selection and enabled behavior intact.
+- Kept model lifecycle actions (create/copy/delete) on explicit dialogs/actions rather than inline table edits.
 ### Added
 - Added a new **UI Action Integrity** section in `AGENTS.md` near the existing UI guidance to require explicit control state clarity, ban active dead placeholders, and ban ambiguous dialogs.
 
