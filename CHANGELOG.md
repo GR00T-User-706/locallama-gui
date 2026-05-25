@@ -5,6 +5,21 @@
 ### Fixed
 - Made model metadata table cells explicitly non-editable while keeping item selection and enabled behavior intact.
 - Kept model lifecycle actions (create/copy/delete) on explicit dialogs/actions rather than inline table edits.
+### Added
+- Added a new **UI Action Integrity** section in `AGENTS.md` near the existing UI guidance to require explicit control state clarity, ban active dead placeholders, and ban ambiguous dialogs.
+
+### Changed
+- Added explicit delivery checklist requirements for new UI actions (logic wiring, error handling, logs/status updates, docs, tests, version bump, and changelog updates).
+- Added a scope guardrail reinforcing minimal-change behavior for small UI requests to prevent rewrite-the-universe responses.
+- Added tests covering reasoning-mode exclusivity, config persistence, and request payload mapping.
+
+### Changed
+- Replaced independent thinking/plan/normal checkboxes in Generation Parameters with a single reasoning-mode dropdown and explicit default (`normal`).
+- Added reasoning mode tooltip text that clarifies Ollama mapping (`think`/`plan`) versus app default behavior.
+
+### Fixed
+- Ensured request options emit at most one reasoning mode flag and omit flags for `normal`.
+- Added backward-compatible migration from legacy boolean mode fields to the new persisted `reasoning_mode` value.
 
 ## 1.0.8 - 2026-05-24
 
