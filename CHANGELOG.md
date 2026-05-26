@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.0.17 - 2026-05-26
+
+### Fixed
+- Aligned chat edit/delete dialog indexing with visible chat turns by excluding app-internal hidden system messages from selection and targeting.
+
+## 1.0.16 - 2026-05-26
+
+### Changed
+- Updated chat transcript rendering to hide app-internal system prompts, keep visible turn numbering aligned to visible messages only, and label assistant turns with the active model name when available.
+- Clarified panel titles/placeholders so Request Viewer is explicitly redacted outbound payload and Token Viewer is current streamed response output.
+
+### Fixed
+- Fixed chat redraw/stream updates to preserve scroll position and pin to bottom only when user is already near the bottom.
+- Redacted app-internal system prompt content in Request Viewer output while preserving full backend request payload behavior.
+- Added Ollama option sanitization so unsupported options (`mirostat*`, `tfs_z`, `think`) are not sent, and stop sequences are cleaned to non-empty complete strings.
+
 ## 1.0.15 - 2026-05-26
 
 ### Fixed

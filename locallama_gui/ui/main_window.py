@@ -58,6 +58,12 @@ from locallama_gui.ui.dialogs import (
 )
 from locallama_gui.ui.theme import DARK_QSS, dark_qss
 from locallama_gui.ui.workers import AsyncTask, StreamTask
+from locallama_gui.ui.chat_view import (
+    assistant_label,
+    compute_scroll_restore_plan,
+    redacted_request_messages,
+    visible_chat_messages,
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -104,10 +110,12 @@ class ChatTab(QWidget):
         self.render()
         self.set_generating(False)
 
-    def render(self) -> None:
+    def render(self, active_model: str = "") -> None:
+        scroll = self.chat.verticalScrollBar()
+        plan = compute_scroll_restore_plan(scroll.value(), scroll.maximum())
         html = []
         colors = {"system": "#8fbcbb", "user": "#a3be8c", "assistant": "#81a1c1", "tool": "#d08770"}
-        for idx, msg in enumerate(self.session.messages):
+        for idx, msg in enumerate(visible_chat_messages(self.session.messages)):
             safe = (
                 msg.content.replace("&", "&amp;")
                 .replace("<", "&lt;")
@@ -115,11 +123,13 @@ class ChatTab(QWidget):
                 .replace("\n", "<br>")
             )
             html.append(
-                f"<div style='margin:10px 0;padding:10px;border-left:3px solid {colors.get(msg.role, '#ccc')};background:#171a21;border-radius:6px'><b>{idx + 1}. {msg.role.upper()}</b><br>{safe}</div>"
+                f"<div style='margin:10px 0;padding:10px;border-left:3px solid {colors.get(msg.role, '#ccc')};background:#171a21;border-radius:6px'><b>{idx + 1}. {assistant_label(msg, active_model)}</b><br>{safe}</div>"
             )
         self.chat.setHtml("".join(html))
-        if self.chat.verticalScrollBar().value() >= self.chat.verticalScrollBar().maximum() - 120:
-            self.chat.verticalScrollBar().setValue(self.chat.verticalScrollBar().maximum())
+        if plan.should_pin_bottom:
+            scroll.setValue(scroll.maximum())
+        else:
+            scroll.setValue(min(plan.previous_value, scroll.maximum()))
 
     def set_generating(self, generating: bool) -> None:
         self.send.setEnabled(not generating)
@@ -254,7 +264,8 @@ class MainWindow(QMainWindow):
         req_layout.setContentsMargins(0, 0, 0, 0)
         req_layout.addWidget(self.request_view)
         req_layout.addLayout(req_row)
-        self.request_dock = self._dock("Request Viewer", req_wrap, Qt.DockWidgetArea.BottomDockWidgetArea)
+        self.request_dock = self._dock("Request Viewer (Redacted)", req_wrap, Qt.DockWidgetArea.BottomDockWidgetArea)
+        self.request_view.setPlaceholderText("Outbound request payload (app-internal system prompt is redacted).")
         self.token_view = QPlainTextEdit()
         self.token_view.setReadOnly(True)
         self.token_copy = QPushButton("Copy Tokens")
@@ -269,7 +280,8 @@ class MainWindow(QMainWindow):
         tok_layout.setContentsMargins(0, 0, 0, 0)
         tok_layout.addWidget(self.token_view)
         tok_layout.addLayout(tok_row)
-        self.token_dock = self._dock("Token Viewer", tok_wrap, Qt.DockWidgetArea.BottomDockWidgetArea)
+        self.token_dock = self._dock("Token/Response Viewer", tok_wrap, Qt.DockWidgetArea.BottomDockWidgetArea)
+        self.token_view.setPlaceholderText("Current streamed response/tokens for active generation.")
         self.terminal = QPlainTextEdit()
         self.terminal.setReadOnly(True)
         self.terminal.setPlainText(
@@ -420,7 +432,7 @@ class MainWindow(QMainWindow):
             return
         tab.session.model = model
         tab.session.provider = profile.name
-        messages = [ChatMessage("system", APP_SYSTEM_PROMPT)]
+        messages = [ChatMessage("system", APP_SYSTEM_PROMPT, metadata={"internal": True, "source": "app"})]
         messages.extend(tab.session.messages)
         for interceptor in self.plugin_context.chat_interceptors:
             messages = interceptor(messages)
@@ -430,7 +442,7 @@ class MainWindow(QMainWindow):
                     "provider": profile.name,
                     "url": profile.base_url,
                     "model": model,
-                    "messages": [asdict(m) for m in messages],
+                    "messages": redacted_request_messages(messages),
                     "options": self.config.parameters.to_backend_options(),
                 },
                 indent=2,
@@ -442,7 +454,7 @@ class MainWindow(QMainWindow):
         self.token_view.clear()
         assistant = ChatMessage("assistant", "")
         tab.session.messages.append(assistant)
-        tab.render()
+        tab.render(model)
         task = StreamTask(
             lambda: backend.chat(
                 model,
@@ -466,7 +478,7 @@ class MainWindow(QMainWindow):
             return
         msg.content += token
         self.token_view.insertPlainText(token)
-        tab.render()
+        tab.render(self.model_combo.currentText() or tab.session.model)
 
     def _stream_error(self, error: str, owner_id: int) -> None:
         if self._active_stream_owner != owner_id:
@@ -489,7 +501,7 @@ class MainWindow(QMainWindow):
         self.current_stream = None
         self.sessions.save(tab.session)
         self.refresh_sessions()
-        tab.render()
+        tab.render(self.model_combo.currentText() or tab.session.model)
 
     def stop_generation(self) -> None:
         if self.current_stream:
@@ -622,7 +634,7 @@ class MainWindow(QMainWindow):
             tab.session.messages[0].content = content
         else:
             tab.session.messages.insert(0, ChatMessage("system", content))
-        tab.render()
+        tab.render(self.model_combo.currentText() or tab.session.model)
 
     def save_as(self) -> None:
         tab = self.current_tab()
@@ -677,7 +689,7 @@ class MainWindow(QMainWindow):
         self.tabs.setTabText(self.tabs.currentIndex(), title)
 
     def render_tab(self, tab: ChatTab) -> None:
-        tab.render()
+        tab.render(self.model_combo.currentText() or tab.session.model)
 
     def generate_for_tab(self, tab: ChatTab) -> None:
         self._generate(tab)

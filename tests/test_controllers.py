@@ -72,6 +72,53 @@ from locallama_gui.ui.controllers.model_controller import ModelController
 from locallama_gui.ui.controllers.plugin_controller import PluginController
 
 
+def test_edit_message_uses_visible_index_and_skips_internal_system(monkeypatch):
+    session = ChatSession(provider="p", model="m")
+    hidden = ChatMessage("system", "internal", metadata={"internal": True, "source": "app"})
+    user = ChatMessage("user", "hello")
+    assistant = ChatMessage("assistant", "answer")
+    session.messages = [hidden, user, assistant]
+    window = FakeWindow(session)
+    sessions = FakeSessions()
+    controller = ChatController(sessions, SimpleNamespace(paths=SimpleNamespace(sessions_dir=None)), window)
+
+    monkeypatch.setattr(
+        "PySide6.QtWidgets.QInputDialog.getInt",
+        lambda *args, **kwargs: (1, True),
+    )
+    monkeypatch.setattr(
+        "PySide6.QtWidgets.QInputDialog.getMultiLineText",
+        lambda *args, **kwargs: ("edited", True),
+    )
+
+    controller.edit_message(None)
+
+    assert hidden.content == "internal"
+    assert user.content == "edited"
+
+
+def test_delete_message_uses_visible_index_and_skips_internal_system(monkeypatch):
+    session = ChatSession(provider="p", model="m")
+    hidden = ChatMessage("system", "internal", metadata={"internal": True, "source": "app"})
+    user = ChatMessage("user", "hello")
+    assistant = ChatMessage("assistant", "answer")
+    session.messages = [hidden, user, assistant]
+    window = FakeWindow(session)
+    sessions = FakeSessions()
+    controller = ChatController(sessions, SimpleNamespace(paths=SimpleNamespace(sessions_dir=None)), window)
+
+    monkeypatch.setattr(
+        "PySide6.QtWidgets.QInputDialog.getInt",
+        lambda *args, **kwargs: (1, True),
+    )
+
+    controller.delete_message(None)
+
+    assert hidden in session.messages
+    assert user not in session.messages
+    assert assistant in session.messages
+
+
 def test_model_create_delegates_to_editor():
     called = {"open": False}
 

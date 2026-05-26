@@ -13,6 +13,37 @@ from locallama_gui.core.domain import ChatMessage, ModelInfo
 
 class OllamaBackend(LLMBackend):
     name = "ollama"
+    SUPPORTED_OPTIONS = {
+        "temperature",
+        "top_k",
+        "top_p",
+        "min_p",
+        "repeat_penalty",
+        "repeat_last_n",
+        "num_predict",
+        "seed",
+        "stop",
+        "num_ctx",
+        "num_batch",
+        "num_gpu",
+        "plan",
+    }
+
+    @classmethod
+    def sanitize_options(cls, options: dict[str, Any]) -> dict[str, Any]:
+        sanitized: dict[str, Any] = {}
+        for key, value in options.items():
+            if key not in cls.SUPPORTED_OPTIONS:
+                continue
+            if value is None:
+                continue
+            if key == "stop":
+                stop_values = [item.strip() for item in value if str(item).strip()]
+                if stop_values:
+                    sanitized[key] = stop_values
+                continue
+            sanitized[key] = value
+        return sanitized
 
     async def test_connection(self) -> BackendStatus:
         started = time.perf_counter()
@@ -54,7 +85,7 @@ class OllamaBackend(LLMBackend):
         payload = {
             "model": model,
             "messages": [{"role": m.role, "content": m.content} for m in messages],
-            "options": options,
+            "options": self.sanitize_options(options),
             "stream": stream,
         }
         async with httpx.AsyncClient(timeout=None) as client:

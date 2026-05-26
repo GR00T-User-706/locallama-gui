@@ -5,6 +5,7 @@ from typing import Protocol
 
 
 from locallama_gui.core.domain import ChatMessage, ChatSession
+from locallama_gui.ui.chat_view import message_is_internal_system
 
 
 class ChatWindowPort(Protocol):
@@ -71,10 +72,13 @@ class ChatController:
         tab = self.window.current_tab()
         if not tab or not tab.session.messages:
             return
-        number, ok = __import__("PySide6.QtWidgets", fromlist=["QInputDialog"]).QInputDialog.getInt(parent, "Edit Message", "Message number:", len(tab.session.messages), 1, len(tab.session.messages))
+        visible = [msg for msg in tab.session.messages if not message_is_internal_system(msg)]
+        if not visible:
+            return
+        number, ok = __import__("PySide6.QtWidgets", fromlist=["QInputDialog"]).QInputDialog.getInt(parent, "Edit Message", "Message number:", len(visible), 1, len(visible))
         if not ok:
             return
-        msg = tab.session.messages[number - 1]
+        msg = visible[number - 1]
         text, ok = __import__("PySide6.QtWidgets", fromlist=["QInputDialog"]).QInputDialog.getMultiLineText(parent, "Edit Message", f"{msg.role} content:", msg.content)
         if ok:
             msg.content = text
@@ -85,8 +89,12 @@ class ChatController:
         tab = self.window.current_tab()
         if not tab or not tab.session.messages:
             return
-        number, ok = __import__("PySide6.QtWidgets", fromlist=["QInputDialog"]).QInputDialog.getInt(parent, "Delete Message", "Message number:", len(tab.session.messages), 1, len(tab.session.messages))
+        visible = [msg for msg in tab.session.messages if not message_is_internal_system(msg)]
+        if not visible:
+            return
+        number, ok = __import__("PySide6.QtWidgets", fromlist=["QInputDialog"]).QInputDialog.getInt(parent, "Delete Message", "Message number:", len(visible), 1, len(visible))
         if ok:
-            del tab.session.messages[number - 1]
+            message = visible[number - 1]
+            tab.session.messages.remove(message)
             self.window.render_tab(tab)
             self.sessions.save(tab.session)
