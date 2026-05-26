@@ -182,6 +182,8 @@ class MainWindow(QMainWindow):
         self.plugin_controller = PluginController(self.plugins, self.config, self)
         self.worker_refs: list[Any] = []
         self.current_stream: StreamTask | None = None
+        self._stream_owner_seq = 0
+        self._active_stream_owner: int | None = None
         self._build_ui()
         self._build_menus()
         self._restore_state()
@@ -197,6 +199,7 @@ class MainWindow(QMainWindow):
         self.status = self.statusBar()
         self.status.showMessage("Disconnected")
         self.toolbar = QToolBar("Main")
+        self.toolbar.setObjectName("mainToolbar")
         self.addToolBar(self.toolbar)
         for label, slot in [
             ("New Chat", self.new_chat),
@@ -448,29 +451,42 @@ class MainWindow(QMainWindow):
                 tab.streaming.isChecked(),
             )
         )
+        self._stream_owner_seq += 1
+        owner = self._stream_owner_seq
         self.current_stream = task
+        self._active_stream_owner = owner
         self.worker_refs.append(task)
-        task.token.connect(lambda tok: self._append_token(tab, assistant, tok))
-        task.error.connect(self._stream_error)
-        task.completed.connect(lambda _: self._stream_done(tab))
+        task.token.connect(lambda tok, owner_id=owner: self._append_token(tab, assistant, tok, owner_id))
+        task.error.connect(lambda error, owner_id=owner: self._stream_error(error, owner_id))
+        task.completed.connect(lambda _, owner_id=owner: self._stream_done(tab, owner_id))
         task.start()
 
-    def _append_token(self, tab: ChatTab, msg: ChatMessage, token: str) -> None:
+    def _append_token(self, tab: ChatTab, msg: ChatMessage, token: str, owner_id: int) -> None:
+        if self._active_stream_owner != owner_id:
+            return
         msg.content += token
         self.token_view.insertPlainText(token)
         tab.render()
 
-    def _stream_error(self, error: str) -> None:
+    def _stream_error(self, error: str, owner_id: int) -> None:
+        if self._active_stream_owner != owner_id:
+            return
         self.status.showMessage("idle")
         tab = self.current_tab()
         if tab:
             tab.set_generating(False)
+        self._active_stream_owner = None
+        self.current_stream = None
         self.log(f"Generation error: {error}")
         QMessageBox.critical(self, "Generation Error", error)
 
-    def _stream_done(self, tab: ChatTab) -> None:
+    def _stream_done(self, tab: ChatTab, owner_id: int) -> None:
+        if self._active_stream_owner != owner_id:
+            return
         self.status.showMessage("idle")
         tab.set_generating(False)
+        self._active_stream_owner = None
+        self.current_stream = None
         self.sessions.save(tab.session)
         self.refresh_sessions()
         tab.render()
@@ -478,6 +494,8 @@ class MainWindow(QMainWindow):
     def stop_generation(self) -> None:
         if self.current_stream:
             self.current_stream.cancel()
+            self._active_stream_owner = None
+            self.current_stream = None
             tab = self.current_tab()
             if tab:
                 tab.set_generating(False)
@@ -817,6 +835,13 @@ class MainWindow(QMainWindow):
             self.restoreState(QByteArray.fromHex(self.config.ui.state_hex.encode()))
 
     def closeEvent(self, event) -> None:
+        if self.current_stream and self.current_stream.isRunning():
+            self.current_stream.cancel()
+        self._active_stream_owner = None
+        self.current_stream = None
+        for worker in list(self.worker_refs):
+            if hasattr(worker, "isRunning") and worker.isRunning() and hasattr(worker, "cancel"):
+                worker.cancel()
         self.config.ui.geometry_hex = bytes(self.saveGeometry().toHex()).decode()
         self.config.ui.state_hex = bytes(self.saveState().toHex()).decode()
         self.config.save()
