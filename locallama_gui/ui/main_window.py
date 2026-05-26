@@ -359,18 +359,16 @@ class MainWindow(QMainWindow):
         view_menu = self.menuBar().addMenu("View")
         self._menu_action(view_menu, "Toggle Panels", self.toggle_all_docks)
         self._menu_action(view_menu, "Layout Presets", self.reset_layout)
-        self._menu_action(view_menu, "Logs", lambda: self.log_view.parent().show())
-        self._menu_action(view_menu, "Terminal", lambda: self.terminal.parent().show())
+        self._menu_action(view_menu, "Logs", self.show_logs_dock)
+        self._menu_action(view_menu, "Terminal", self.show_terminal_dock)
 
     def _build_developer_menu(self) -> None:
         developer_menu = self.menuBar().addMenu("Developer")
-        self._menu_action(developer_menu, "Logs", lambda: self.log_view.parent().show())
-        self._menu_action(
-            developer_menu, "Request Viewer", lambda: self.request_view.parent().show()
-        )
-        self._menu_action(developer_menu, "Token Viewer", lambda: self.token_view.parent().show())
+        self._menu_action(developer_menu, "Logs", self.show_logs_dock)
+        self._menu_action(developer_menu, "Request Viewer", self.show_request_dock)
+        self._menu_action(developer_menu, "Token Viewer", self.show_token_dock)
         self._menu_action(developer_menu, "API Inspector", self.inspect_api)
-        self._menu_action(developer_menu, "Debug Console", lambda: self.terminal.parent().show())
+        self._menu_action(developer_menu, "Debug Console", self.show_terminal_dock)
 
     def _build_help_menu(self) -> None:
         help_menu = self.menuBar().addMenu("Help")
@@ -504,8 +502,34 @@ class MainWindow(QMainWindow):
         task = AsyncTask(work)
         self.worker_refs.append(task)
         task.result.connect(self._backend_refreshed)
-        task.error.connect(lambda e: self.log(f"Backend refresh error: {e}"))
+        task.error.connect(lambda e: self._backend_refresh_error(e))
         task.start()
+
+
+    def _show_dock(self, dock: QDockWidget | None, name: str) -> None:
+        if dock is None:
+            self.status.showMessage(f"{name} panel unavailable")
+            self.log(f"{name} panel unavailable")
+            return
+        dock.show()
+        dock.raise_()
+
+    def show_logs_dock(self) -> None:
+        self._show_dock(self.log_view.parent(), "Logs")
+
+    def show_terminal_dock(self) -> None:
+        self._show_dock(self.terminal.parent(), "Terminal")
+
+    def show_request_dock(self) -> None:
+        self._show_dock(self.request_dock, "Request Viewer")
+
+    def show_token_dock(self) -> None:
+        self._show_dock(self.token_dock, "Token Viewer")
+
+    def _backend_refresh_error(self, error: str) -> None:
+        self.status.showMessage("backend refresh failed")
+        self.log(f"Backend refresh error: {error}")
+        QMessageBox.critical(self, "Backend Refresh Error", error)
 
     def _backend_refreshed(self, result: Any) -> None:
         status, self.models = result

@@ -603,3 +603,15 @@ The maintainer values:
 Treat the project like it matters.
 
 Because it does.
+
+
+## 5.2 Canonical Launcher/Desktop Names
+
+Use these canonical active-path names for launcher integration:
+
+- launcher: `run-locallama`
+- launcher install helper: `scripts/install-launcher`
+- desktop install helper: `scripts/install-desktop-entry`
+- desktop file: `packaging/linux/com.github.gr00t-user-706.locallama-gui.desktop`
+
+Routine CI/lint/test validation must stay scoped to active production paths and active tests. Do not include archive/legacy trees in routine validation; use manual archive-specific workflows only when intentionally auditing archives.

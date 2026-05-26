@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=LocalLama GUI
+Comment=Desktop control center for local and remote LLMs
+Exec=run-locallama
+Terminal=false
+Categories=Development;Utility;
+Keywords=LLM;Ollama;AI;
