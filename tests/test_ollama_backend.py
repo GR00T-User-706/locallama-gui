@@ -122,10 +122,31 @@ def test_chat_payload_emits_only_selected_reasoning_mode(monkeypatch):
         backend.chat(
             "llama3",
             [],
-            {"temperature": 0.7, "plan": True},
+            {"temperature": 0.7, "plan": True, "think": True, "mirostat": 1},
             stream=False,
         ).__anext__()
     )
 
     assert captured["payload"]["options"]["plan"] is True
     assert "think" not in captured["payload"]["options"]
+    assert "mirostat" not in captured["payload"]["options"]
+
+
+def test_sanitize_options_preserves_supported_and_filters_invalid_and_stop_fragments():
+    sanitized = OllamaBackend.sanitize_options(
+        {
+            "temperature": 0.5,
+            "mirostat": 1,
+            "tfs_z": 1.0,
+            "think": True,
+            "stop": ["", " <|eot_id|> ", "   "],
+            "top_p": 0.95,
+        }
+    )
+
+    assert sanitized["temperature"] == 0.5
+    assert sanitized["top_p"] == 0.95
+    assert sanitized["stop"] == ["<|eot_id|>"]
+    assert "mirostat" not in sanitized
+    assert "tfs_z" not in sanitized
+    assert "think" not in sanitized
