@@ -11,8 +11,8 @@ Scope: Baseline production map for Phase 1 documentation sync.
   - `locallama-gui` console script (`pyproject.toml`)
   - `python -m locallama_gui` (`locallama_gui/__main__.py`)
 
-### LIKELY
-- `llm_studio/` and `ollama_GUI/` are not part of active production runtime.
+### CONFIRMED
+- `archive/legacy_code/llm_studio/` and `archive/old_apps/ollama_GUI/` are not part of active production runtime.
 
 ### UNKNOWN
 - Whether any external user launchers still invoke legacy paths in local environments.
@@ -33,16 +33,16 @@ Scope: Baseline production map for Phase 1 documentation sync.
 | `locallama_gui/core/domain.py` | domain models | CONFIRMED_ACTIVE | Dataclasses for runtime objects. |
 | `plugins/sample_plugin.py` | sample plugin | LIKELY_OPTIONAL | Not required for app startup. |
 | `tests/` | active test suite | CONFIRMED_ACTIVE | Production-focused tests. |
-| `llm_studio/` | legacy/parallel tree | LIKELY_LEGACY | Not active entrypoint path. |
-| `ollama_GUI/` | legacy/parallel tree | LIKELY_LEGACY | Contains legacy GUI variants. |
+| `archive/legacy_code/llm_studio/` | archived legacy/parallel tree | CONFIRMED_LEGACY | Historical only; not active entrypoint path. |
+| `archive/old_apps/ollama_GUI/` | archived legacy/parallel tree | CONFIRMED_LEGACY | Historical only; contains legacy GUI variants. |
 
 ## Production Boundaries
 
 ### CONFIRMED
 - Production feature development should target `locallama_gui/**`, `tests/**`, and documentation files.
 
-### LIKELY
-- Legacy trees should remain read-only until archival actions are explicitly approved.
+### CONFIRMED
+- Archived legacy trees are historical-only and excluded from CI lint/test validation.
 
 ### UNKNOWN
 - Whether any files under `plugins/` beyond `sample_plugin.py` are used in individual user setups.

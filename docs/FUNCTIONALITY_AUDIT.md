@@ -28,8 +28,8 @@ Scope: Baseline feature-state matrix for the active production app.
 
 ## Confirmed Non-Production/Parallel Trees
 
-### LIKELY
-- `ollama_GUI/` and `llm_studio/` are legacy/parallel code, not active runtime.
+### CONFIRMED
+- `archive/old_apps/ollama_GUI/` and `archive/legacy_code/llm_studio/` are archived legacy/parallel code, not active runtime.
 
 ### UNKNOWN
 - Whether selected utilities within those trees still provide maintainer-only value.
