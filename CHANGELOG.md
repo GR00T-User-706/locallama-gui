@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.0.13 - 2026-05-26
+
+### Added
+- Added active-path Linux launcher integration artifacts: `run-locallama`, `scripts/install-launcher`, `scripts/install-desktop-entry`, and `packaging/linux/com.github.gr00t-user-706.locallama-gui.desktop`.
+- Added `docs/LAUNCHING.md` with practical launch and installer usage, including dry-run commands.
+
+### Changed
+- Updated README run instructions with a concise launcher/desktop section linking `docs/LAUNCHING.md`.
+- Added explicit AGENTS policy for canonical launcher naming and routine CI scope limited to active production paths (excluding archive/legacy trees).
+
+### Fixed
+- Hardened model deletion UX with explicit no-model guard, unambiguous destructive confirmation text, and success message including target model name.
+- Surfaced backend refresh task failures to users with a visible error dialog in addition to logs/status updates.
+- Rewired View/Developer dock actions to explicit helpers so actions reliably open/raise intended panels.
+
 ## 1.0.12 - 2026-05-25
 
 ### Fixed

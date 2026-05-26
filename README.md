@@ -47,6 +47,13 @@ or
 python -m locallama_gui
 ```
 
+### Launcher and desktop integration
+
+- Repo launcher: `./run-locallama`
+- Install user launcher: `./scripts/install-launcher`
+- Install Linux desktop entry: `./scripts/install-desktop-entry`
+- Practical usage details: [`docs/LAUNCHING.md`](docs/LAUNCHING.md)
+
 ## First Use
 
 1. Start your backend, for example `ollama serve`.

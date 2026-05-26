@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+
+if command -v locallama-gui >/dev/null 2>&1; then
+  exec locallama-gui "$@"
+fi
+
+if command -v python3 >/dev/null 2>&1; then
+  exec python3 -m locallama_gui "$@"
+fi
+
+if command -v python >/dev/null 2>&1; then
+  exec python -m locallama_gui "$@"
+fi
+
+echo "Error: could not launch LocalLama GUI. Neither 'locallama-gui' nor a Python interpreter was found in PATH." >&2
+exit 1

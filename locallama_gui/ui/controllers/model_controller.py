@@ -37,9 +37,30 @@ class ModelController:
             self.window.run_async(lambda: create_backend(self.config.active_profile()).copy_model(source, dest), "Model cloned")
 
     def delete_model(self, parent) -> None:
-        name = self.window.model_name()
-        if name and __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.question(parent, "Delete", f"Delete {name}?") == __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.StandardButton.Yes:
-            self.window.run_async(lambda: create_backend(self.config.active_profile()).delete_model(name), "Model deleted")
+        name = self.window.model_name().strip()
+        if not name:
+            __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.information(
+                parent,
+                "Delete Model",
+                "Select a model before attempting deletion.",
+            )
+            return
+
+        confirm = __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.question(
+            parent,
+            "Delete Model",
+            f"Delete model '{name}'? This action cannot be undone.",
+            __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.StandardButton.Yes
+            | __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.StandardButton.No,
+            __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.StandardButton.No,
+        )
+        if confirm != __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.StandardButton.Yes:
+            return
+
+        self.window.run_async(
+            lambda: create_backend(self.config.active_profile()).delete_model(name),
+            f"Model deleted: {name}",
+        )
 
     def _model_stream_op(self, parent, title: str, method: str) -> None:
         name, ok = __import__("PySide6.QtWidgets", fromlist=["QInputDialog"]).QInputDialog.getText(parent, title, "Model name:", text=self.window.model_name())
