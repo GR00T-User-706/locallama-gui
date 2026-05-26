@@ -8,7 +8,7 @@ from dataclasses import asdict
 from datetime import datetime
 
 import psutil
-from PySide6.QtCore import QByteArray, Qt, Signal
+from PySide6.QtCore import QByteArray, Qt, QThread, Signal
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
@@ -197,6 +197,7 @@ class MainWindow(QMainWindow):
         self.status = self.statusBar()
         self.status.showMessage("Disconnected")
         self.toolbar = QToolBar("Main")
+        self.toolbar.setObjectName("mainToolbar")
         self.addToolBar(self.toolbar)
         for label, slot in [
             ("New Chat", self.new_chat),
@@ -465,12 +466,14 @@ class MainWindow(QMainWindow):
         tab = self.current_tab()
         if tab:
             tab.set_generating(False)
+        self.current_stream = None
         self.log(f"Generation error: {error}")
         QMessageBox.critical(self, "Generation Error", error)
 
     def _stream_done(self, tab: ChatTab) -> None:
         self.status.showMessage("idle")
         tab.set_generating(False)
+        self.current_stream = None
         self.sessions.save(tab.session)
         self.refresh_sessions()
         tab.render()
@@ -478,11 +481,15 @@ class MainWindow(QMainWindow):
     def stop_generation(self) -> None:
         if self.current_stream:
             self.current_stream.cancel()
+            if self.current_stream.isRunning():
+                self.current_stream.wait(2000)
             tab = self.current_tab()
             if tab:
                 tab.set_generating(False)
             self.status.showMessage("idle")
             self.log("Generation stopped by user.")
+            if not self.current_stream.isRunning():
+                self.current_stream = None
 
     def model_changed(self, text: str) -> None:
         tab = self.current_tab()
@@ -817,6 +824,14 @@ class MainWindow(QMainWindow):
             self.restoreState(QByteArray.fromHex(self.config.ui.state_hex.encode()))
 
     def closeEvent(self, event) -> None:
+        if self.current_stream and self.current_stream.isRunning():
+            self.current_stream.cancel()
+            self.current_stream.wait(2000)
+        for worker in list(self.worker_refs):
+            if isinstance(worker, QThread) and worker.isRunning():
+                if hasattr(worker, "cancel"):
+                    worker.cancel()
+                worker.wait(2000)
         self.config.ui.geometry_hex = bytes(self.saveGeometry().toHex()).decode()
         self.config.ui.state_hex = bytes(self.saveState().toHex()).decode()
         self.config.save()
