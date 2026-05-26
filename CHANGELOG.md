@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.15 - 2026-05-26
+
+### Fixed
+- Reworked generation stop/shutdown handling to avoid UI-thread blocking waits (`wait(...)`) while still issuing cancellation to active stream workers.
+- Added stream ownership tracking so only the currently active generation stream is allowed to mutate chat/token UI state or finalize generation state.
+- Limited stop-generation to the active owned stream lifecycle, preventing stale stream callbacks from overriding current UI state.
+
 ## 1.0.14 - 2026-05-26
 
 ### Fixed
