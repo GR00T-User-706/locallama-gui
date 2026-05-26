@@ -126,6 +126,17 @@ Do not archive files just because they are ugly. Ugly working code may be improv
 
 ---
 
+
+## 5.1 Archive Validation Scope
+
+Archived code under `archive/**` is historical storage, not active runtime.
+
+- Production CI, lint, and test workflows must target active code paths only.
+- Archived trees must be excluded from routine CI validation scope.
+- If archived code is revived for use, it must be moved to an active path under current naming/conventions and validated there.
+
+---
+
 ## 6. Versioning Is Mandatory
 
 Every meaningful change must bump the version.

@@ -1,34 +1,13 @@
 name: Archive Lint
 
 on:
-  pull_request:
-    paths:
-      - 'archive/**'
-      - 'llm_studio/**'
-      - 'ollama_GUI/**'
-      - '.github/workflows/**'
-  push:
-    branches:
-      - main
-    paths:
-      - 'archive/**'
-      - 'llm_studio/**'
-      - 'ollama_GUI/**'
-      - '.github/workflows/**'
+  workflow_dispatch:
 
 jobs:
-  legacy-lint:
+  archive-policy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
-      - name: Lint archived Python trees (syntax check)
+      - name: Archive policy note
         run: |
-          python -m compileall -q llm_studio
-          python -m compileall -q ollama_GUI
+          echo "Archive trees are historical storage and excluded from CI lint/test validation."
+          echo "If code is restored from archive, it must move to an active path and be validated there."

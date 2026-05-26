@@ -56,15 +56,15 @@ Verified active app identity conclusion:
 - **Entry point = `locallama_gui/app.py` (via console script and `python -m`).**
 - The historical command `/usr/bin/python3 ~/my-ollama/locallama-gui/app.py` is **not** currently matched by repo layout (no top-level `app.py` present).
 
-## Archive Candidates
+## Archive Candidates (Historical Snapshot)
 
 | Original Path | Type | Reason It Appears Legacy/Unused | Evidence | Risk If Archived | Recommended Archive Path | Status |
 | ------------- | ---- | ------------------------------- | -------- | ---------------- | ------------------------ | ------ |
-| `ollama_GUI/ollama-gui-qt/` | legacy app | Legacy Qt/QML app not referenced by active package entrypoints | not in `project.scripts`; legacy desktop file naming | LOW-MEDIUM (historical value) | `archive/old_apps/ollama_GUI/ollama-gui-qt/` | SHOULD_ARCHIVE |
-| `ollama_GUI/ollama-gui-py/` | legacy app | Older parallel Python GUI tree; not active runtime target | active runtime points to `locallama_gui` | MEDIUM | `archive/old_apps/ollama_GUI/ollama-gui-py/` | SHOULD_ARCHIVE |
-| `ollama_GUI/addons/ollama_tools/test_tools_v4.py` | legacy tests/tools | Executes `sys.exit(1)` during pytest collection; breaks repo-wide pytest | observed pytest INTERNALERROR trace | LOW if archived with parent legacy tree | `archive/broken/ollama_GUI/addons/ollama_tools/test_tools_v4.py` | SHOULD_ARCHIVE |
-| `llm_studio/CODEX_harvest_THESE_functions/` | experiment | Explicitly called out as experimental harvested code | archive index planned candidates | LOW-MEDIUM | `archive/experiments/llm_studio/CODEX_harvest_THESE_functions/` | SHOULD_ARCHIVE |
-| `llm_studio/` (remainder) | parallel app/prototype | Appears parallel app ecosystem not used by active entrypoint | no active references from `locallama_gui` boot path | MEDIUM-HIGH (unknown utility) | `archive/legacy_code/llm_studio/` | NEEDS_HUMAN_REVIEW |
+| `ollama_GUI/ollama-gui-qt/` | legacy app | Legacy Qt/QML app not referenced by active package entrypoints | not in `project.scripts`; legacy desktop file naming | LOW-MEDIUM (historical value) | `archive/old_apps/ollama_GUI/ollama-gui-qt/` | ARCHIVED (TOP-LEVEL TREE) |
+| `ollama_GUI/ollama-gui-py/` | legacy app | Older parallel Python GUI tree; not active runtime target | active runtime points to `locallama_gui` | MEDIUM | `archive/old_apps/ollama_GUI/ollama-gui-py/` | ARCHIVED (TOP-LEVEL TREE) |
+| `ollama_GUI/addons/ollama_tools/test_tools_v4.py` | legacy tests/tools | Executes `sys.exit(1)` during pytest collection; breaks repo-wide pytest | observed pytest INTERNALERROR trace | LOW if archived with parent legacy tree | `archive/broken/ollama_GUI/addons/ollama_tools/test_tools_v4.py` | ARCHIVED IN LEGACY TREE (NOT REHOMED TO `archive/broken`) |
+| `llm_studio/CODEX_harvest_THESE_functions/` | experiment | Explicitly called out as experimental harvested code | archive index planned candidates | LOW-MEDIUM | `archive/experiments/llm_studio/CODEX_harvest_THESE_functions/` | ARCHIVED IN LEGACY TREE (NOT REHOMED TO `archive/experiments`) |
+| `llm_studio/` (remainder) | parallel app/prototype | Appears parallel app ecosystem not used by active entrypoint | no active references from `locallama_gui` boot path | MEDIUM-HIGH (unknown utility) | `archive/legacy_code/llm_studio/` | ARCHIVED (TOP-LEVEL TREE) |
 | `FUNCTIONALITY_STATUS.md` | doc | Potentially stale compared to current UI/changelog | not wired to current requested audit outputs | LOW | `archive/old_docs/FUNCTIONALITY_STATUS.md` | POSSIBLY_ARCHIVE |
 | `HUMAN_REVIEW.md` | doc | Could be one-off process artifact | unclear ongoing workflow usage | MEDIUM | `archive/notes/HUMAN_REVIEW.md` | NEEDS_HUMAN_REVIEW |
 | `SECURITY_REVIEW.md` | doc | Could be stale or still relevant | unknown freshness and owner intent | HIGH if archived incorrectly | `archive/old_docs/SECURITY_REVIEW.md` | NEEDS_HUMAN_REVIEW |
@@ -74,26 +74,26 @@ Verified active app identity conclusion:
 
 | Item | Exists | Complete | Problems |
 | ---- | ------ | -------- | -------- |
-| `archive/` directory | Yes | Partial | Present but not yet used for full physical relocation of legacy trees. |
-| archive subfolders per requested target taxonomy (`legacy_code`, `old_apps`, `old_docs`, `experiments`, `broken`, `duplicate`, `obsolete_ci`, `notes`) | No (as named) | No | Current archive naming in docs uses different labels (`old`, `experimental`, etc.), so taxonomy mismatch exists. |
-| `archive/ARCHIVE_INDEX.md` | Yes | Partial | Contains governance + planned moves but no substantial completed move inventory. |
-| Archive index coverage of archived files | Partial | No | Existing index references manifests and planned candidates, but no exhaustive mapping of all legacy trees. |
-| CI excludes archive from production checks | Mixed | No | `ci.yml` runs repo-wide `ruff check .` and `pytest`; archive/legacy still affect pytest due to collection. |
+| `archive/` directory | Yes | Yes | Legacy trees are physically relocated under `archive/`. |
+| archive subfolders per requested target taxonomy (`legacy_code`, `old_apps`, `old_docs`, `experiments`, `broken`, `duplicate`, `obsolete_ci`, `notes`) | Partial | Partial | `legacy_code` and `old_apps` are in use; other buckets remain optional and usage-dependent. |
+| `archive/ARCHIVE_INDEX.md` | Yes | Yes | Includes recorded relocations for legacy trees with provenance. |
+| Archive index coverage of archived files | Partial | Partial | Core legacy tree moves are recorded; deeper per-subpath inventory can be extended as needed. |
+| CI excludes archive from production checks | Yes | Yes | Production test scope is active tests only; archive is out of routine CI lint/test validation. |
 | Docs explain archive purpose | Yes | Partial | `archive/README.md` exists, but practical archive execution appears incomplete. |
 
 ## CI and Tooling State
 
 | Tool/Workflow | Config File | Command/Behavior | Archive Ignored | Legacy Ignored | Problems | Recommended Fix |
 | ------------- | ----------- | ---------------- | --------------- | -------------- | -------- | --------------- |
-| Main CI | `.github/workflows/ci.yml` | install dev deps; `ruff check .`; `pytest` across repo | No explicit pytest ignore | Ruff excludes some legacy via config | Pytest collects legacy tests; currently fails in `ollama_GUI/addons/.../test_tools_v4.py` due to `sys.exit(1)`. | Restrict pytest paths to active tests or configure ignore for legacy/archive trees. |
+| Main CI | `.github/workflows/ci.yml` | install dev deps; `ruff check .`; `pytest` with `testpaths=["tests"]` | Yes (pytest scope) | Yes | Main CI scope is now centered on active test tree. | Keep test scope focused on active paths. |
 | Active CI | `.github/workflows/active-ci.yml` | compileall only for `locallama_gui` on path-filtered changes | N/A | Yes by path filter | Very limited signal (syntax only, no lint/tests). | Expand active workflow later to include targeted lint/tests on active package. |
-| Archive lint | `.github/workflows/archive-lint.yml` | compileall on `llm_studio` and `ollama_GUI` when those paths change | N/A | N/A | Syntax-only; does not solve pytest collection conflicts in main CI. | Keep as archive syntax gate, but separate from production CI scope. |
+| Archive lint | `.github/workflows/archive-lint.yml` | manual policy workflow only (`workflow_dispatch`) | Yes | Yes | No archive code validation runs in routine CI. | Keep manual-only for archive policy visibility. |
 | Ruff | `pyproject.toml` `[tool.ruff]` | `ruff check .`; `extend-exclude = ["llm_studio", "ollama_GUI"]` | Yes (implicitly if under excluded trees? archive not excluded explicitly) | Yes (`llm_studio`, `ollama_GUI`) | Ruff passes locally; archive not explicitly excluded. | Add explicit archive exclusions later for clarity/consistency. |
-| Pytest | default discovery (no `pytest.ini`) | `pytest` from repo root | No | No | Discovers non-production tests/scripts in legacy trees. | Add `testpaths = tests` or equivalent ignore rules. |
+| Pytest | `pyproject.toml` `[tool.pytest.ini_options]` | `pytest` from repo root with `testpaths = ["tests"]` | Yes | Yes | Discovery is constrained to active test suite. | Keep `testpaths` as active-scope guardrail. |
 | Pre-commit/tox/setup.cfg/Makefile configs | not present | N/A | N/A | N/A | Tooling surface incomplete for standardized local dev workflow. | Optional future: add minimal standardized dev commands. |
 
 Current likely CI failure reason:
-- **Primary drift**: CI test phase includes legacy path `ollama_GUI/addons/ollama_tools/test_tools_v4.py` that calls `sys.exit(1)` at import time, aborting pytest collection.
+- CI drift noted in prior audit has been addressed by pytest testpath scoping and archive exclusion from routine validation.
 
 ## Versioning State
 
@@ -200,17 +200,17 @@ High-level audit based on code/test/docs (not full manual GUI runbook test in th
 
 What appears to have been expected but not actually completed:
 
-- Archive governance docs were added, but **legacy trees were mostly not moved**.
-- CI lint scoping improved for Ruff, but **pytest still scans legacy code and can fail for non-production reasons**.
-- Version/changelog discipline exists, but **supporting docs promised by policy are still missing** (`VERSIONING`, QA/UI/menu/parameters docs).
+- Archive governance docs were added and core legacy trees were moved under `archive/`.
+- CI scoping now constrains pytest to active tests and excludes archive from routine validation.
+- Version/changelog discipline exists; supporting baseline docs (`VERSIONING`, QA/UI/menu/parameters) are now present.
 - Active app is clearly `locallama_gui`, yet repository still contains multiple legacy app trees that create maintenance and CI confusion.
 - Launcher/desktop integration for active app appears **not implemented** in the expected standardized form.
-- UI action integrity policy is strong in AGENTS, but **no concrete UI action audit artifact exists** to enforce it.
+- UI action integrity policy is supported by a concrete `docs/UI_ACTION_AUDIT.md` artifact.
 
 Missing/stale pieces (high confidence):
 - Missing: `docs/LAUNCHING.md`, `docs/ARCHITECTURE.md`.
-- Pending archive moves: `ollama_GUI/*` (except maybe selected retained references), experimental `llm_studio` regions, with human review for any still-useful subsets.
-- Pending CI fixes: pytest discovery scoping/ignores for legacy+archive trees.
+- Archive moves for legacy trees are completed at top-level (`archive/old_apps/ollama_GUI/`, `archive/legacy_code/llm_studio/`); optional deeper curation can continue as needed.
+- CI fix for pytest discovery scoping is complete (`testpaths = ["tests"]`), and archive is excluded from routine validation.
 - Pending launcher pieces: executable launcher + installers + canonical desktop file.
 - Most likely broken/drift-prone behavior right now: delete-model UX clarity/reliability, ambiguous dialogs, developer/debug action usefulness, and unverified error surfacing in some async flows.
 
@@ -235,8 +235,8 @@ Missing/stale pieces (high confidence):
 - **Version/changelog impact**: PATCH or MINOR depending user-visible behavior changes (likely PATCH if no features).
 
 ### Phase 3: CI Repair
-- **Goal**: ensure CI checks active production by default and treats archive separately.
-- **Likely files**: `.github/workflows/ci.yml`, `.github/workflows/active-ci.yml`, `.github/workflows/archive-lint.yml`, `pyproject.toml` (pytest config/testpaths), optionally `pytest.ini`.
+- **Goal**: keep CI checks active production paths only and keep archive out of routine validation.
+- **Likely files**: `.github/workflows/ci.yml`, `.github/workflows/active-ci.yml`, `.github/workflows/archive-lint.yml`, `pyproject.toml` (pytest testpaths).
 - **Risk**: MEDIUM (false green if over-excluded).
 - **Validation commands**:
   - `ruff check .`
