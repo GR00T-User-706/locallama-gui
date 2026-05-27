@@ -1,3 +1,9 @@
+## 1.1.1 - 2026-05-27
+
+### Changed
+- Corrected package metadata license declaration in `pyproject.toml` to reference the repository `LICENSE` file instead of incorrectly declaring MIT.
+- Bumped project version from `1.1.0` to `1.1.1` for this metadata correction.
+
 ## 1.1.0 - 2026-05-27
 
 ### Added
