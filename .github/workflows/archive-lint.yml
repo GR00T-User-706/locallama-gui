@@ -3,6 +3,8 @@ name: Archive Lint
 on:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   archive-policy:
     runs-on: ubuntu-latest
