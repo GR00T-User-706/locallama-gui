@@ -1,3 +1,17 @@
+## 1.1.0 - 2026-05-27
+
+### Added
+- Added a repository `CODE_OF_CONDUCT.md` using Contributor Covenant 2.1 language for contributor behavior standards and enforcement.
+- Added a `SECURITY.md` policy describing private vulnerability reporting expectations and response targets.
+- Added GitHub issue templates for bug reports and feature requests, plus issue-template configuration to disable blank issues and direct security reports to private channels.
+
+### Changed
+- Added a `LICENSE` file using a custom community/commercial license aligned with maintainer-requested terms (public no-charge redistribution, attribution/upstream submission requirements, and commercial revenue-share requirement).
+- Bumped project version from `1.0.17` to `1.1.0` in package metadata and runtime version constant.
+
+### Documentation
+- Updated `README.md` with a new Community and Governance section linking code of conduct, license, security policy, and issue templates.
+
 # Changelog
 
 ## 1.0.17 - 2026-05-26

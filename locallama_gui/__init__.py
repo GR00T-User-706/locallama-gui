@@ -1,3 +1,3 @@
 """LocalLama GUI: a modular desktop control center for local and remote LLMs."""
 
-__version__ = "1.0.17"
+__version__ = "1.1.0"
