@@ -16,6 +16,9 @@ on:
       - 'requirements.txt'
       - '.github/workflows/**'
 
+permissions:
+  contents: read
+
 jobs:
   active-checks:
     runs-on: ubuntu-latest
