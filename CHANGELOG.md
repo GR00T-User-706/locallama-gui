@@ -1,3 +1,31 @@
+## 1.1.2 - 2026-05-27
+
+### Changed
+- Updated code-of-conduct enforcement reporting to use a private conduct-reporting channel (`conduct@locallama-gui.org`) instead of public issue reporting.
+- Updated security policy with a concrete private fallback channel (`security@locallama-gui.org`) when GitHub Security Advisories are unavailable.
+- Updated GitHub issue-template contact links to include both private security fallback guidance and a private conduct-reporting contact.
+- Bumped project version from `1.1.1` to `1.1.2`.
+
+## 1.1.1 - 2026-05-27
+
+### Changed
+- Corrected package metadata license declaration in `pyproject.toml` to reference the repository `LICENSE` file instead of incorrectly declaring MIT.
+- Bumped project version from `1.1.0` to `1.1.1` for this metadata correction.
+
+## 1.1.0 - 2026-05-27
+
+### Added
+- Added a repository `CODE_OF_CONDUCT.md` using Contributor Covenant 2.1 language for contributor behavior standards and enforcement.
+- Added a `SECURITY.md` policy describing private vulnerability reporting expectations and response targets.
+- Added GitHub issue templates for bug reports and feature requests, plus issue-template configuration to disable blank issues and direct security reports to private channels.
+
+### Changed
+- Added a `LICENSE` file using a custom community/commercial license aligned with maintainer-requested terms (public no-charge redistribution, attribution/upstream submission requirements, and commercial revenue-share requirement).
+- Bumped project version from `1.0.17` to `1.1.0` in package metadata and runtime version constant.
+
+### Documentation
+- Updated `README.md` with a new Community and Governance section linking code of conduct, license, security policy, and issue templates.
+
 # Changelog
 
 ## 1.0.17 - 2026-05-26

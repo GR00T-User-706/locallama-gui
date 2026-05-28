@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report (private)
+    url: https://github.com/gr00t-user-706/locallama-gui/security/advisories/new
+    about: Use this for private vulnerability reporting. If unavailable, email security@locallama-gui.org.
+  - name: Code of Conduct report (private)
+    url: mailto:conduct@locallama-gui.org
+    about: Report harassment, abuse, or conduct issues privately.
