@@ -1,6 +1,6 @@
 LocalLama GUI Community and Commercial License (LGC-1.0)
 
-Copyright © 2026 Johnathon B. Mattson-McCarty, also known as gr00t-user-706.
+Copyright © 2026 Johnathon B. Mattson-McCarty (GR00T-User-706).
 
 1. Grant of Rights
 
@@ -21,45 +21,67 @@ with the copyright holder.
 4. Commercial Revenue Share
 
 Unless otherwise agreed in writing, commercial use requires payment of 15% of gross
-revenue received from any product, service, subscription, support plan, hosted offering,
-hardware bundle, consulting package, or other commercial activity that sells, bundles,
-hosts, distributes, modifies, rebrands, or substantially depends on this software.
+revenue directly attributable to products, services, features, or offerings that
+incorporate, depend on, or are substantially derived from this software.
 
 A separate written commercial agreement is required before commercial use begins.
 
-5. Attribution
+5. Definition of Derivative Works
+
+For purposes of this license, "derivative works" include but are not limited to:
+modifications, extensions, plugins, wrappers, integrations, enhancements, forks, and
+any software that incorporates or substantially depends on this codebase for core
+functionality or primary features.
+
+6. Attribution
 
 You must preserve copyright notices, license notices, and attribution to the original
 author in all copies or substantial portions of the software.
 
-6. Modified Versions
+7. Modified Versions
 
 Public releases of modified versions must clearly identify that changes were made and
-must link to the canonical upstream repository.
+must link to the canonical upstream repository at https://github.com/GR00T-User-706/locallama-gui.
 
-7. No Trademark or Endorsement Rights
+8. No Trademark or Endorsement Rights
 
 This license does not grant permission to use the project name, author name, logos,
-branding, or related marks to imply endorsement.
+branding, or related marks to imply endorsement or association without explicit
+written permission.
 
-8. Disclaimer of Warranty
+9. Disclaimer of Warranty
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
-AND NONINFRINGEMENT.
+INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, AND NONINFRINGEMENT.
 
-9. Limitation of Liability
+10. Limitation of Liability
 
 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES,
 OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
 FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-10. Termination
+11. Termination
 
-Any violation of this license automatically terminates your rights under this license.
+Any material violation of this license automatically terminates your rights under this
+license. Reinstatement requires written acknowledgment of compliance and correction of
+the violation.
 
-11. Additional Terms
+12. Enforcement and Compliance
+
+Commercial users must maintain accurate records demonstrating compliance with revenue
+reporting requirements. The copyright holder may request documentation of revenue,
+usage, and derivative works at any time. Failure to provide requested documentation
+within 30 days constitutes a material breach of this license.
+
+13. Dispute Resolution
+
+Any disputes arising from this license shall be resolved through binding arbitration
+in accordance with the laws of the jurisdiction where the copyright holder resides.
+Both parties agree to attempt good-faith negotiation before initiating formal proceedings.
+
+14. Additional Terms
 
 Additional permissions, exceptions, or commercial terms may be granted only in a
 separate written agreement signed by the copyright holder.
