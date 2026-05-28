@@ -1,3 +1,11 @@
+## 1.1.2 - 2026-05-27
+
+### Changed
+- Updated code-of-conduct enforcement reporting to use a private conduct-reporting channel (`conduct@locallama-gui.org`) instead of public issue reporting.
+- Updated security policy with a concrete private fallback channel (`security@locallama-gui.org`) when GitHub Security Advisories are unavailable.
+- Updated GitHub issue-template contact links to include both private security fallback guidance and a private conduct-reporting contact.
+- Bumped project version from `1.1.1` to `1.1.2`.
+
 ## 1.1.1 - 2026-05-27
 
 ### Changed
