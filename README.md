@@ -99,6 +99,14 @@ plugins/                 # development/sample plugins
 docs/                    # plugin SDK and user documentation
 ```
 
+
+## Community and Governance
+
+- Code of Conduct: [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
+- License: [`LICENSE`](LICENSE)
+- Security policy: [`SECURITY.md`](SECURITY.md)
+- Issue templates: [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/)
+
 ## Legacy Code
 
 The older experimental Tkinter and Qt5/QML artifacts are archived under `archive/old_apps/ollama_GUI/` for historical reference. Additional legacy parallel code is archived under `archive/legacy_code/llm_studio/`. The supported production application is the PySide6 package exposed by `locallama-gui`.
