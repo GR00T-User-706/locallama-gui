@@ -127,7 +127,8 @@ def test_chat_payload_emits_only_selected_reasoning_mode(monkeypatch):
         ).__anext__()
     )
 
-    assert captured["payload"]["options"]["plan"] is True
+    assert captured["payload"]["think"] is True
+    assert "plan" not in captured["payload"]["options"]
     assert "think" not in captured["payload"]["options"]
     assert "mirostat" not in captured["payload"]["options"]
 
@@ -150,3 +151,9 @@ def test_sanitize_options_preserves_supported_and_filters_invalid_and_stop_fragm
     assert "mirostat" not in sanitized
     assert "tfs_z" not in sanitized
     assert "think" not in sanitized
+
+
+def test_sanitize_request_fields_only_forwards_supported_top_level_fields():
+    request_fields = OllamaBackend.sanitize_request_fields({"think": True, "plan": True, "raw": True})
+
+    assert request_fields == {"think": True}

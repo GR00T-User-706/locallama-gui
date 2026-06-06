@@ -519,10 +519,6 @@ class ParameterDialog(QDialog):
         dbl("min_p", p.min_p, 0, 1)
         dbl("repeat_penalty", p.repeat_penalty, 0, 5)
         spin("repeat_last_n", p.repeat_last_n, -1, 32768)
-        spin("mirostat", p.mirostat, 0, 2)
-        dbl("mirostat_eta", p.mirostat_eta, 0, 1)
-        dbl("mirostat_tau", p.mirostat_tau, 0, 20)
-        dbl("tfs_z", p.tfs_z, 0, 5)
         spin("num_predict", p.num_predict, -2, 200000)
         spin("seed", p.seed, -1, 2_147_483_647)
         spin("num_ctx", p.num_ctx, 128, 1_000_000)
@@ -533,13 +529,12 @@ class ParameterDialog(QDialog):
         self.preset_name = QLineEdit("default")
         form.addRow("preset name", self.preset_name)
         self.reasoning_mode = QComboBox()
-        self.reasoning_mode.addItems(["normal", "thinking", "plan"])
+        self.reasoning_mode.addItems(["normal", "thinking"])
         self.reasoning_mode.setCurrentText(p.reasoning_mode)
         self.reasoning_mode.setToolTip(
             "Reasoning mode for the next request. "
-            "'thinking' maps to Ollama option think=true, "
-            "'plan' maps to Ollama option plan=true, and "
-            "'normal' is app-default mode (no mode option sent)."
+            "'thinking' maps to the capability-gated Ollama request field think=true. "
+            "'normal' is app-default mode (no mode field sent)."
         )
         form.addRow("reasoning mode", self.reasoning_mode)
         save_preset = QPushButton("Save Preset")
@@ -587,13 +582,8 @@ class ParameterDialog(QDialog):
                     widget.setText(str(value))
         self.stop.setText("|".join(preset.get("stop", [])))
         preset_mode = str(preset.get("reasoning_mode", "normal"))
-        if preset_mode not in {"normal", "thinking", "plan"}:
-            if bool(preset.get("thinking_mode", False)):
-                preset_mode = "thinking"
-            elif bool(preset.get("plan_mode", False)):
-                preset_mode = "plan"
-            else:
-                preset_mode = "normal"
+        if preset_mode not in {"normal", "thinking"}:
+            preset_mode = "thinking" if bool(preset.get("thinking_mode", False)) else "normal"
         self.reasoning_mode.setCurrentText(preset_mode)
 
     def accept(self) -> None:

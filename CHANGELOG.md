@@ -1,3 +1,18 @@
+## 1.1.3 - 2026-06-02
+
+### Changed
+- Restricted the visible Ollama generation-parameter dialog to supported controls while retaining legacy config fields for backward-compatible loading.
+- Updated the diagnostics request preview to reflect the corrected Ollama payload shape.
+- Bumped project version from `1.1.2` to `1.1.3`.
+
+### Fixed
+- Moved Ollama `think=true` from the runtime `options` object to the top-level chat request payload.
+- Removed invalid Ollama `plan` forwarding from the strict runtime option path.
+- Expanded the Ollama runtime-option allow-list with current server-defined keys for backend callers.
+
+### Documentation
+- Updated the README parameter-profile description and synchronized the versioning snapshot.
+
 ## 1.1.2 - 2026-05-27
 
 ### Changed

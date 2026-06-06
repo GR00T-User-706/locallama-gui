@@ -10,7 +10,7 @@ LocalLama GUI is a production-oriented PySide6 desktop control center for local 
 - **Model operations** for Ollama: list, pull, push, clone, delete, inspect templates/metadata, and build from Modelfiles.
 - **Modelfile editor** with syntax highlighting, validation, save/duplicate/version history, and generated config preview.
 - **System prompt manager** with persistent prompt library, categories, favorites, import/export, search-ready storage, and version history.
-- **Parameter profiles** covering sampling, generation, context, GPU layers, stop sequences, and reasoning mode toggles.
+- **Parameter profiles** covering supported sampling, generation, context, GPU layers, stop sequences, and capability-gated Ollama thinking mode.
 - **Plugin system** with drop-in Python modules for tools, commands, chat interceptors, UI panels, automation, memory providers, and backend integrations.
 - **Agent builder** for visual agent profile creation with model, tools, plugin assignment, memory mode, reasoning mode, behavior, and execution policy.
 - **Developer diagnostics**: request viewer, token stream viewer, backend status, latency, logs, terminal diagnostics, and plugin errors.

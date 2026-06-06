@@ -38,6 +38,7 @@ from PySide6.QtWidgets import (
 )
 
 from locallama_gui.backends.manager import create_backend
+from locallama_gui.backends.ollama import OllamaBackend
 from locallama_gui.core.config import APP_SYSTEM_PROMPT, AppConfig
 from locallama_gui.core.domain import ChatMessage, ChatSession, ModelInfo
 from locallama_gui.core.managers import (
@@ -436,19 +437,19 @@ class MainWindow(QMainWindow):
         messages.extend(tab.session.messages)
         for interceptor in self.plugin_context.chat_interceptors:
             messages = interceptor(messages)
-        self.request_view.setPlainText(
-            json.dumps(
-                {
-                    "provider": profile.name,
-                    "url": profile.base_url,
-                    "model": model,
-                    "messages": redacted_request_messages(messages),
-                    "options": self.config.parameters.to_backend_options(),
-                },
-                indent=2,
-                default=str,
-            )
-        )
+        options = self.config.parameters.to_backend_options()
+        request_preview = {
+            "provider": profile.name,
+            "url": profile.base_url,
+            "model": model,
+            "messages": redacted_request_messages(messages),
+            "options": options,
+        }
+        if isinstance(backend, OllamaBackend):
+            request_preview = backend.build_chat_payload(model, messages, options, tab.streaming.isChecked())
+            request_preview.update({"provider": profile.name, "url": profile.base_url})
+            request_preview["messages"] = redacted_request_messages(messages)
+        self.request_view.setPlainText(json.dumps(request_preview, indent=2, default=str))
         self.status.showMessage("generating" if not tab.streaming.isChecked() else "streaming")
         tab.set_generating(True)
         self.token_view.clear()
@@ -459,7 +460,7 @@ class MainWindow(QMainWindow):
             lambda: backend.chat(
                 model,
                 messages,
-                self.config.parameters.to_backend_options(),
+                options,
                 tab.streaming.isChecked(),
             )
         )

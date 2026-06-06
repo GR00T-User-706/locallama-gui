@@ -6,9 +6,9 @@ Scope: Documentation-only baseline policy reference.
 ## Current State Snapshot
 
 ### CONFIRMED
-- `pyproject.toml` version: `1.0.12`
-- `locallama_gui/__init__.py` version: `1.0.12`
-- `CHANGELOG.md` latest version heading: `1.0.12` (dated 2026-05-25)
+- `pyproject.toml` version: `1.1.3`
+- `locallama_gui/__init__.py` version: `1.1.3`
+- `CHANGELOG.md` latest version heading: `1.1.3` (dated 2026-06-02)
 
 ### LIKELY
 - `pyproject.toml` is the practical source of truth for packaging/release version metadata.

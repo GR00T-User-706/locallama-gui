@@ -71,6 +71,7 @@ class GenerationParameters:
     min_p: float = 0.0
     repeat_penalty: float = 1.1
     repeat_last_n: int = 64
+    # Retained only so older configs and presets continue to load safely.
     mirostat: int = 0
     mirostat_eta: float = 0.1
     mirostat_tau: float = 5.0
@@ -107,10 +108,6 @@ class GenerationParameters:
             "min_p": self.min_p,
             "repeat_penalty": self.repeat_penalty,
             "repeat_last_n": self.repeat_last_n,
-            "mirostat": self.mirostat,
-            "mirostat_eta": self.mirostat_eta,
-            "mirostat_tau": self.mirostat_tau,
-            "tfs_z": self.tfs_z,
             "num_predict": self.num_predict,
             "seed": self.seed,
             "stop": self.stop,
@@ -120,8 +117,6 @@ class GenerationParameters:
         }
         if self.reasoning_mode == "thinking":
             options["think"] = True
-        elif self.reasoning_mode == "plan":
-            options["plan"] = True
         return options
 
 
