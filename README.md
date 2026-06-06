@@ -70,7 +70,7 @@ python -m locallama_gui
 - **Plugins**: manage, install, reload, and open developer SDK docs.
 - **Settings**: API endpoints, generation parameters, themes, shortcuts, model settings.
 - **View**: panel visibility, layout presets, logs, terminal.
-- **Developer**: logs, request viewer, token viewer, request inspector, diagnostics terminal.
+- **Developer**: logs, request viewer, token viewer, API inspector, debug console.
 - **Help**: documentation, about, diagnostics.
 
 ## Data Locations
