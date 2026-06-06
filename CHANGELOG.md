@@ -1,3 +1,13 @@
+## 1.1.3 - 2026-06-06
+
+### Fixed
+- Made Developer menu panel actions reliably show their stored dock widgets.
+- Renamed misleading API Inspector and Debug Console actions to Request Inspector and Diagnostics Terminal to match their actual behavior.
+- Made Help diagnostics automatically reveal the Terminal panel containing its output.
+
+### Documentation
+- Updated the README Developer menu description to match the corrected action names.
+
 ## 1.1.2 - 2026-05-27
 
 ### Changed
