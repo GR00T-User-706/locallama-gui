@@ -1,132 +1,188 @@
 # LocalLama GUI
 
-LocalLama GUI is a production-oriented PySide6 desktop control center for local and remote LLMs. It is designed as a power-user workstation: chat client, model manager, Modelfile editor, prompt library, agent builder, diagnostics console, and plugin-capable AI environment in one native desktop app.
+A production-grade **native desktop UI** for managing local and remote LLMs. Built with PySide6—chat, model operations, Modelfiles, system prompts, agents, plugins, and full diagnostics all in one power-user workstation.
 
-## Highlights
+Works with **Ollama**, **OpenAI-compatible APIs**, and **llama.cpp** servers. Python 3.11+, Linux/macOS/Windows.
 
-- **Native desktop UI** built with PySide6: dockable panels, menu bar, tabs, dark theme, keyboard-friendly layout.
-- **Multi-provider backends** for Ollama-compatible APIs, OpenAI-compatible APIs, and llama.cpp OpenAI-compatible servers.
-- **Full chat workflow** with multi-chat tabs, streaming/non-streaming generation, persistent sessions, stop/regenerate/retry, role-aware history, and Markdown/JSON/TXT export.
-- **Model operations** for Ollama: list, pull, push, clone, delete, inspect templates/metadata, and build from Modelfiles.
-- **Modelfile editor** with syntax highlighting, validation, save/duplicate/version history, and generated config preview.
-- **System prompt manager** with persistent prompt library, categories, favorites, import/export, search-ready storage, and version history.
-- **Parameter profiles** covering sampling, generation, context, GPU layers, stop sequences, and reasoning mode toggles.
-- **Plugin system** with drop-in Python modules for tools, commands, chat interceptors, UI panels, automation, memory providers, and backend integrations.
-- **Agent builder** for visual agent profile creation with model, tools, plugin assignment, memory mode, reasoning mode, behavior, and execution policy.
-- **Developer diagnostics**: request viewer, token stream viewer, backend status, latency, logs, terminal diagnostics, and plugin errors.
+---
+
+## Quick Start
+
+```bash
+# 1. Create venv and install
+python3.11 -m venv .venv
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+pip install -e .
+
+# 2. Start your backend (example: Ollama)
+ollama serve
+
+# 3. Launch the GUI
+locallama-gui
+# or: python -m locallama_gui
+```
+
+**First time?**
+1. Open **Settings → API Endpoints** to configure your backend
+2. Click **Refresh Models** or **Models → Pull** to list available models
+3. Create a chat tab, pick a model, send a message
+
+---
+
+## Features at a Glance
+
+| Feature | Details |
+|---------|---------|
+| **Chat interface** | Multi-tab chat, streaming/non-streaming, persistent sessions, Markdown/JSON/TXT export |
+| **Model operations** | Pull, push, clone, delete, inspect Ollama templates and metadata |
+| **Modelfile editor** | Syntax highlighting, validation, version history, config preview |
+| **System prompts** | Library with categories, favorites, import/export, search, version control |
+| **Generation profiles** | Sampling, context, GPU layers, stop sequences, reasoning mode |
+| **Agents** | Visual agent builder: model, tools, plugins, memory, reasoning, execution policy |
+| **Plugins** | Drop-in Python modules for tools, commands, interceptors, UI panels, memory providers |
+| **Diagnostics** | Request viewer, token stream, backend status, latency, logs, debug console |
+| **Desktop UX** | Dockable panels, dark theme, keyboard shortcuts, menu bar, layout presets |
+
+---
 
 ## Requirements
 
-- Python 3.11+ (tested in CI on 3.11, 3.12, and 3.13)
-- A local or remote LLM backend:
-  - Ollama at `http://localhost:11434` by default, or
-  - OpenAI-compatible `/v1` endpoint, or
-  - llama.cpp server exposing OpenAI-compatible endpoints.
+- **Python:** 3.11, 3.12, or 3.13 (tested in CI)
+- **Backend (one of):**
+  - Ollama at `http://localhost:11434` (default)
+  - OpenAI-compatible `/v1` endpoint
+  - llama.cpp OpenAI-compatible server
+
+---
 
 ## Installation
 
+### From repository (development)
+
 ```bash
+git clone https://github.com/GR00T-User-706/locallama-gui.git
+cd locallama-gui
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 ```
 
-If your platform uses `python3` for Python 3.11+, substitute accordingly.
+### Desktop launcher (Linux/macOS)
 
-Tested version matrix: Python 3.11, 3.12, and 3.13.
+```bash
+# Install user-local launcher script
+./scripts/install-launcher
 
-## Run
+# (Optional) Install Linux desktop entry
+./scripts/install-desktop-entry
+```
+
+See [`docs/LAUNCHING.md`](docs/LAUNCHING.md) for full launcher and platform-specific details.
+
+---
+
+## Usage
+
+### Run the application
 
 ```bash
 locallama-gui
 ```
 
-or
+### Main menu overview
 
-```bash
-python -m locallama_gui
-```
+| Menu | Purpose |
+|------|---------|
+| **File** | New/open/save/import/export chats |
+| **Models** | Pull, push, clone, create, delete, open Modelfiles, inspect templates |
+| **Agents** | Create/manage/import/export agent profiles |
+| **Plugins** | Manage, install, reload plugins |
+| **Settings** | API endpoints, generation parameters, themes, keyboard shortcuts, model defaults |
+| **View** | Panel visibility, layout presets |
+| **Developer** | Logs, request viewer, token viewer, API inspector, debug console |
+| **Help** | Documentation, diagnostics, about |
 
-### Launcher and desktop integration
-
-- Repo launcher: `./run-locallama`
-- Install user launcher: `./scripts/install-launcher`
-- Install Linux desktop entry: `./scripts/install-desktop-entry`
-- Practical usage details: [`docs/LAUNCHING.md`](docs/LAUNCHING.md)
-
-## First Use
-
-1. Start your backend, for example `ollama serve`.
-2. Launch `locallama-gui`.
-3. Open **Settings → API Endpoints** to add or edit provider profiles.
-4. Click **Refresh Models** or use **Models** menu actions.
-5. Create a chat tab, select a model, and send a message.
-
-## Core Menus
-
-- **File**: new/open/save/save-as/import/export chats and exit.
-- **Models**: pull, push, clone, create, delete, open Modelfiles, inspect templates.
-- **Agents**: create/manage/import/export agent profiles.
-- **Plugins**: manage, install, reload, and open developer SDK docs.
-- **Settings**: API endpoints, generation parameters, themes, shortcuts, model settings.
-- **View**: panel visibility, layout presets, logs, terminal.
-- **Developer**: logs, request viewer, token viewer, API inspector, debug console.
-- **Help**: documentation, about, diagnostics.
-
-## Data Locations
+### Data locations
 
 The app uses platform-native directories via `platformdirs`:
 
-- Config: `user_config_dir("locallama-gui", "LocalLama")`
-- Data: `user_data_dir("locallama-gui", "LocalLama")`
-- Logs: `user_log_dir("locallama-gui", "LocalLama")`
+- **Config:** `user_config_dir("locallama-gui", "LocalLama")`
+- **Data:** `user_data_dir("locallama-gui", "LocalLama")`
+- **Logs:** `user_log_dir("locallama-gui", "LocalLama")`
 
-Use **Help → Diagnostics** inside the app to see exact paths on your system.
+Use **Help → Diagnostics** to see exact paths on your system.
 
-## Plugin Development
+---
 
-Drop plugin files into the user plugin directory or repository `plugins/` directory. See [`docs/PLUGIN_SDK.md`](docs/PLUGIN_SDK.md) and [`plugins/sample_plugin.py`](plugins/sample_plugin.py). Plugins can register tools, commands, chat interceptors, custom panels, automation hooks, memory providers, and integrations.
+## Advanced Topics
 
-## Project Structure
+### Plugin development
 
-```text
+Drop plugin files into the user plugin directory or repository `plugins/` directory.
+
+- Full SDK: [`docs/PLUGIN_SDK.md`](docs/PLUGIN_SDK.md)
+- Sample: [`plugins/sample_plugin.py`](plugins/sample_plugin.py)
+
+Plugins can provide:
+- Custom tools and commands
+- Chat interceptors
+- UI panels
+- Automation
+- Memory providers
+- Backend integrations
+
+### Project structure
+
+```
 locallama_gui/
-  app.py                 # application entry point
-  backends/              # Ollama/OpenAI-compatible backend implementations
-  core/                  # config, domain models, managers, plugin registry
-  ui/                    # PySide6 main window, dialogs, workers, theme
-plugins/                 # development/sample plugins
-docs/                    # plugin SDK and user documentation
+  app.py                 # Application entry point
+  backends/              # Ollama / OpenAI-compatible backends
+  core/                  # Config, domain models, managers, plugin registry
+  ui/                    # PySide6 main window, dialogs, workers, theming
+plugins/                 # Development and sample plugins
+docs/                    # SDK and user documentation
 ```
 
-
-## Community and Governance
-
-- Code of Conduct: [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
-- License: [`LICENSE`](LICENSE)
-- Security policy: [`SECURITY.md`](SECURITY.md)
-- Issue templates: [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/)
-
-## Legacy Code
-
-The older experimental Tkinter and Qt5/QML artifacts are archived under `archive/old_apps/ollama_GUI/` for historical reference. Additional legacy parallel code is archived under `archive/legacy_code/llm_studio/`. The supported production application is the PySide6 package exposed by `locallama-gui`.
+---
 
 ## Troubleshooting
 
-- If model refresh fails, confirm Ollama is running: `ollama serve`.
-- For remote servers, open **Settings → API Endpoints** and verify the base URL.
-- If plugins fail to load, disable untrusted plugins and review diagnostics logs.
+| Issue | Solution |
+|-------|----------|
+| Model refresh fails | Confirm backend is running (e.g., `ollama serve`) |
+| Can't connect to remote server | Open **Settings → API Endpoints** and verify the base URL and port |
+| Plugins fail to load | Disable untrusted plugins; review diagnostics logs in **Developer → Logs** |
+
+---
+
+## Project governance
+
+- **Code of Conduct:** [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
+- **License:** [`LICENSE`](LICENSE)
+- **Security:** [`SECURITY.md`](SECURITY.md)
+- **Issue templates:** [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/)
+
+### Legacy code
+
+Older experimental Tkinter and Qt5/QML artifacts are archived under `archive/old_apps/ollama_GUI/` for historical reference.  
+Additional legacy code is archived under `archive/legacy_code/` with an index at [`archive/ARCHIVE_INDEX.md`](archive/ARCHIVE_INDEX.md).
+
+---
 
 ## Screenshots
 
-<img width="1453" height="979" alt="1_2026_05_24" src="https://github.com/user-attachments/assets/64dca141-3edf-4d59-9093-c78629dcd7e7" />
-<img width="1920" height="1023" alt="2_2026_05_24" src="https://github.com/user-attachments/assets/20f4e35c-8989-4e62-8d90-20255fe75b99" />
+<img width="1453" height="979" alt="LocalLama GUI chat interface" src="https://github.com/user-attachments/assets/64dca141-3edf-4d59-9093-c78629dcd7e7" />
+
+<img width="1920" height="1023" alt="LocalLama GUI model and plugin management" src="https://github.com/user-attachments/assets/20f4e35c-8989-4e62-8d90-20255fe75b99" />
+
+---
 
 ## Versioning and changelog
 
-This project uses semantic versioning (`MAJOR.MINOR.PATCH`):
-- `PATCH` for fixes/documentation/test improvements.
-- `MINOR` for new backward-compatible features.
-- `MAJOR` for breaking changes.
+This project uses **semantic versioning** (`MAJOR.MINOR.PATCH`):
+- **PATCH:** bug fixes, documentation, test improvements
+- **MINOR:** new backward-compatible features
+- **MAJOR:** breaking changes
 
-See `CHANGELOG.md` for release history and `docs/REPO_ANALYSIS.md` for current architecture/cleanup status.
+See [`CHANGELOG.md`](CHANGELOG.md) for release history.  
+See [`docs/REPO_ANALYSIS.md`](docs/REPO_ANALYSIS.md) for architecture and cleanup status.
