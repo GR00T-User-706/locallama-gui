@@ -250,7 +250,7 @@ class MainWindow(QMainWindow):
         self._dock("System Prompts", self.prompt_list, Qt.DockWidgetArea.RightDockWidgetArea)
         self.log_view = QPlainTextEdit()
         self.log_view.setReadOnly(True)
-        self._dock("Logs", self.log_view, Qt.DockWidgetArea.BottomDockWidgetArea)
+        self.log_dock = self._dock("Logs", self.log_view, Qt.DockWidgetArea.BottomDockWidgetArea)
         self.request_view = QPlainTextEdit()
         self.request_view.setReadOnly(True)
         self.request_copy = QPushButton("Copy Request")
@@ -288,7 +288,9 @@ class MainWindow(QMainWindow):
         self.terminal.setPlainText(
             "LocalLama diagnostics terminal. Menu actions append operational output here.\n"
         )
-        self._dock("Terminal", self.terminal, Qt.DockWidgetArea.BottomDockWidgetArea)
+        self.terminal_dock = self._dock(
+            "Terminal", self.terminal, Qt.DockWidgetArea.BottomDockWidgetArea
+        )
         self.refresh_sessions()
         self.refresh_prompts()
 
@@ -383,8 +385,8 @@ class MainWindow(QMainWindow):
         self._menu_action(developer_menu, "Logs", self.show_logs_dock)
         self._menu_action(developer_menu, "Request Viewer", self.show_request_dock)
         self._menu_action(developer_menu, "Token Viewer", self.show_token_dock)
-        self._menu_action(developer_menu, "API Inspector", self.inspect_api)
-        self._menu_action(developer_menu, "Debug Console", self.show_terminal_dock)
+        self._menu_action(developer_menu, "Request Inspector", self.inspect_api)
+        self._menu_action(developer_menu, "Diagnostics Terminal", self.show_terminal_dock)
 
     def _build_help_menu(self) -> None:
         help_menu = self.menuBar().addMenu("Help")
@@ -546,10 +548,10 @@ class MainWindow(QMainWindow):
         dock.raise_()
 
     def show_logs_dock(self) -> None:
-        self._show_dock(self.log_view.parent(), "Logs")
+        self._show_dock(self.log_dock, "Logs")
 
     def show_terminal_dock(self) -> None:
-        self._show_dock(self.terminal.parent(), "Terminal")
+        self._show_dock(self.terminal_dock, "Terminal")
 
     def show_request_dock(self) -> None:
         self._show_dock(self.request_dock, "Request Viewer")
@@ -816,8 +818,10 @@ class MainWindow(QMainWindow):
             d.show()
 
     def inspect_api(self) -> None:
-        self.request_view.parent().show()
+        self.show_request_dock()
         self.request_view.setFocus()
+        if not self.request_view.toPlainText():
+            self.status.showMessage("No request captured yet. Send a chat message to inspect it.")
 
     def open_docs(self) -> None:
         self._show_text_dialog(
@@ -836,6 +840,7 @@ class MainWindow(QMainWindow):
         self.terminal.appendPlainText(
             f"CPU cores: {psutil.cpu_count()}\nRAM: {mem.available / 1024**3:.1f} GiB available / {mem.total / 1024**3:.1f} GiB total\nConfig: {self.config.file_path}\nData: {self.config.paths.data_dir}\nLogs: {self.config.paths.logs_dir}\n"
         )
+        self.show_terminal_dock()
 
     def log(self, text: str) -> None:
         LOG.info(text)
