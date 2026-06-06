@@ -95,3 +95,16 @@ def test_reasoning_mode_is_exclusive_via_single_enum():
     assert params.thinking_mode is True
     assert params.plan_mode is False
     assert params.normal_mode is False
+
+
+def test_legacy_generation_parameters_load_but_do_not_emit_strict_backend_options():
+    params = GenerationParameters(reasoning_mode="plan", mirostat=1, mirostat_eta=0.2, mirostat_tau=4.0, tfs_z=0.8)
+
+    options = params.to_backend_options()
+
+    assert params.reasoning_mode == "plan"
+    assert "plan" not in options
+    assert "mirostat" not in options
+    assert "mirostat_eta" not in options
+    assert "mirostat_tau" not in options
+    assert "tfs_z" not in options

@@ -26,7 +26,13 @@ class OllamaBackend(LLMBackend):
         "num_ctx",
         "num_batch",
         "num_gpu",
-        "plan",
+        "num_keep",
+        "typical_p",
+        "presence_penalty",
+        "frequency_penalty",
+        "main_gpu",
+        "use_mmap",
+        "num_thread",
     }
 
     @classmethod
@@ -44,6 +50,29 @@ class OllamaBackend(LLMBackend):
                 continue
             sanitized[key] = value
         return sanitized
+
+    @staticmethod
+    def sanitize_request_fields(options: dict[str, Any]) -> dict[str, Any]:
+        request_fields: dict[str, Any] = {}
+        if options.get("think") is True:
+            request_fields["think"] = True
+        return request_fields
+
+    @classmethod
+    def build_chat_payload(
+        cls,
+        model: str,
+        messages: list[ChatMessage],
+        options: dict[str, Any],
+        stream: bool,
+    ) -> dict[str, Any]:
+        return {
+            "model": model,
+            "messages": [{"role": message.role, "content": message.content} for message in messages],
+            "options": cls.sanitize_options(options),
+            "stream": stream,
+            **cls.sanitize_request_fields(options),
+        }
 
     async def test_connection(self) -> BackendStatus:
         started = time.perf_counter()
@@ -82,12 +111,7 @@ class OllamaBackend(LLMBackend):
         options: dict[str, Any],
         stream: bool,
     ) -> AsyncIterator[str]:
-        payload = {
-            "model": model,
-            "messages": [{"role": m.role, "content": m.content} for m in messages],
-            "options": self.sanitize_options(options),
-            "stream": stream,
-        }
+        payload = self.build_chat_payload(model, messages, options, stream)
         async with httpx.AsyncClient(timeout=None) as client:
             if stream:
                 async with client.stream("POST", f"{self.base_url}/api/chat", json=payload) as response:
