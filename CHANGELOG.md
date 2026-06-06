@@ -1,3 +1,14 @@
+## 1.1.4 - 2026-06-06
+
+### Added 
+-.github/agents/repo-code-risk-reviewer.agent.md
+-.github/prompts/repo-code-risk-reviewer.prompt.md
+
+### Changed
+- updated the changelog. 
+- updeted the version in pyproject.toml, __init__.py
+
+
 ## 1.1.3 - 2026-06-02
 
 ### Changed
