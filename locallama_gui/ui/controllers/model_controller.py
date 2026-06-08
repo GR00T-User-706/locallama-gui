@@ -3,12 +3,16 @@ from __future__ import annotations
 from typing import Protocol
 
 from locallama_gui.backends.manager import create_backend
+from locallama_gui.ui.diagnostics import OperationStreamParser
 from locallama_gui.ui.workers import StreamTask
 
 
 class ModelWindowPort(Protocol):
     def model_name(self) -> str: ...
-    def append_terminal(self, text: str) -> None: ...
+    def begin_operation(self, operation: str) -> None: ...
+    def update_operation(self, update) -> None: ...
+    def complete_operation(self, operation: str) -> None: ...
+    def fail_operation(self, operation: str, error: str) -> None: ...
     def refresh_backend(self) -> None: ...
     def add_worker(self, worker) -> None: ...
     def run_async(
@@ -122,21 +126,26 @@ class ModelController:
             return
 
         operation = f"{title}: {name}"
-        self.window.append_terminal(f"[START] {operation}\n")
+        parser = OperationStreamParser()
+        self.window.begin_operation(operation)
         task = StreamTask(
             lambda: getattr(create_backend(self.config.active_profile()), method)(name)
         )
         self.window.add_worker(task)
-        task.token.connect(lambda text: self.window.append_terminal(text + "\n"))
+
+        def on_stream(chunk: str) -> None:
+            for update in parser.feed(chunk):
+                self.window.update_operation(update)
 
         def on_completed(_output: str) -> None:
-            self.window.append_terminal(f"[OK] {operation}\n")
+            self.window.complete_operation(operation)
             self.window.refresh_backend()
 
         def on_error(error: str) -> None:
-            self.window.append_terminal(f"[ERROR] {operation}: {error}\n")
+            self.window.fail_operation(operation, error)
             widgets.QMessageBox.critical(parent, title, error)
 
+        task.token.connect(on_stream)
         task.completed.connect(on_completed)
         task.error.connect(on_error)
         task.start()

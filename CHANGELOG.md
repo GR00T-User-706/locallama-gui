@@ -1,3 +1,23 @@
+## [1.1.6] - 2026-06-08
+
+### Added
+- Added centralized diagnostics helpers for structured log records, line-buffered console capture, cursor-safe text appends, and model-operation stream parsing.
+- Added focused diagnostics tests for logging sinks, stdout/stderr-style capture, cursor-safe appends, partial stream assembly, and repeated status collapse.
+
+### Changed
+- Replaced overlapping Logs/Terminal model-operation output with a Diagnostics dock containing Logs, Console, and Operations tabs with distinct responsibilities.
+- Routed pull, push, create, delete, clone, and template lifecycle events through Operations instead of dumping raw stream chunks into the terminal.
+- Collapsed repeated model-operation stream statuses and retained only meaningful durable history transitions while keeping live status/progress current.
+- Preserved Request Viewer for outbound payload inspection and Token/Response Viewer for active chat generation output.
+
+### Fixed
+- Captured Python logging records, including library loggers such as `httpx`, in the Logs diagnostics tab.
+- Captured stdout/stderr-style app output in the Console diagnostics tab with line buffering.
+- Ensured diagnostics text appends are cursor-safe and append at the document end.
+
+### Documentation
+- Updated README and feature matrix diagnostics terminology for Logs, Console, and Operations.
+
 ## [1.1.5] - 2026-06-08
 
 ### Added

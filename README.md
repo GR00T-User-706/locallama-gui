@@ -40,7 +40,7 @@ locallama-gui
 | **Generation profiles** | Sampling, context, GPU layers, stop sequences, reasoning mode |
 | **Agents** | Visual agent builder: model, tools, plugins, memory, reasoning, execution policy |
 | **Plugins** | Drop-in Python modules for tools, commands, interceptors, UI panels, memory providers |
-| **Diagnostics** | Request viewer, token stream, backend status, latency, logs, debug console |
+| **Diagnostics** | Structured logs, captured console output, model operations, request viewer, token stream, backend status |
 | **Desktop UX** | Dockable panels, dark theme, keyboard shortcuts, menu bar, layout presets |
 
 ---
@@ -99,10 +99,10 @@ locallama-gui
 | **Plugins** | Manage, install, reload plugins |
 | **Settings** | API endpoints, generation parameters, themes, keyboard shortcuts, model defaults |
 | **View** | Panel visibility, layout presets |
-| **Developer** | Logs, request viewer, token viewer, API inspector, debug console |
+| **Developer** | Diagnostics tabs, request viewer, token viewer, request inspector |
 | **Help** | Documentation, diagnostics, about |
 
-Model lifecycle operations use the **Terminal** panel as their diagnostics record. Pull, push, clone, create, delete, and template inspection write `[START]`, `[OK]`, and `[ERROR]` entries there; streaming operations also append backend output as it arrives.
+Diagnostics are separated by role: **Logs** shows structured Python logging records, **Console** captures stdout/stderr-style process output, and **Operations** tracks model lifecycle status. Pull, push, clone, create, delete, and template inspection write `[START]`, meaningful progress/status transitions, `[OK]`, and `[ERROR]` entries to Operations without flooding Console or chat token output.
 
 See [`docs/FEATURE_MATRIX.md`](docs/FEATURE_MATRIX.md) for the current status of visible application workflows.
 
