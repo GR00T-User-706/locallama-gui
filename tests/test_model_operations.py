@@ -53,15 +53,16 @@ class _ModelWindow:
 
     def begin_operation(self, operation):
         self.events.append(("start", operation))
+        return len([event for event in self.events if event[0] == "start"])
 
-    def update_operation(self, update):
-        self.events.append(("update", update))
+    def update_operation(self, update, *, operation_id=None):
+        self.events.append(("update", update, operation_id))
 
-    def complete_operation(self, operation):
-        self.events.append(("ok", operation))
+    def complete_operation(self, operation, *, operation_id=None):
+        self.events.append(("ok", operation, operation_id))
 
-    def fail_operation(self, operation, error):
-        self.events.append(("error", operation, error))
+    def fail_operation(self, operation, error, *, operation_id=None):
+        self.events.append(("error", operation, error, operation_id))
 
     def refresh_backend(self):
         self.refreshes += 1
@@ -120,9 +121,9 @@ def test_run_async_routes_lifecycle_to_operations_before_dialog(monkeypatch):
     events = []
     window = SimpleNamespace(
         worker_refs=[],
-        begin_operation=lambda operation: events.append(("start", operation)),
-        complete_operation=lambda operation: events.append(("ok", operation)),
-        fail_operation=lambda operation, error: events.append(("error", operation, error)),
+        begin_operation=lambda operation: events.append(("start", operation)) or 1,
+        complete_operation=lambda operation, **_kwargs: events.append(("ok", operation)),
+        fail_operation=lambda operation, error, **_kwargs: events.append(("error", operation, error)),
         log=lambda text: events.append(("log", text)),
         refresh_backend=lambda: events.append(("refresh",)),
     )
@@ -173,7 +174,7 @@ def test_pull_stream_collapses_repeated_status_and_updates_progress(monkeypatch)
     progress = [event[1] for event in window.events if event[0] == "update"][-1]
     assert (progress.completed, progress.total) == (50, 100)
     assert window.events[0] == ("start", "Pull Model: llama3.1:8b")
-    assert window.events[-1] == ("ok", "Pull Model: llama3.1:8b")
+    assert window.events[-1] == ("ok", "Pull Model: llama3.1:8b", 1)
     assert window.refreshes == 1
 
 
@@ -212,7 +213,7 @@ def test_stream_error_updates_operations_before_dialog(monkeypatch):
     controller.push_model(None)
     window.workers[0].error.emit("not supported")
 
-    assert window.events[-1] == ("error", "Push Model: model", "not supported")
+    assert window.events[-1] == ("error", "Push Model: model", "not supported", 1)
     assert dialog_events[-1] == ("critical", "Push Model", "not supported")
 
 
@@ -237,10 +238,10 @@ def test_create_stream_uses_operations_without_console_output(monkeypatch):
     window = SimpleNamespace(
         config=SimpleNamespace(active_profile=lambda: object()),
         worker_refs=[],
-        begin_operation=lambda operation: events.append(("start", operation)),
-        update_operation=lambda update: events.append(("update", update)),
-        complete_operation=lambda operation: events.append(("ok", operation)),
-        fail_operation=lambda operation, error: events.append(("error", operation, error)),
+        begin_operation=lambda operation: events.append(("start", operation)) or 1,
+        update_operation=lambda update, **_kwargs: events.append(("update", update)),
+        complete_operation=lambda operation, **_kwargs: events.append(("ok", operation)),
+        fail_operation=lambda operation, error, **_kwargs: events.append(("error", operation, error)),
         refresh_backend=lambda: events.append(("refresh",)),
     )
 
@@ -283,9 +284,9 @@ def test_templates_route_lifecycle_to_operations_before_dialog(monkeypatch):
         model_combo=SimpleNamespace(currentText=lambda: " llama3 "),
         config=SimpleNamespace(active_profile=lambda: object()),
         worker_refs=[],
-        begin_operation=lambda operation: events.append(("start", operation)),
-        complete_operation=lambda operation: events.append(("ok", operation)),
-        fail_operation=lambda operation, error: events.append(("error", operation, error)),
+        begin_operation=lambda operation: events.append(("start", operation)) or 1,
+        complete_operation=lambda operation, **_kwargs: events.append(("ok", operation)),
+        fail_operation=lambda operation, error, **_kwargs: events.append(("error", operation, error)),
         _show_text_dialog=lambda title, text: events.append(("result", title, text)),
     )
 
@@ -302,4 +303,67 @@ def test_templates_route_lifecycle_to_operations_before_dialog(monkeypatch):
     assert events[-2:] == [
         ("error", "Load template: llama3", "lookup failed"),
         ("dialog", "Template Viewer", "lookup failed"),
+    ]
+
+
+class _OperationLabel:
+    def __init__(self):
+        self.text = ""
+
+    def setText(self, text):
+        self.text = text
+
+
+class _OperationProgress:
+    def __init__(self):
+        self.range = (0, 0)
+        self.value = 0
+
+    def setRange(self, minimum, maximum):
+        self.range = (minimum, maximum)
+
+    def setValue(self, value):
+        self.value = value
+
+
+def test_stale_operation_callbacks_do_not_overwrite_active_status():
+    from locallama_gui.ui.diagnostics import OperationUpdate
+
+    history = []
+    window = SimpleNamespace(
+        _operation_seq=0,
+        _active_operation_id=None,
+        operation_status=_OperationLabel(),
+        operation_progress=_OperationProgress(),
+        append_operation_history=history.append,
+    )
+    first_id = MainWindow.begin_operation(window, "Pull Model: older")
+    second_id = MainWindow.begin_operation(window, "Push Model: newer")
+
+    MainWindow.update_operation(
+        window,
+        OperationUpdate(status="older still running", history_text="older progress"),
+        operation_id=first_id,
+    )
+    MainWindow.complete_operation(window, "Pull Model: older", operation_id=first_id)
+
+    assert window.operation_status.text == "Push Model: newer"
+    assert window.operation_progress.range == (0, 0)
+
+    MainWindow.update_operation(
+        window,
+        OperationUpdate(status="newer progress", history_text="", completed=50, total=100),
+        operation_id=second_id,
+    )
+    MainWindow.complete_operation(window, "Push Model: newer", operation_id=second_id)
+
+    assert window.operation_status.text == "Completed: Push Model: newer"
+    assert window.operation_progress.range == (0, 1)
+    assert window.operation_progress.value == 1
+    assert history == [
+        "[START] Pull Model: older",
+        "[START] Push Model: newer",
+        "older progress",
+        "[OK] Pull Model: older",
+        "[OK] Push Model: newer",
     ]

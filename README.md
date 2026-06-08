@@ -102,7 +102,7 @@ locallama-gui
 | **Developer** | Diagnostics tabs, request viewer, token viewer, request inspector |
 | **Help** | Documentation, diagnostics, about |
 
-Diagnostics are separated by role: **Logs** shows structured Python logging records, **Console** captures stdout/stderr-style process output, and **Operations** tracks model lifecycle status. Pull, push, clone, create, delete, and template inspection write `[START]`, meaningful progress/status transitions, `[OK]`, and `[ERROR]` entries to Operations without flooding Console or chat token output.
+Diagnostics are separated by role: **Logs** shows structured Python logging records, **Console** captures stdout/stderr-style process output, and **Operations** tracks model lifecycle status. Pull, push, clone, create, delete, and template inspection write `[START]`, meaningful progress/status transitions, `[OK]`, and `[ERROR]` entries to Operations without flooding Console or chat token output. If multiple model operations overlap, the durable history records each operation while the compact status/progress widgets follow the most recently started operation so older callbacks do not overwrite newer live progress.
 
 See [`docs/FEATURE_MATRIX.md`](docs/FEATURE_MATRIX.md) for the current status of visible application workflows.
 

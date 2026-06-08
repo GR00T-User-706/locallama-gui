@@ -11,10 +11,10 @@ Status meanings:
 
 | Area | Action | Status | Current behavior | Remaining work |
 |---|---|---|---|---|
-| Models | Pull | working | Validates the model name, collapses backend progress and records start/success/error in Diagnostics > Operations. | Backend support and registry access still determine whether a pull succeeds. |
-| Models | Push | working | Validates the model name, collapses backend progress and records start/success/error in Diagnostics > Operations. | Backend support, authentication, and registry access still determine whether a push succeeds. |
+| Models | Pull | working | Validates the model name, collapses backend progress, guards live status against stale concurrent callbacks, and records start/success/error in Diagnostics > Operations. | Backend support and registry access still determine whether a pull succeeds. |
+| Models | Push | working | Validates the model name, collapses backend progress, guards live status against stale concurrent callbacks, and records start/success/error in Diagnostics > Operations. | Backend support, authentication, and registry access still determine whether a push succeeds. |
 | Models | Clone | working | Validates source/destination names and runs the copy operation asynchronously with Operations status and error reporting. | Backend copy support is required. |
-| Models | Create | working | Opens the Modelfile editor and builds asynchronously with collapsed operation progress and Operations status/error reporting. | Modelfile validation remains user-invoked before build. |
+| Models | Create | working | Opens the Modelfile editor and builds asynchronously with collapsed operation progress, stale-callback guarded live status, and Operations status/error reporting. | Modelfile validation remains user-invoked before build. |
 | Models | Delete | working | Requires a selected model, preserves destructive confirmation, and reports asynchronous status/errors in Diagnostics > Operations. | Backend delete support is required. |
 | Models | Modelfiles | working | Opens the editor for creating, opening, saving, validating, previewing, and building Modelfiles. | No Phase 1 changes planned. |
 | Models | Templates | working | Requires a selected model, loads metadata asynchronously, and reports Operations status/errors. | Display remains a general model metadata view. |

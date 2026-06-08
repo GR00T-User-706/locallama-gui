@@ -204,6 +204,8 @@ class MainWindow(QMainWindow):
         self.current_stream: StreamTask | None = None
         self._stream_owner_seq = 0
         self._active_stream_owner: int | None = None
+        self._operation_seq = 0
+        self._active_operation_id: int | None = None
         self._diagnostics_signals = DiagnosticsSignals(self)
         self._diagnostics_log_handler: QtLogHandler | None = None
         self._original_stdout = sys.stdout
@@ -737,17 +739,17 @@ class MainWindow(QMainWindow):
         error_title: str,
         parent: QWidget | None = None,
     ) -> None:
-        self.begin_operation(start_msg)
+        operation_id = self.begin_operation(start_msg)
         task = AsyncTask(coro_factory)
         self.worker_refs.append(task)
 
         def on_completed() -> None:
-            self.complete_operation(done_msg)
+            self.complete_operation(done_msg, operation_id=operation_id)
             self.log(done_msg)
             self.refresh_backend()
 
         def on_error(error: str) -> None:
-            self.fail_operation(start_msg, error)
+            self.fail_operation(start_msg, error, operation_id=operation_id)
             dialog_parent = parent if parent is not None else self
             QMessageBox.critical(dialog_parent, error_title, error)
 
@@ -790,32 +792,50 @@ class MainWindow(QMainWindow):
             text += "\n"
         append_output(self.operation_history, text)
 
-    def begin_operation(self, operation: str) -> None:
+    def begin_operation(self, operation: str) -> int:
+        self._operation_seq += 1
+        operation_id = self._operation_seq
+        self._active_operation_id = operation_id
         self.operation_status.setText(operation)
         self.operation_progress.setRange(0, 0)
         self.append_operation_history(f"[START] {operation}")
+        return operation_id
 
-    def update_operation(self, update: OperationUpdate) -> None:
-        self.operation_status.setText(update.status)
-        if update.total and update.total > 0 and update.completed is not None:
-            progress = max(0, min(100, int(update.completed * 100 / update.total)))
-            self.operation_progress.setRange(0, 100)
-            self.operation_progress.setValue(progress)
-        else:
-            self.operation_progress.setRange(0, 0)
+    def _is_active_operation(self, operation_id: int | None) -> bool:
+        return operation_id is None or operation_id == self._active_operation_id
+
+    def update_operation(
+        self, update: OperationUpdate, *, operation_id: int | None = None
+    ) -> None:
+        if MainWindow._is_active_operation(self, operation_id):
+            self.operation_status.setText(update.status)
+            if update.total and update.total > 0 and update.completed is not None:
+                progress = max(0, min(100, int(update.completed * 100 / update.total)))
+                self.operation_progress.setRange(0, 100)
+                self.operation_progress.setValue(progress)
+            else:
+                self.operation_progress.setRange(0, 0)
         if update.history_text:
             self.append_operation_history(update.history_text)
 
-    def complete_operation(self, operation: str) -> None:
-        self.operation_status.setText(f"Completed: {operation}")
-        self.operation_progress.setRange(0, 1)
-        self.operation_progress.setValue(1)
+    def complete_operation(self, operation: str, *, operation_id: int | None = None) -> None:
+        if MainWindow._is_active_operation(self, operation_id):
+            self.operation_status.setText(f"Completed: {operation}")
+            self.operation_progress.setRange(0, 1)
+            self.operation_progress.setValue(1)
+            if operation_id is not None:
+                self._active_operation_id = None
         self.append_operation_history(f"[OK] {operation}")
 
-    def fail_operation(self, operation: str, error: str) -> None:
-        self.operation_status.setText(f"Failed: {operation}")
-        self.operation_progress.setRange(0, 1)
-        self.operation_progress.setValue(0)
+    def fail_operation(
+        self, operation: str, error: str, *, operation_id: int | None = None
+    ) -> None:
+        if MainWindow._is_active_operation(self, operation_id):
+            self.operation_status.setText(f"Failed: {operation}")
+            self.operation_progress.setRange(0, 1)
+            self.operation_progress.setValue(0)
+            if operation_id is not None:
+                self._active_operation_id = None
         self.append_operation_history(f"[ERROR] {operation}: {error}")
 
     def add_worker(self, worker: Any) -> None:
@@ -831,7 +851,7 @@ class MainWindow(QMainWindow):
             return
         operation = f"Create model: {name}"
         parser = OperationStreamParser()
-        self.begin_operation(operation)
+        operation_id = self.begin_operation(operation)
         task = StreamTask(
             lambda: create_backend(self.config.active_profile()).create_model(name, modelfile)
         )
@@ -839,14 +859,14 @@ class MainWindow(QMainWindow):
 
         def on_stream(chunk: str) -> None:
             for update in parser.feed(chunk):
-                self.update_operation(update)
+                self.update_operation(update, operation_id=operation_id)
 
         def on_completed(_output: str) -> None:
-            self.complete_operation(operation)
+            self.complete_operation(operation, operation_id=operation_id)
             self.refresh_backend()
 
         def on_error(error: str) -> None:
-            self.fail_operation(operation, error)
+            self.fail_operation(operation, error, operation_id=operation_id)
             QMessageBox.critical(self, "Create Model", error)
 
         task.token.connect(on_stream)
@@ -865,17 +885,17 @@ class MainWindow(QMainWindow):
             return
 
         operation = f"Load template: {model}"
-        self.begin_operation(operation)
+        operation_id = self.begin_operation(operation)
 
         async def show():
             return await create_backend(self.config.active_profile()).show_model(model)
 
         def on_result(data: Any) -> None:
-            self.complete_operation(operation)
+            self.complete_operation(operation, operation_id=operation_id)
             self._show_text_dialog("Template Viewer", json.dumps(data, indent=2))
 
         def on_error(error: str) -> None:
-            self.fail_operation(operation, error)
+            self.fail_operation(operation, error, operation_id=operation_id)
             QMessageBox.critical(self, "Template Viewer", error)
 
         task = AsyncTask(show)

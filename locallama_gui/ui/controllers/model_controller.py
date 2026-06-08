@@ -9,10 +9,14 @@ from locallama_gui.ui.workers import StreamTask
 
 class ModelWindowPort(Protocol):
     def model_name(self) -> str: ...
-    def begin_operation(self, operation: str) -> None: ...
-    def update_operation(self, update) -> None: ...
-    def complete_operation(self, operation: str) -> None: ...
-    def fail_operation(self, operation: str, error: str) -> None: ...
+    def begin_operation(self, operation: str) -> int: ...
+    def update_operation(self, update, *, operation_id: int | None = None) -> None: ...
+    def complete_operation(
+        self, operation: str, *, operation_id: int | None = None
+    ) -> None: ...
+    def fail_operation(
+        self, operation: str, error: str, *, operation_id: int | None = None
+    ) -> None: ...
     def refresh_backend(self) -> None: ...
     def add_worker(self, worker) -> None: ...
     def run_async(
@@ -127,7 +131,7 @@ class ModelController:
 
         operation = f"{title}: {name}"
         parser = OperationStreamParser()
-        self.window.begin_operation(operation)
+        operation_id = self.window.begin_operation(operation)
         task = StreamTask(
             lambda: getattr(create_backend(self.config.active_profile()), method)(name)
         )
@@ -135,14 +139,14 @@ class ModelController:
 
         def on_stream(chunk: str) -> None:
             for update in parser.feed(chunk):
-                self.window.update_operation(update)
+                self.window.update_operation(update, operation_id=operation_id)
 
         def on_completed(_output: str) -> None:
-            self.window.complete_operation(operation)
+            self.window.complete_operation(operation, operation_id=operation_id)
             self.window.refresh_backend()
 
         def on_error(error: str) -> None:
-            self.window.fail_operation(operation, error)
+            self.window.fail_operation(operation, error, operation_id=operation_id)
             widgets.QMessageBox.critical(parent, title, error)
 
         task.token.connect(on_stream)
