@@ -41,6 +41,32 @@ class _FakeAsyncClient:
         return self._response or _FakeResponse(payload={"message": {"content": "ok"}})
 
 
+class _FakeStreamResponse(_FakeResponse):
+    def __init__(self, lines):
+        super().__init__()
+        self._lines = lines
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *_exc):
+        return None
+
+    async def aiter_lines(self):
+        for line in self._lines:
+            yield line
+
+
+class _FakeStreamClient(_FakeAsyncClient):
+    def __init__(self, lines, **kwargs):
+        super().__init__(**kwargs)
+        self._lines = lines
+
+    def stream(self, _method, _url, json=None):
+        self.last_json = json
+        return _FakeStreamResponse(self._lines)
+
+
 def test_list_models_parses_missing_and_partial_fields(monkeypatch):
     payload = {
         "models": [
@@ -157,3 +183,24 @@ def test_sanitize_request_fields_only_forwards_supported_top_level_fields():
     request_fields = OllamaBackend.sanitize_request_fields({"think": True, "plan": True, "raw": True})
 
     assert request_fields == {"think": True}
+
+
+def test_stream_endpoint_raises_for_successful_http_response_with_error_payload(monkeypatch):
+    monkeypatch.setattr(
+        "locallama_gui.backends.ollama.httpx.AsyncClient",
+        lambda **kwargs: _FakeStreamClient(
+            ['{"status":"pulling manifest"}', '{"error":"model not found"}'],
+            **kwargs,
+        ),
+    )
+
+    async def consume():
+        backend = OllamaBackend("http://localhost:11434")
+        return [chunk async for chunk in backend.pull_model("missing")]
+
+    try:
+        asyncio.run(consume())
+    except RuntimeError as exc:
+        assert str(exc) == "model not found"
+    else:
+        raise AssertionError("streamed Ollama errors must fail the operation")
