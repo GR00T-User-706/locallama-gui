@@ -1,3 +1,22 @@
+## [1.1.5] - 2026-06-08
+
+### Added
+- Added a feature matrix that classifies visible workflows as working, partial, blocked, or hidden.
+- Added focused regression coverage for the MainWindow/ModelController async contract and model-operation terminal lifecycle.
+
+### Changed
+- Made the diagnostics terminal the operational record for model pull, push, clone, create, delete, and template inspection.
+- Normalized model names and rejected empty or whitespace-only model-operation input.
+- Guarded README and Plugin SDK loading so missing or unreadable documentation is reported without crashing.
+
+### Fixed
+- Added the public MainWindow async scheduler required by clone and delete model actions.
+- Ensured model-operation errors are written to the terminal before user-facing error dialogs.
+- Added explicit selected-model feedback for template inspection.
+
+### Documentation
+- Documented model-operation terminal behavior and the current feature-loop status.
+
 ## 1.1.4 - 2026-06-06
 
 ### Added 

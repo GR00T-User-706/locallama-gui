@@ -688,6 +688,33 @@ class MainWindow(QMainWindow):
         task.error.connect(lambda e: QMessageBox.critical(self, "Error", e))
         task.start()
 
+    def run_async(
+        self,
+        coro_factory,
+        done_msg: str,
+        *,
+        start_msg: str,
+        error_title: str,
+        parent: QWidget | None = None,
+    ) -> None:
+        self.append_terminal(f"[START] {start_msg}\n")
+        task = AsyncTask(coro_factory)
+        self.worker_refs.append(task)
+
+        def on_completed() -> None:
+            self.append_terminal(f"[OK] {done_msg}\n")
+            self.log(done_msg)
+            self.refresh_backend()
+
+        def on_error(error: str) -> None:
+            self.append_terminal(f"[ERROR] {start_msg}: {error}\n")
+            dialog_parent = parent if parent is not None else self
+            QMessageBox.critical(dialog_parent, error_title, error)
+
+        task.finished_ok.connect(on_completed)
+        task.error.connect(on_error)
+        task.start()
+
     def set_tab_title(self, title: str) -> None:
         self.tabs.setTabText(self.tabs.currentIndex(), title)
 
@@ -710,31 +737,58 @@ class MainWindow(QMainWindow):
         ModelfileEditor(self.config, self).exec()
 
     def build_model_from_modelfile(self, name: str, modelfile: str) -> None:
-        if not name.strip():
+        name = name.strip()
+        if not name:
             QMessageBox.warning(self, "Create Model", "Model name is required.")
             return
-        backend = create_backend(self.config.active_profile())
-        task = StreamTask(lambda: backend.create_model(name.strip(), modelfile))
+        operation = f"Create model: {name}"
+        self.append_terminal(f"[START] {operation}\n")
+        task = StreamTask(
+            lambda: create_backend(self.config.active_profile()).create_model(name, modelfile)
+        )
         self.worker_refs.append(task)
-        task.token.connect(lambda t: self.terminal.insertPlainText(t + "\n"))
-        task.completed.connect(lambda _: self.refresh_backend())
-        task.error.connect(lambda e: QMessageBox.critical(self, "Create Model", e))
+        task.token.connect(lambda text: self.append_terminal(text + "\n"))
+
+        def on_completed(_output: str) -> None:
+            self.append_terminal(f"[OK] {operation}\n")
+            self.refresh_backend()
+
+        def on_error(error: str) -> None:
+            self.append_terminal(f"[ERROR] {operation}: {error}\n")
+            QMessageBox.critical(self, "Create Model", error)
+
+        task.completed.connect(on_completed)
+        task.error.connect(on_error)
         task.start()
 
     def open_template_viewer(self) -> None:
-        model = self.model_combo.currentText()
+        model = self.model_combo.currentText().strip()
         if not model:
+            QMessageBox.information(
+                self,
+                "Template Viewer",
+                "Select a model before inspecting its template.",
+            )
             return
+
+        operation = f"Load template: {model}"
+        self.append_terminal(f"[START] {operation}\n")
 
         async def show():
             return await create_backend(self.config.active_profile()).show_model(model)
 
+        def on_result(data: Any) -> None:
+            self.append_terminal(f"[OK] {operation}\n")
+            self._show_text_dialog("Template Viewer", json.dumps(data, indent=2))
+
+        def on_error(error: str) -> None:
+            self.append_terminal(f"[ERROR] {operation}: {error}\n")
+            QMessageBox.critical(self, "Template Viewer", error)
+
         task = AsyncTask(show)
         self.worker_refs.append(task)
-        task.result.connect(
-            lambda data: self._show_text_dialog("Template Viewer", json.dumps(data, indent=2))
-        )
-        task.error.connect(lambda e: QMessageBox.critical(self, "Template Viewer", e))
+        task.result.connect(on_result)
+        task.error.connect(on_error)
         task.start()
 
     def _show_text_dialog(self, title: str, text: str) -> None:
@@ -770,9 +824,7 @@ class MainWindow(QMainWindow):
         PluginManagerDialog(self.plugins, self).exec()
 
     def open_plugin_docs(self) -> None:
-        self._show_text_dialog(
-            "Plugin SDK", (Path.cwd() / "docs" / "PLUGIN_SDK.md").read_text(encoding="utf-8")
-        )
+        self._open_document("Plugin SDK", Path.cwd() / "docs" / "PLUGIN_SDK.md")
 
     def open_agent_builder(self) -> None:
         AgentBuilderDialog(
@@ -823,10 +875,18 @@ class MainWindow(QMainWindow):
         if not self.request_view.toPlainText():
             self.status.showMessage("No request captured yet. Send a chat message to inspect it.")
 
+    def _open_document(self, title: str, path: Path) -> None:
+        try:
+            content = path.read_text(encoding="utf-8")
+        except OSError as error:
+            message = f"Unable to open {path}: {error}"
+            self.append_terminal(f"[ERROR] {title}: {message}\n")
+            QMessageBox.warning(self, title, message)
+            return
+        self._show_text_dialog(title, content[:12000])
+
     def open_docs(self) -> None:
-        self._show_text_dialog(
-            "Documentation", (Path.cwd() / "README.md").read_text(encoding="utf-8")[:12000]
-        )
+        self._open_document("Documentation", Path.cwd() / "README.md")
 
     def about(self) -> None:
         QMessageBox.about(

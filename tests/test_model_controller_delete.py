@@ -20,8 +20,8 @@ class _Window:
     def add_worker(self, _worker):
         pass
 
-    def run_async(self, coro_factory, done_msg):
-        self.async_calls.append((coro_factory, done_msg))
+    def run_async(self, coro_factory, done_msg, **kwargs):
+        self.async_calls.append((coro_factory, done_msg, kwargs))
 
     def open_modelfile_editor(self):
         pass
@@ -97,4 +97,6 @@ def test_delete_model_confirmed_runs_async(monkeypatch):
     ctrl.delete_model(parent=None)
 
     assert len(window.async_calls) == 1
-    assert window.async_calls[0][1] == "Model deleted: llama3:8b"
+    assert window.async_calls[0][1] == "Delete model llama3:8b"
+    assert window.async_calls[0][2]["start_msg"] == "Delete model llama3:8b"
+    assert window.async_calls[0][2]["error_title"] == "Delete Model"

@@ -102,6 +102,10 @@ locallama-gui
 | **Developer** | Logs, request viewer, token viewer, API inspector, debug console |
 | **Help** | Documentation, diagnostics, about |
 
+Model lifecycle operations use the **Terminal** panel as their diagnostics record. Pull, push, clone, create, delete, and template inspection write `[START]`, `[OK]`, and `[ERROR]` entries there; streaming operations also append backend output as it arrives.
+
+See [`docs/FEATURE_MATRIX.md`](docs/FEATURE_MATRIX.md) for the current status of visible application workflows.
+
 ### Data locations
 
 The app uses platform-native directories via `platformdirs`:
