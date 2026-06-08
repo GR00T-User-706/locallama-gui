@@ -165,4 +165,7 @@ class OllamaBackend(LLMBackend):
                     if not line:
                         continue
                     data = json.loads(line)
-                    yield data.get("status") or data.get("error") or json.dumps(data)
+                    error = str(data.get("error") or "").strip()
+                    if error:
+                        raise RuntimeError(error)
+                    yield json.dumps(data, separators=(",", ":"))

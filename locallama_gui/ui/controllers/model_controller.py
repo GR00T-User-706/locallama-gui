@@ -2,17 +2,28 @@ from __future__ import annotations
 
 from typing import Protocol
 
-
 from locallama_gui.backends.manager import create_backend
+from locallama_gui.ui.diagnostics import OperationStreamParser
 from locallama_gui.ui.workers import StreamTask
 
 
 class ModelWindowPort(Protocol):
     def model_name(self) -> str: ...
-    def append_terminal(self, text: str) -> None: ...
+    def begin_operation(self, operation: str) -> None: ...
+    def update_operation(self, update) -> None: ...
+    def complete_operation(self, operation: str) -> None: ...
+    def fail_operation(self, operation: str, error: str) -> None: ...
     def refresh_backend(self) -> None: ...
     def add_worker(self, worker) -> None: ...
-    def run_async(self, coro_factory, done_msg: str) -> None: ...
+    def run_async(
+        self,
+        coro_factory,
+        done_msg: str,
+        *,
+        start_msg: str,
+        error_title: str,
+        parent,
+    ) -> None: ...
     def open_modelfile_editor(self) -> None: ...
 
 
@@ -22,54 +33,119 @@ class ModelController:
         self.window = window
 
     def pull_model(self, parent) -> None:
-        self._model_stream_op(parent, "Pull model", "pull_model")
+        self._model_stream_op(parent, "Pull Model", "pull_model")
 
     def push_model(self, parent) -> None:
-        self._model_stream_op(parent, "Push model", "push_model")
+        self._model_stream_op(parent, "Push Model", "push_model")
 
     def create_model(self) -> None:
         self.window.open_modelfile_editor()
 
     def clone_model(self, parent) -> None:
-        source = self.window.model_name()
-        dest, ok = __import__("PySide6.QtWidgets", fromlist=["QInputDialog"]).QInputDialog.getText(parent, "Clone Model", "Destination model name:")
-        if ok and source and dest:
-            self.window.run_async(lambda: create_backend(self.config.active_profile()).copy_model(source, dest), "Model cloned")
+        widgets = __import__("PySide6.QtWidgets", fromlist=["QInputDialog", "QMessageBox"])
+        source = self.window.model_name().strip()
+        if not source:
+            widgets.QMessageBox.information(
+                parent,
+                "Clone Model",
+                "Select a model before attempting to clone it.",
+            )
+            return
+
+        destination, ok = widgets.QInputDialog.getText(
+            parent,
+            "Clone Model",
+            "Destination model name:",
+        )
+        if not ok:
+            return
+        destination = destination.strip()
+        if not destination:
+            widgets.QMessageBox.information(
+                parent,
+                "Clone Model",
+                "Destination model name is required.",
+            )
+            return
+
+        operation = f"Clone model {source} -> {destination}"
+        self.window.run_async(
+            lambda: create_backend(self.config.active_profile()).copy_model(
+                source, destination
+            ),
+            operation,
+            start_msg=operation,
+            error_title="Clone Model",
+            parent=parent,
+        )
 
     def delete_model(self, parent) -> None:
+        widgets = __import__("PySide6.QtWidgets", fromlist=["QMessageBox"])
         name = self.window.model_name().strip()
         if not name:
-            __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.information(
+            widgets.QMessageBox.information(
                 parent,
                 "Delete Model",
                 "Select a model before attempting deletion.",
             )
             return
 
-        confirm = __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.question(
+        confirm = widgets.QMessageBox.question(
             parent,
             "Delete Model",
             f"Delete model '{name}'? This action cannot be undone.",
-            __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.StandardButton.Yes
-            | __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.StandardButton.No,
-            __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.StandardButton.No,
+            widgets.QMessageBox.StandardButton.Yes
+            | widgets.QMessageBox.StandardButton.No,
+            widgets.QMessageBox.StandardButton.No,
         )
-        if confirm != __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.StandardButton.Yes:
+        if confirm != widgets.QMessageBox.StandardButton.Yes:
             return
 
+        operation = f"Delete model {name}"
         self.window.run_async(
             lambda: create_backend(self.config.active_profile()).delete_model(name),
-            f"Model deleted: {name}",
+            operation,
+            start_msg=operation,
+            error_title="Delete Model",
+            parent=parent,
         )
 
     def _model_stream_op(self, parent, title: str, method: str) -> None:
-        name, ok = __import__("PySide6.QtWidgets", fromlist=["QInputDialog"]).QInputDialog.getText(parent, title, "Model name:", text=self.window.model_name())
-        if not ok or not name:
+        widgets = __import__("PySide6.QtWidgets", fromlist=["QInputDialog", "QMessageBox"])
+        name, ok = widgets.QInputDialog.getText(
+            parent,
+            title,
+            "Model name:",
+            text=self.window.model_name().strip(),
+        )
+        if not ok:
             return
-        backend = create_backend(self.config.active_profile())
-        task = StreamTask(lambda: getattr(backend, method)(name))
+        name = name.strip()
+        if not name:
+            widgets.QMessageBox.information(parent, title, "Model name is required.")
+            return
+
+        operation = f"{title}: {name}"
+        parser = OperationStreamParser()
+        self.window.begin_operation(operation)
+        task = StreamTask(
+            lambda: getattr(create_backend(self.config.active_profile()), method)(name)
+        )
         self.window.add_worker(task)
-        task.token.connect(lambda t: self.window.append_terminal(t + "\n"))
-        task.completed.connect(lambda _: self.window.refresh_backend())
-        task.error.connect(lambda e: __import__("PySide6.QtWidgets", fromlist=["QMessageBox"]).QMessageBox.critical(parent, title, e))
+
+        def on_stream(chunk: str) -> None:
+            for update in parser.feed(chunk):
+                self.window.update_operation(update)
+
+        def on_completed(_output: str) -> None:
+            self.window.complete_operation(operation)
+            self.window.refresh_backend()
+
+        def on_error(error: str) -> None:
+            self.window.fail_operation(operation, error)
+            widgets.QMessageBox.critical(parent, title, error)
+
+        task.token.connect(on_stream)
+        task.completed.connect(on_completed)
+        task.error.connect(on_error)
         task.start()

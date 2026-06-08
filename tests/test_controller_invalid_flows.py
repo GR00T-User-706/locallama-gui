@@ -77,11 +77,31 @@ def test_model_controller_invalid_model_name_no_crash(monkeypatch):
         def getText(*_args, **_kwargs):
             return "", True
 
+    events = []
+
+    class _MessageBox:
+        @staticmethod
+        def information(_parent, title, message):
+            events.append((title, message))
+
     class _QtWidgets:
         QInputDialog = _InputDialog
+        QMessageBox = _MessageBox
 
-    monkeypatch.setattr("builtins.__import__", lambda name, *args, **kwargs: _QtWidgets if name == "PySide6.QtWidgets" else __import__(name, *args, **kwargs))
+    original_import = __import__
+
+    def fake_import(name, *args, **kwargs):
+        if name == "PySide6.QtWidgets":
+            return _QtWidgets
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr("builtins.__import__", fake_import)
 
     ctrl = ModelController(SimpleNamespace(active_profile=lambda: None), _Window())
     ctrl.pull_model(parent=None)
     ctrl.push_model(parent=None)
+
+    assert events == [
+        ("Pull Model", "Model name is required."),
+        ("Push Model", "Model name is required."),
+    ]

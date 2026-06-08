@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import json
 import logging
+import sys
 from pathlib import Path
 from typing import Any
 from dataclasses import asdict
-from datetime import datetime
 
 import psutil
 from PySide6.QtCore import QByteArray, Qt, Signal
@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QPlainTextEdit,
+    QProgressBar,
     QPushButton,
     QSplitter,
     QTabWidget,
@@ -56,6 +57,14 @@ from locallama_gui.ui.dialogs import (
     ParameterDialog,
     PluginManagerDialog,
     PromptManagerDialog,
+)
+from locallama_gui.ui.diagnostics import (
+    DiagnosticsSignals,
+    LineBufferedStream,
+    OperationStreamParser,
+    OperationUpdate,
+    QtLogHandler,
+    append_output,
 )
 from locallama_gui.ui.theme import DARK_QSS, dark_qss
 from locallama_gui.ui.workers import AsyncTask, StreamTask
@@ -195,7 +204,12 @@ class MainWindow(QMainWindow):
         self.current_stream: StreamTask | None = None
         self._stream_owner_seq = 0
         self._active_stream_owner: int | None = None
+        self._diagnostics_signals = DiagnosticsSignals(self)
+        self._diagnostics_log_handler: QtLogHandler | None = None
+        self._original_stdout = sys.stdout
+        self._original_stderr = sys.stderr
         self._build_ui()
+        self._install_diagnostics_sinks()
         self._build_menus()
         self._restore_state()
         self.plugins.load_enabled()
@@ -250,7 +264,30 @@ class MainWindow(QMainWindow):
         self._dock("System Prompts", self.prompt_list, Qt.DockWidgetArea.RightDockWidgetArea)
         self.log_view = QPlainTextEdit()
         self.log_view.setReadOnly(True)
-        self.log_dock = self._dock("Logs", self.log_view, Qt.DockWidgetArea.BottomDockWidgetArea)
+        self.log_view.setPlaceholderText("Structured Python logging records.")
+        self.console_view = QPlainTextEdit()
+        self.console_view.setReadOnly(True)
+        self.console_view.setPlaceholderText("Captured stdout and stderr output.")
+        self.operation_status = QLabel("No model operation is active.")
+        self.operation_progress = QProgressBar()
+        self.operation_progress.setRange(0, 1)
+        self.operation_progress.setValue(0)
+        self.operation_history = QPlainTextEdit()
+        self.operation_history.setReadOnly(True)
+        self.operation_history.setPlaceholderText("Model operation lifecycle and status history.")
+        operations_widget = QWidget()
+        operations_layout = QVBoxLayout(operations_widget)
+        operations_layout.setContentsMargins(6, 6, 6, 6)
+        operations_layout.addWidget(self.operation_status)
+        operations_layout.addWidget(self.operation_progress)
+        operations_layout.addWidget(self.operation_history)
+        self.diagnostics_tabs = QTabWidget()
+        self.diagnostics_tabs.addTab(self.log_view, "Logs")
+        self.diagnostics_tabs.addTab(self.console_view, "Console")
+        self.diagnostics_tabs.addTab(operations_widget, "Operations")
+        self.diagnostics_dock = self._dock(
+            "Diagnostics", self.diagnostics_tabs, Qt.DockWidgetArea.BottomDockWidgetArea
+        )
         self.request_view = QPlainTextEdit()
         self.request_view.setReadOnly(True)
         self.request_copy = QPushButton("Copy Request")
@@ -283,14 +320,6 @@ class MainWindow(QMainWindow):
         tok_layout.addLayout(tok_row)
         self.token_dock = self._dock("Token/Response Viewer", tok_wrap, Qt.DockWidgetArea.BottomDockWidgetArea)
         self.token_view.setPlaceholderText("Current streamed response/tokens for active generation.")
-        self.terminal = QPlainTextEdit()
-        self.terminal.setReadOnly(True)
-        self.terminal.setPlainText(
-            "LocalLama diagnostics terminal. Menu actions append operational output here.\n"
-        )
-        self.terminal_dock = self._dock(
-            "Terminal", self.terminal, Qt.DockWidgetArea.BottomDockWidgetArea
-        )
         self.refresh_sessions()
         self.refresh_prompts()
 
@@ -377,16 +406,17 @@ class MainWindow(QMainWindow):
         view_menu = self.menuBar().addMenu("View")
         self._menu_action(view_menu, "Toggle Panels", self.toggle_all_docks)
         self._menu_action(view_menu, "Layout Presets", self.reset_layout)
-        self._menu_action(view_menu, "Logs", self.show_logs_dock)
-        self._menu_action(view_menu, "Terminal", self.show_terminal_dock)
+        self._menu_action(view_menu, "Diagnostics", self.show_diagnostics_dock)
 
     def _build_developer_menu(self) -> None:
         developer_menu = self.menuBar().addMenu("Developer")
         self._menu_action(developer_menu, "Logs", self.show_logs_dock)
+        self._menu_action(developer_menu, "Console", self.show_console_dock)
+        self._menu_action(developer_menu, "Operations", self.show_operations_dock)
         self._menu_action(developer_menu, "Request Viewer", self.show_request_dock)
         self._menu_action(developer_menu, "Token Viewer", self.show_token_dock)
         self._menu_action(developer_menu, "Request Inspector", self.inspect_api)
-        self._menu_action(developer_menu, "Diagnostics Terminal", self.show_terminal_dock)
+        self._menu_action(developer_menu, "Diagnostics", self.show_diagnostics_dock)
 
     def _build_help_menu(self) -> None:
         help_menu = self.menuBar().addMenu("Help")
@@ -547,11 +577,21 @@ class MainWindow(QMainWindow):
         dock.show()
         dock.raise_()
 
-    def show_logs_dock(self) -> None:
-        self._show_dock(self.log_dock, "Logs")
+    def show_diagnostics_dock(self) -> None:
+        self._show_dock(self.diagnostics_dock, "Diagnostics")
 
-    def show_terminal_dock(self) -> None:
-        self._show_dock(self.terminal_dock, "Terminal")
+    def _show_diagnostics_tab(self, index: int) -> None:
+        self.diagnostics_tabs.setCurrentIndex(index)
+        self.show_diagnostics_dock()
+
+    def show_logs_dock(self) -> None:
+        self._show_diagnostics_tab(0)
+
+    def show_console_dock(self) -> None:
+        self._show_diagnostics_tab(1)
+
+    def show_operations_dock(self) -> None:
+        self._show_diagnostics_tab(2)
 
     def show_request_dock(self) -> None:
         self._show_dock(self.request_dock, "Request Viewer")
@@ -688,6 +728,33 @@ class MainWindow(QMainWindow):
         task.error.connect(lambda e: QMessageBox.critical(self, "Error", e))
         task.start()
 
+    def run_async(
+        self,
+        coro_factory,
+        done_msg: str,
+        *,
+        start_msg: str,
+        error_title: str,
+        parent: QWidget | None = None,
+    ) -> None:
+        self.begin_operation(start_msg)
+        task = AsyncTask(coro_factory)
+        self.worker_refs.append(task)
+
+        def on_completed() -> None:
+            self.complete_operation(done_msg)
+            self.log(done_msg)
+            self.refresh_backend()
+
+        def on_error(error: str) -> None:
+            self.fail_operation(start_msg, error)
+            dialog_parent = parent if parent is not None else self
+            QMessageBox.critical(dialog_parent, error_title, error)
+
+        task.finished_ok.connect(on_completed)
+        task.error.connect(on_error)
+        task.start()
+
     def set_tab_title(self, title: str) -> None:
         self.tabs.setTabText(self.tabs.currentIndex(), title)
 
@@ -700,8 +767,56 @@ class MainWindow(QMainWindow):
     def model_name(self) -> str:
         return self.model_combo.currentText()
 
-    def append_terminal(self, text: str) -> None:
-        self.terminal.insertPlainText(text)
+    def _install_diagnostics_sinks(self) -> None:
+        self._diagnostics_signals.log_line.connect(self.append_log)
+        self._diagnostics_signals.console_text.connect(self.append_console)
+        self._diagnostics_log_handler = QtLogHandler(self._diagnostics_signals)
+        logging.getLogger().addHandler(self._diagnostics_log_handler)
+        sys.stdout = LineBufferedStream(
+            self._diagnostics_signals.console_text.emit, self._original_stdout
+        )
+        sys.stderr = LineBufferedStream(
+            self._diagnostics_signals.console_text.emit, self._original_stderr
+        )
+
+    def append_log(self, text: str) -> None:
+        append_output(self.log_view, text)
+
+    def append_console(self, text: str) -> None:
+        append_output(self.console_view, text)
+
+    def append_operation_history(self, text: str) -> None:
+        if not text.endswith("\n"):
+            text += "\n"
+        append_output(self.operation_history, text)
+
+    def begin_operation(self, operation: str) -> None:
+        self.operation_status.setText(operation)
+        self.operation_progress.setRange(0, 0)
+        self.append_operation_history(f"[START] {operation}")
+
+    def update_operation(self, update: OperationUpdate) -> None:
+        self.operation_status.setText(update.status)
+        if update.total and update.total > 0 and update.completed is not None:
+            progress = max(0, min(100, int(update.completed * 100 / update.total)))
+            self.operation_progress.setRange(0, 100)
+            self.operation_progress.setValue(progress)
+        else:
+            self.operation_progress.setRange(0, 0)
+        if update.history_text:
+            self.append_operation_history(update.history_text)
+
+    def complete_operation(self, operation: str) -> None:
+        self.operation_status.setText(f"Completed: {operation}")
+        self.operation_progress.setRange(0, 1)
+        self.operation_progress.setValue(1)
+        self.append_operation_history(f"[OK] {operation}")
+
+    def fail_operation(self, operation: str, error: str) -> None:
+        self.operation_status.setText(f"Failed: {operation}")
+        self.operation_progress.setRange(0, 1)
+        self.operation_progress.setValue(0)
+        self.append_operation_history(f"[ERROR] {operation}: {error}")
 
     def add_worker(self, worker: Any) -> None:
         self.worker_refs.append(worker)
@@ -710,31 +825,63 @@ class MainWindow(QMainWindow):
         ModelfileEditor(self.config, self).exec()
 
     def build_model_from_modelfile(self, name: str, modelfile: str) -> None:
-        if not name.strip():
+        name = name.strip()
+        if not name:
             QMessageBox.warning(self, "Create Model", "Model name is required.")
             return
-        backend = create_backend(self.config.active_profile())
-        task = StreamTask(lambda: backend.create_model(name.strip(), modelfile))
+        operation = f"Create model: {name}"
+        parser = OperationStreamParser()
+        self.begin_operation(operation)
+        task = StreamTask(
+            lambda: create_backend(self.config.active_profile()).create_model(name, modelfile)
+        )
         self.worker_refs.append(task)
-        task.token.connect(lambda t: self.terminal.insertPlainText(t + "\n"))
-        task.completed.connect(lambda _: self.refresh_backend())
-        task.error.connect(lambda e: QMessageBox.critical(self, "Create Model", e))
+
+        def on_stream(chunk: str) -> None:
+            for update in parser.feed(chunk):
+                self.update_operation(update)
+
+        def on_completed(_output: str) -> None:
+            self.complete_operation(operation)
+            self.refresh_backend()
+
+        def on_error(error: str) -> None:
+            self.fail_operation(operation, error)
+            QMessageBox.critical(self, "Create Model", error)
+
+        task.token.connect(on_stream)
+        task.completed.connect(on_completed)
+        task.error.connect(on_error)
         task.start()
 
     def open_template_viewer(self) -> None:
-        model = self.model_combo.currentText()
+        model = self.model_combo.currentText().strip()
         if not model:
+            QMessageBox.information(
+                self,
+                "Template Viewer",
+                "Select a model before inspecting its template.",
+            )
             return
+
+        operation = f"Load template: {model}"
+        self.begin_operation(operation)
 
         async def show():
             return await create_backend(self.config.active_profile()).show_model(model)
 
+        def on_result(data: Any) -> None:
+            self.complete_operation(operation)
+            self._show_text_dialog("Template Viewer", json.dumps(data, indent=2))
+
+        def on_error(error: str) -> None:
+            self.fail_operation(operation, error)
+            QMessageBox.critical(self, "Template Viewer", error)
+
         task = AsyncTask(show)
         self.worker_refs.append(task)
-        task.result.connect(
-            lambda data: self._show_text_dialog("Template Viewer", json.dumps(data, indent=2))
-        )
-        task.error.connect(lambda e: QMessageBox.critical(self, "Template Viewer", e))
+        task.result.connect(on_result)
+        task.error.connect(on_error)
         task.start()
 
     def _show_text_dialog(self, title: str, text: str) -> None:
@@ -770,9 +917,7 @@ class MainWindow(QMainWindow):
         PluginManagerDialog(self.plugins, self).exec()
 
     def open_plugin_docs(self) -> None:
-        self._show_text_dialog(
-            "Plugin SDK", (Path.cwd() / "docs" / "PLUGIN_SDK.md").read_text(encoding="utf-8")
-        )
+        self._open_document("Plugin SDK", Path.cwd() / "docs" / "PLUGIN_SDK.md")
 
     def open_agent_builder(self) -> None:
         AgentBuilderDialog(
@@ -823,10 +968,18 @@ class MainWindow(QMainWindow):
         if not self.request_view.toPlainText():
             self.status.showMessage("No request captured yet. Send a chat message to inspect it.")
 
+    def _open_document(self, title: str, path: Path) -> None:
+        try:
+            content = path.read_text(encoding="utf-8")
+        except OSError as error:
+            message = f"Unable to open {path}: {error}"
+            LOG.error("%s: %s", title, message)
+            QMessageBox.warning(self, title, message)
+            return
+        self._show_text_dialog(title, content[:12000])
+
     def open_docs(self) -> None:
-        self._show_text_dialog(
-            "Documentation", (Path.cwd() / "README.md").read_text(encoding="utf-8")[:12000]
-        )
+        self._open_document("Documentation", Path.cwd() / "README.md")
 
     def about(self) -> None:
         QMessageBox.about(
@@ -837,14 +990,13 @@ class MainWindow(QMainWindow):
 
     def diagnostics(self) -> None:
         mem = psutil.virtual_memory()
-        self.terminal.appendPlainText(
+        self.append_console(
             f"CPU cores: {psutil.cpu_count()}\nRAM: {mem.available / 1024**3:.1f} GiB available / {mem.total / 1024**3:.1f} GiB total\nConfig: {self.config.file_path}\nData: {self.config.paths.data_dir}\nLogs: {self.config.paths.logs_dir}\n"
         )
-        self.show_terminal_dock()
+        self.show_console_dock()
 
     def log(self, text: str) -> None:
         LOG.info(text)
-        self.log_view.appendPlainText(f"[{datetime.now().strftime('%H:%M:%S')}] {text}")
 
     def _restore_state(self) -> None:
         if self.config.ui.geometry_hex:
@@ -853,6 +1005,10 @@ class MainWindow(QMainWindow):
             self.restoreState(QByteArray.fromHex(self.config.ui.state_hex.encode()))
 
     def closeEvent(self, event) -> None:
+        sys.stdout = self._original_stdout
+        sys.stderr = self._original_stderr
+        if self._diagnostics_log_handler is not None:
+            logging.getLogger().removeHandler(self._diagnostics_log_handler)
         if self.current_stream and self.current_stream.isRunning():
             self.current_stream.cancel()
         self._active_stream_owner = None
