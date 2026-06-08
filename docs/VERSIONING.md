@@ -6,9 +6,9 @@ Scope: Versioning policy reference and current synchronized version snapshot.
 ## Current State Snapshot
 
 ### CONFIRMED
-- `pyproject.toml` version: `1.1.7`
-- `locallama_gui/__init__.py` version: `1.1.7`
-- `CHANGELOG.md` latest version heading: `1.1.7` (dated 2026-06-08)
+- `pyproject.toml` version: `1.1.8`
+- `locallama_gui/__init__.py` version: `1.1.8`
+- `CHANGELOG.md` latest version heading: `1.1.8` (dated 2026-06-08)
 
 ### LIKELY
 - `pyproject.toml` is the practical source of truth for packaging/release version metadata.

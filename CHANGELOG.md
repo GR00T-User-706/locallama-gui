@@ -1,10 +1,14 @@
-## [1.1.7] - 2026-06-08
+## [1.1.8] - 2026-06-08
 
 ### Fixed
 - Prevented stale callbacks from earlier concurrent model operations from overwriting the active Operations status and progress widgets.
 
 ### Documentation
 - Clarified that Diagnostics > Operations keeps durable lifecycle history for all model operations while the compact live status/progress surface follows the most recently started operation.
+
+## [1.1.7] - 2026-06-08
+
+### Fixed
 - Made streamed Ollama error payloads fail pull, push, and create operations instead of recording a contradictory success and refreshing models.
 
 ### Documentation
