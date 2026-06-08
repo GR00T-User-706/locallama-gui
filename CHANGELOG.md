@@ -1,3 +1,11 @@
+## [1.1.7] - 2026-06-08
+
+### Fixed
+- Made streamed Ollama error payloads fail pull, push, and create operations instead of recording a contradictory success and refreshing models.
+
+### Documentation
+- Clarified that Ollama stream errors are recorded as failed model operations.
+
 ## [1.1.6] - 2026-06-08
 
 ### Added
