@@ -27,6 +27,14 @@ def visible_chat_messages(messages: list[ChatMessage]) -> list[ChatMessage]:
     return [message for message in messages if not message_is_internal_system(message)]
 
 
+def backend_bound_messages(messages: list[ChatMessage]) -> list[ChatMessage]:
+    return [
+        message
+        for message in messages
+        if message.role not in {"assistant", "tool"} or message.content.strip()
+    ]
+
+
 def assistant_label(message: ChatMessage, active_model: str) -> str:
     if message.role != "assistant":
         return message.role.upper()
@@ -40,14 +48,5 @@ def redacted_request_messages(messages: list[ChatMessage]) -> list[dict[str, obj
         content = message.content
         if message_is_internal_system(message):
             content = INTERNAL_PROMPT_REDACTION
-        sanitized.append(
-            {
-                "role": message.role,
-                "content": content,
-                "id": message.id,
-                "created_at": message.created_at,
-                "name": message.name,
-                "metadata": message.metadata,
-            }
-        )
+        sanitized.append({"role": message.role, "content": content})
     return sanitized

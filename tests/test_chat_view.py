@@ -2,6 +2,7 @@ from locallama_gui.core.domain import ChatMessage
 from locallama_gui.ui.chat_view import (
     INTERNAL_PROMPT_REDACTION,
     assistant_label,
+    backend_bound_messages,
     compute_scroll_restore_plan,
     redacted_request_messages,
     visible_chat_messages,
@@ -46,3 +47,25 @@ def test_request_redaction_only_for_internal_system_prompt():
     assert redacted[0]["content"] == INTERNAL_PROMPT_REDACTION
     assert redacted[1]["content"] == "user system"
     assert redacted[2]["content"] == "hello"
+
+
+def test_backend_bound_messages_excludes_empty_assistant_and_tool_messages():
+    messages = [
+        ChatMessage("system", ""),
+        ChatMessage("user", ""),
+        ChatMessage("assistant", ""),
+        ChatMessage("assistant", "   \n"),
+        ChatMessage("tool", ""),
+        ChatMessage("tool", " \t "),
+        ChatMessage("assistant", "answer"),
+        ChatMessage("tool", "result"),
+    ]
+
+    sanitized = backend_bound_messages(messages)
+
+    assert [(message.role, message.content) for message in sanitized] == [
+        ("system", ""),
+        ("user", ""),
+        ("assistant", "answer"),
+        ("tool", "result"),
+    ]
