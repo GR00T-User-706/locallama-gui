@@ -68,7 +68,11 @@ class OllamaBackend(LLMBackend):
     ) -> dict[str, Any]:
         return {
             "model": model,
-            "messages": [{"role": message.role, "content": message.content} for message in messages],
+            "messages": [
+                {"role": message.role, "content": message.content}
+                for message in messages
+                if message.role not in {"assistant", "tool"} or message.content.strip()
+            ],
             "options": cls.sanitize_options(options),
             "stream": stream,
             **cls.sanitize_request_fields(options),

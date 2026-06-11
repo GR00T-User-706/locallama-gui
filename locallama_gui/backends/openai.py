@@ -48,7 +48,11 @@ class OpenAICompatibleBackend(LLMBackend):
     ) -> AsyncIterator[str]:
         payload = {
             "model": model,
-            "messages": [{"role": m.role, "content": m.content} for m in messages],
+            "messages": [
+                {"role": message.role, "content": message.content}
+                for message in messages
+                if message.role not in {"assistant", "tool"} or message.content.strip()
+            ],
             "temperature": options.get("temperature", 0.7),
             "top_p": options.get("top_p", 0.9),
             "max_tokens": options.get("num_predict", 512),

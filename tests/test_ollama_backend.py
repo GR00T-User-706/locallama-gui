@@ -204,3 +204,27 @@ def test_stream_endpoint_raises_for_successful_http_response_with_error_payload(
         assert str(exc) == "model not found"
     else:
         raise AssertionError("streamed Ollama errors must fail the operation")
+
+
+def test_chat_payload_excludes_empty_assistant_and_tool_messages():
+    from locallama_gui.core.domain import ChatMessage
+
+    payload = OllamaBackend.build_chat_payload(
+        "llama3",
+        [
+            ChatMessage("user", "hello"),
+            ChatMessage("assistant", ""),
+            ChatMessage("assistant", "   "),
+            ChatMessage("tool", "\n"),
+            ChatMessage("assistant", "answer"),
+            ChatMessage("tool", "result"),
+        ],
+        {},
+        False,
+    )
+
+    assert payload["messages"] == [
+        {"role": "user", "content": "hello"},
+        {"role": "assistant", "content": "answer"},
+        {"role": "tool", "content": "result"},
+    ]

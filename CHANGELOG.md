@@ -1,3 +1,13 @@
+## [1.1.8] - 2026-06-11
+
+### Fixed
+- Filtered empty and whitespace-only assistant/tool messages after chat interception and again in both backend payload builders so failed, canceled, or historical placeholders cannot poison later requests.
+- Tracked the originating chat tab and assistant message for active generation streams, removing empty placeholders and preserving partial responses with explicit interrupted/error/canceled metadata.
+- Made the Request Viewer use the same sanitized outbound message sequence while redacting only the app-internal system prompt.
+
+### Tests
+- Added focused coverage for backend request hygiene, plugin-injected and historical empty messages, stream error ownership, placeholder cleanup, partial-response metadata, and empty successful responses.
+
 ## [1.1.7] - 2026-06-08
 
 ### Fixed

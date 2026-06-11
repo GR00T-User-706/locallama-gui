@@ -70,6 +70,7 @@ from locallama_gui.ui.theme import DARK_QSS, dark_qss
 from locallama_gui.ui.workers import AsyncTask, StreamTask
 from locallama_gui.ui.chat_view import (
     assistant_label,
+    backend_bound_messages,
     compute_scroll_restore_plan,
     redacted_request_messages,
     visible_chat_messages,
@@ -204,6 +205,8 @@ class MainWindow(QMainWindow):
         self.current_stream: StreamTask | None = None
         self._stream_owner_seq = 0
         self._active_stream_owner: int | None = None
+        self._active_stream_tab: ChatTab | None = None
+        self._active_stream_message: ChatMessage | None = None
         self._diagnostics_signals = DiagnosticsSignals(self)
         self._diagnostics_log_handler: QtLogHandler | None = None
         self._original_stdout = sys.stdout
@@ -469,6 +472,7 @@ class MainWindow(QMainWindow):
         messages.extend(tab.session.messages)
         for interceptor in self.plugin_context.chat_interceptors:
             messages = interceptor(messages)
+        messages = backend_bound_messages(messages)
         options = self.config.parameters.to_backend_options()
         request_preview = {
             "provider": profile.name,
@@ -500,6 +504,8 @@ class MainWindow(QMainWindow):
         owner = self._stream_owner_seq
         self.current_stream = task
         self._active_stream_owner = owner
+        self._active_stream_tab = tab
+        self._active_stream_message = assistant
         self.worker_refs.append(task)
         task.token.connect(lambda tok, owner_id=owner: self._append_token(tab, assistant, tok, owner_id))
         task.error.connect(lambda error, owner_id=owner: self._stream_error(error, owner_id))
@@ -513,15 +519,29 @@ class MainWindow(QMainWindow):
         self.token_view.insertPlainText(token)
         tab.render(self.model_combo.currentText() or tab.session.model)
 
+    def _finish_stream_message(self, *, metadata: dict[str, bool] | None = None) -> ChatTab | None:
+        tab = self._active_stream_tab
+        message = self._active_stream_message
+        if tab is not None and message is not None and message in tab.session.messages:
+            if message.content.strip():
+                if metadata:
+                    message.metadata.update(metadata)
+            else:
+                tab.session.messages.remove(message)
+        if tab is not None:
+            tab.set_generating(False)
+            tab.render(self.model_combo.currentText() or tab.session.model)
+        self._active_stream_owner = None
+        self._active_stream_tab = None
+        self._active_stream_message = None
+        self.current_stream = None
+        return tab
+
     def _stream_error(self, error: str, owner_id: int) -> None:
         if self._active_stream_owner != owner_id:
             return
         self.status.showMessage("idle")
-        tab = self.current_tab()
-        if tab:
-            tab.set_generating(False)
-        self._active_stream_owner = None
-        self.current_stream = None
+        self._finish_stream_message(metadata={"error": True, "interrupted": True})
         self.log(f"Generation error: {error}")
         QMessageBox.critical(self, "Generation Error", error)
 
@@ -529,21 +549,14 @@ class MainWindow(QMainWindow):
         if self._active_stream_owner != owner_id:
             return
         self.status.showMessage("idle")
-        tab.set_generating(False)
-        self._active_stream_owner = None
-        self.current_stream = None
-        self.sessions.save(tab.session)
+        owner_tab = self._finish_stream_message() or tab
+        self.sessions.save(owner_tab.session)
         self.refresh_sessions()
-        tab.render(self.model_combo.currentText() or tab.session.model)
 
     def stop_generation(self) -> None:
         if self.current_stream:
             self.current_stream.cancel()
-            self._active_stream_owner = None
-            self.current_stream = None
-            tab = self.current_tab()
-            if tab:
-                tab.set_generating(False)
+            self._finish_stream_message(metadata={"canceled": True, "interrupted": True})
             self.status.showMessage("idle")
             self.log("Generation stopped by user.")
 
@@ -1012,6 +1025,8 @@ class MainWindow(QMainWindow):
         if self.current_stream and self.current_stream.isRunning():
             self.current_stream.cancel()
         self._active_stream_owner = None
+        self._active_stream_tab = None
+        self._active_stream_message = None
         self.current_stream = None
         for worker in list(self.worker_refs):
             if hasattr(worker, "isRunning") and worker.isRunning() and hasattr(worker, "cancel"):
