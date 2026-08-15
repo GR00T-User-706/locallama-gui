@@ -67,6 +67,30 @@ source .venv/bin/activate
 pip install -e .
 ```
 
+### Installation wizard
+
+The repository includes a cross-platform installation wizard that creates the virtual environment, installs the application, verifies runtime imports, and integrates the existing launcher mechanisms:
+
+```bash
+python3 scripts/install-wizard.py
+```
+
+On Windows:
+
+```powershell
+py -3.12 scripts\install-wizard.py
+```
+
+Preview the installation first with:
+
+```bash
+python3 scripts/install-wizard.py --dry-run
+```
+
+The wizard does **not** install Ollama or other AI backends and does not collect or store API credentials. After installation, configure the backend from **Settings → API Endpoints**.
+
+See [`docs/INSTALLER.md`](docs/INSTALLER.md) for options and platform-specific behavior.
+
 ### Desktop launcher (Linux/macOS)
 
 ```bash
