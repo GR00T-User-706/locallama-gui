@@ -132,7 +132,27 @@ def install_package(venv: Path, dry_run: bool) -> None:
         print("✓ LocalLama GUI installed")
 
 
-def install_unix_launchers(root: Path, args: argparse.Namespace) -> None:
+def install_venv_launcher(venv: Path, dry_run: bool) -> None:
+    target_dir = Path.home() / ".local" / "bin"
+    target = target_dir / "run-locallama"
+    python = venv_python(venv)
+    if dry_run:
+        print(f"[dry-run] write {target} to invoke {python}")
+        return
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+    wrapper = (
+        "#!/bin/sh\n"
+        "set -eu\n\n"
+        f'VENV_PYTHON="{python}"\n\n'
+        'exec "$VENV_PYTHON" -m locallama_gui "$@"\n'
+    )
+    target.write_text(wrapper, encoding="utf-8")
+    target.chmod(0o755)
+    print(f"✓ Launcher now targets virtual environment: {target}")
+
+
+def install_unix_launchers(root: Path, venv: Path, args: argparse.Namespace) -> None:
     if args.no_launcher:
         print("• Unix launcher installation skipped")
         return
@@ -143,6 +163,8 @@ def install_unix_launchers(root: Path, args: argparse.Namespace) -> None:
         raise SystemExit(f"Missing canonical launcher installer: {launcher}")
 
     run([str(launcher)], cwd=root, dry_run=args.dry_run)
+    install_venv_launcher(venv, args.dry_run)
+
     if platform.system() == "Linux" and args.desktop_entry:
         if not desktop.is_file():
             raise SystemExit(f"Missing canonical desktop installer: {desktop}")
@@ -265,7 +287,7 @@ def main() -> int:
     if os.name == "nt":
         install_windows_shortcuts(root, venv, args)
     else:
-        install_unix_launchers(root, args)
+        install_unix_launchers(root, venv, args)
 
     verify_installation(root, venv, args.dry_run)
     if args.check_backend:
