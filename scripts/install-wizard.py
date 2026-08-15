@@ -16,7 +16,6 @@ from pathlib import Path
 MIN_PYTHON = (3, 11)
 MAX_PYTHON = (3, 13)
 DEFAULT_VENV = ".venv"
-TERMUX_VENV = Path.home() / ".local" / "share" / "locallama-gui" / "venv"
 DEFAULT_OLLAMA_URL = "http://localhost:11434/api/tags"
 
 
@@ -25,7 +24,7 @@ def parse_args() -> argparse.Namespace:
         description="Install LocalLama GUI into an isolated Python virtual environment."
     )
     parser.add_argument(
-        "--venv", default=None, help="Virtual-environment directory. Defaults to .venv, or a Termux-private path on Android."
+        "--venv", default=None, help="Virtual-environment directory (default: .venv)."
     )
     parser.add_argument(
         "--python",
@@ -36,7 +35,7 @@ def parse_args() -> argparse.Namespace:
         "--dry-run", action="store_true", help="Show planned actions without changing the system."
     )
     parser.add_argument(
-        "--no-launcher", action="store_true", help="Skip launcher integration."
+        "--no-launcher", action="store_true", help="Skip Unix launcher integration."
     )
     parser.add_argument(
         "--desktop-entry", action="store_true", help="On Linux, also install the desktop entry."
@@ -58,14 +57,28 @@ def repo_root() -> Path:
     return Path(__file__).resolve().parents[1]
 
 
-def is_termux() -> bool:
+def is_termux_or_android() -> bool:
     return platform.system() == "Android" or bool(os.environ.get("TERMUX_VERSION"))
 
 
-def default_venv() -> Path:
-    if is_termux():
-        return TERMUX_VENV
-    return repo_root() / DEFAULT_VENV
+def reject_unsupported_platform() -> None:
+    if not is_termux_or_android():
+        return
+
+    print()
+    print("Unsupported platform: Android / Termux")
+    print()
+    print("LocalLama Control Center is a PySide6 desktop application.")
+    print("The current desktop installation does not support Android or Termux")
+    print("because a compatible PySide6 package is not available through the")
+    print("normal PyPI installation path used by this project.")
+    print()
+    print("No installation changes were made by this wizard.")
+    print()
+    print("Termux can still be used for repository inspection, development, Git,")
+    print("and other project maintenance tasks. Use a supported desktop platform")
+    print("to install and run the LocalLama Control Center GUI.")
+    raise SystemExit(2)
 
 
 def run(command: list[str], *, cwd: Path, dry_run: bool = False) -> None:
@@ -166,11 +179,6 @@ def install_venv_launcher(venv: Path, dry_run: bool) -> None:
 def install_unix_launchers(root: Path, venv: Path, args: argparse.Namespace) -> None:
     if args.no_launcher:
         print("• Launcher installation skipped")
-        return
-
-    if is_termux():
-        install_venv_launcher(venv, args.dry_run)
-        print("• Termux detected: desktop launcher integration skipped")
         return
 
     launcher = root / "scripts" / "install-launcher"
@@ -292,16 +300,14 @@ def main() -> int:
     print("=" * 38)
     print(f"Repository: {root}")
     print(f"Platform:   {platform.system()} ({platform.machine()})")
-    if is_termux():
-        print("Environment: Termux (Android)")
+    if is_termux_or_android():
+        print("Environment: Termux / Android")
     print()
 
+    reject_unsupported_platform()
     check_python()
     python_executable = resolve_python(args.python_executable)
-    venv = Path(args.venv).expanduser().resolve() if args.venv else default_venv()
-    if is_termux() and not args.venv:
-        print(f"Termux venv: {venv}")
-        print("Using Termux-private storage for the virtual environment instead of shared Android storage.")
+    venv = Path(args.venv).expanduser().resolve() if args.venv else root / DEFAULT_VENV
     ensure_venv(venv, python_executable, args.dry_run)
     install_package(venv, args.dry_run)
 
@@ -325,8 +331,6 @@ def main() -> int:
         print(f"Launch with: {venv_python(venv)} -m locallama_gui")
         if os.name == "nt":
             print("A Start Menu shortcut was created for LocalLama Control Center.")
-        elif is_termux():
-            print("A Termux launcher was installed under ~/.local/bin.")
         else:
             print("Use the installed run-locallama launcher from your user-local bin directory.")
         print("Configure an AI backend from Settings → API Endpoints.")
