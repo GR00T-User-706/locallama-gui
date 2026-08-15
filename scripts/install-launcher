@@ -14,31 +14,16 @@ REPO_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 SOURCE="$REPO_ROOT/run-locallama"
 TARGET_DIR="${HOME}/.local/bin"
 TARGET="$TARGET_DIR/run-locallama"
-VENV_PYTHON="$REPO_ROOT/.venv/bin/python"
 
 [ -f "$SOURCE" ] || { echo "Missing launcher at $SOURCE" >&2; exit 1; }
 
 echo "Installing launcher to $TARGET"
 if [ "$DRY_RUN" -eq 1 ]; then
   echo "[dry-run] mkdir -p $TARGET_DIR"
-  echo "[dry-run] write wrapper targeting $VENV_PYTHON when available"
-  echo "[dry-run] fallback to $SOURCE"
+  echo "[dry-run] ln -sf $SOURCE $TARGET"
   exit 0
 fi
 
 mkdir -p "$TARGET_DIR"
-cat > "$TARGET" <<EOF
-#!/bin/sh
-set -eu
-
-VENV_PYTHON="$VENV_PYTHON"
-SOURCE="$SOURCE"
-
-if [ -x "\$VENV_PYTHON" ]; then
-  exec "\$VENV_PYTHON" -m locallama_gui "\$@"
-fi
-
-exec "\$SOURCE" "\$@"
-EOF
-chmod +x "$TARGET"
+ln -sf "$SOURCE" "$TARGET"
 echo "Installed: $TARGET"
