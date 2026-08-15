@@ -7,7 +7,7 @@
 #endif
 
 [Setup]
-AppId={{B8E4F0B5-4A53-4E72-9E9E-LOCAL-LAMA-GUI}}
+AppId={{B8E4F0B5-4A53-4E72-9E9E-4A9E7B8F1C22}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
