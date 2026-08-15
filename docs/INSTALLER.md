@@ -8,6 +8,16 @@ This is the **repository/source installer**. It creates an isolated virtual envi
 
 The repository supports Python 3.11, 3.12, and 3.13. The wizard rejects versions outside that range.
 
+## Supported platforms
+
+The current desktop installation targets:
+
+- Windows
+- Linux
+- macOS
+
+**Android and Termux are rejected by the installer.** The application is a PySide6 desktop GUI, and the current PyPI installation path does not provide a compatible PySide6 package for Android/Termux. Termux can still be used for repository inspection, development, Git, and project maintenance.
+
 ## Quick start
 
 From the repository root:
@@ -22,27 +32,7 @@ On Windows:
 py -3.12 scripts\\install-wizard.py
 ```
 
-The wizard creates `.venv` by default on desktop platforms and installs the project with `pip install -e .`.
-
-### Termux / Android
-
-Termux is supported as a **source/development environment**, not as a desktop GUI target. When the wizard detects Android/Termux and no `--venv` is supplied, it places the virtual environment in Termux-private storage at:
-
-```text
-~/.local/share/locallama-gui/venv
-```
-
-This avoids putting the virtual environment on Android shared storage such as `/storage/emulated/0`, where executable/environment behavior can differ from Termux's private filesystem.
-
-The wizard installs a Termux launcher under:
-
-```text
-~/.local/bin/run-locallama
-```
-
-It skips Windows shortcuts, Linux desktop entries, macOS application integration, and the repository's desktop-oriented Unix launcher installer on Termux.
-
-Termux does not make the PySide6 desktop GUI itself a supported Android application target. It is useful for installer/source validation and development work.
+The wizard creates `.venv` by default and installs the project with `pip install -e .`.
 
 ## Options
 
@@ -50,14 +40,16 @@ Termux does not make the PySide6 desktop GUI itself a supported Android applicat
 --venv DIR             Use a different virtual-environment directory.
 --python EXECUTABLE    Select the Python interpreter used to create the venv.
 --dry-run              Show planned actions without making installation changes.
---no-launcher          Skip launcher integration.
+--no-launcher          Skip Unix launcher integration.
 --desktop-entry        Also install the Linux desktop entry.
 --windows-desktop      Also create a Windows desktop shortcut.
 --check-backend [URL]  Test a backend after installation. Without a URL,
                        checks the default local Ollama API.
 ```
 
-Examples:
+Android/Termux rejection occurs before virtual-environment creation, including when `--dry-run` is supplied, so the wizard does not leave a partial installation behind on an unsupported platform.
+
+## Examples
 
 ```bash
 python3 scripts/install-wizard.py --dry-run
@@ -87,9 +79,9 @@ The wizard creates a Start Menu shortcut targeting the installed virtual-environ
 
 PowerShell's built-in Windows Script Host COM interface is used for `.lnk` creation, so no `pywin32` dependency is required.
 
-### Termux / Android
+### Android / Termux
 
-The wizard treats Android/Termux separately from desktop Unix platforms. It uses a Termux-private virtual environment by default, installs a launcher that directly invokes that environment, and skips desktop integration.
+The wizard exits before creating a virtual environment or installing dependencies. It reports that Android/Termux is unsupported for the current desktop GUI installation and recommends using a supported desktop platform. No installation changes are made.
 
 ## Backend configuration
 
@@ -108,6 +100,6 @@ The wizard is not the final native application installer. Future platform-native
 - Commands are executed with argument lists rather than `shell=True`.
 - Existing virtual environments are reused rather than deleted or silently replaced.
 - The wizard does not modify application configuration files.
-- Termux defaults to a private virtual-environment location instead of Android shared storage.
-- `--dry-run` is available before installation changes.
+- Android/Termux is rejected before installation changes occur.
+- `--dry-run` is available before installation changes on supported platforms.
 - Backend connectivity checks are optional and do not affect installation success.
