@@ -1,3 +1,15 @@
+## [1.2.0] - 2026-08-15
+
+### Added
+- Added `scripts/install-wizard.py` for cross-platform repository installation.
+- Added Windows Start Menu shortcut creation without adding a `pywin32` dependency.
+- Added optional Linux desktop-entry installation through the existing canonical launcher scripts.
+- Added optional backend reachability checks without storing backend credentials.
+
+### Documentation
+- Added `docs/INSTALLER.md` covering installer usage, options, platform behavior, backend configuration, and future native packaging.
+- Updated README installation guidance to include the installation wizard.
+
 ## [1.1.7] - 2026-06-08
 
 ### Fixed
