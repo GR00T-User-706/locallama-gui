@@ -1,3 +1,21 @@
+## [1.2.1] - 2026-08-15
+
+### Fixed
+- Made the installation wizard reject Android and Termux before creating a virtual environment or making installation changes.
+- Added a clear explanation that the current PySide6 desktop installation path is not supported on Android/Termux.
+
+## [1.2.0] - 2026-08-15
+
+### Added
+- Added `scripts/install-wizard.py` for cross-platform repository installation.
+- Added Windows Start Menu shortcut creation without adding a `pywin32` dependency.
+- Added optional Linux desktop-entry installation through the existing canonical launcher scripts.
+- Added optional backend reachability checks without storing backend credentials.
+
+### Documentation
+- Added `docs/INSTALLER.md` covering installer usage, options, platform behavior, backend configuration, and future native packaging.
+- Updated README installation guidance to include the installation wizard.
+
 ## [1.1.7] - 2026-06-08
 
 ### Fixed
@@ -55,7 +73,6 @@
 - updated the changelog. 
 - updeted the version in pyproject.toml, __init__.py
 
-
 ## 1.1.3 - 2026-06-02
 
 ### Changed
@@ -70,6 +87,7 @@
 
 ### Documentation
 - Updated the README parameter-profile description and synchronized the versioning snapshot.
+
 ## 1.1.3 - 2026-06-06
 
 ### Fixed
@@ -158,7 +176,7 @@
 - Synchronized `docs/VERSIONING.md` current-state snapshot with actual repository version metadata and latest changelog heading.
 
 ### Documentation
-- Corrected version references in `docs/VERSIONING.md` to reflect reality after the 1.0.11 release.
+- Corrected version references in `docs/VERSIONING.md` to reflect reality after the 1.0.11 release bump.
 
 ## 1.0.11 - 2026-05-25
 
@@ -186,13 +204,13 @@
 ### Fixed
 - Made model metadata table cells explicitly non-editable while keeping item selection and enabled behavior intact.
 - Kept model lifecycle actions (create/copy/delete) on explicit dialogs/actions rather than inline table edits.
+
 ### Added
 - Added a new **UI Action Integrity** section in `AGENTS.md` near the existing UI guidance to require explicit control state clarity, ban active dead placeholders, and ban ambiguous dialogs.
 
 ### Changed
 - Added explicit delivery checklist requirements for new UI actions (logic wiring, error handling, logs/status updates, docs, tests, version bump, and changelog updates).
 - Added a scope guardrail reinforcing minimal-change behavior for small UI requests to prevent rewrite-the-universe responses.
-- Added tests covering reasoning-mode exclusivity, config persistence, and request payload mapping.
 
 ### Changed
 - Replaced independent thinking/plan/normal checkboxes in Generation Parameters with a single reasoning-mode dropdown and explicit default (`normal`).

@@ -11,7 +11,7 @@ Works with **Ollama**, **OpenAI-compatible APIs**, and **llama.cpp** servers. Py
 ```bash
 # 1. Create venv and install
 python3.11 -m venv .venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+source .venv/bin/activate  # or .venv\\Scripts\\activate on Windows
 pip install -e .
 
 # 2. Start your backend (example: Ollama)
@@ -48,10 +48,13 @@ locallama-gui
 ## Requirements
 
 - **Python:** 3.11, 3.12, or 3.13 (tested in CI)
+- **Desktop OS:** Linux, macOS, or Windows
 - **Backend (one of):**
   - Ollama at `http://localhost:11434` (default)
   - OpenAI-compatible `/v1` endpoint
   - llama.cpp OpenAI-compatible server
+
+Android/Termux is not currently supported for the desktop GUI installation. The installer rejects Android/Termux before creating a virtual environment or installing dependencies. Termux remains useful for repository inspection, development, Git, and project maintenance.
 
 ---
 
@@ -66,6 +69,32 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 ```
+
+### Installation wizard
+
+The repository includes a cross-platform installation wizard that creates the virtual environment, installs the application, verifies runtime imports, and integrates the existing launcher mechanisms:
+
+```bash
+python3 scripts/install-wizard.py
+```
+
+On Windows:
+
+```powershell
+py -3.12 scripts\\install-wizard.py
+```
+
+Preview the installation first with:
+
+```bash
+python3 scripts/install-wizard.py --dry-run
+```
+
+The wizard does **not** install Ollama or other AI backends and does not collect or store API credentials. After installation, configure the backend from **Settings → API Endpoints**.
+
+On Android/Termux, the wizard stops before making installation changes and explains that the current PySide6 desktop installation path is unsupported there.
+
+See [`docs/INSTALLER.md`](docs/INSTALLER.md) for options and platform-specific behavior.
 
 ### Desktop launcher (Linux/macOS)
 
