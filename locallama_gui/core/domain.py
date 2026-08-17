@@ -43,7 +43,7 @@ class ChatSession:
         return json.dumps(asdict(self), indent=2)
 
     @classmethod
-    def from_file(cls, path: Path) -> "ChatSession":
+    def from_file(cls, path: Path) -> ChatSession:
         data = json.loads(path.read_text(encoding="utf-8"))
         data["messages"] = [ChatMessage(**item) for item in data.get("messages", [])]
         return cls(**data)
