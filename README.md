@@ -43,6 +43,8 @@ locallama-gui
 | **Diagnostics** | Structured logs, captured console output, model operations, request viewer, token stream, backend status |
 | **Desktop UX** | Dockable panels, dark theme, keyboard shortcuts, menu bar, layout presets |
 
+Check [`docs/FEATURE_MATRIX.md`](docs/FEATURE_MATRIX.md) for the current operational status of visible workflows. Some listed capabilities remain partial, blocked, or hidden.
+
 ---
 
 ## Requirements
@@ -52,6 +54,7 @@ locallama-gui
   - Ollama at `http://localhost:11434` (default)
   - OpenAI-compatible `/v1` endpoint
   - llama.cpp OpenAI-compatible server
+- **Credential storage:** provider API keys are stored through the operating system credential store via `keyring`; they are not persisted in `config.json`.
 
 ---
 
@@ -116,6 +119,8 @@ The app uses platform-native directories via `platformdirs`:
 
 Use **Help → Diagnostics** to see exact paths on your system.
 
+Provider API keys are stored in the operating system credential store and are intentionally omitted from `config.json`.
+
 ---
 
 ## Advanced Topics
@@ -135,6 +140,8 @@ Plugins can provide:
 - Memory providers
 - Backend integrations
 
+**Security:** plugins are arbitrary Python code executed in the LocalLama process. Discovery does not import plugin modules, but enabling a plugin executes it with the same local-user privileges as the application. Review plugin source code and explicitly trust only plugins you intend to run.
+
 ### Project structure
 
 ```
@@ -145,6 +152,7 @@ locallama_gui/
   ui/                    # PySide6 main window, dialogs, workers, theming
 plugins/                 # Development and sample plugins
 docs/                    # SDK and user documentation
+archive/                 # Historical legacy code and documentation
 ```
 
 ---
@@ -155,7 +163,8 @@ docs/                    # SDK and user documentation
 |-------|----------|
 | Model refresh fails | Confirm backend is running (e.g., `ollama serve`) |
 | Can't connect to remote server | Open **Settings → API Endpoints** and verify the base URL and port |
-| Plugins fail to load | Disable untrusted plugins; review diagnostics logs in **Developer → Logs** |
+| Plugins fail to load | Review diagnostics, verify the plugin has a static manifest, and confirm its ID is trusted |
+| API key cannot be saved | Verify that the operating system credential store/keyring backend is available for the desktop session |
 
 ---
 
@@ -168,7 +177,7 @@ docs/                    # SDK and user documentation
 
 ### Legacy code
 
-Older experimental Tkinter and Qt5/QML artifacts are archived under `archive/old_apps/ollama_GUI/` for historical reference.  
+Older experimental Tkinter and Qt/QML artifacts are archived under `archive/old_apps/ollama_GUI/` for historical reference.  
 Additional legacy code is archived under `archive/legacy_code/` with an index at [`archive/ARCHIVE_INDEX.md`](archive/ARCHIVE_INDEX.md).
 
 ---
@@ -184,9 +193,10 @@ Additional legacy code is archived under `archive/legacy_code/` with an index at
 ## Versioning and changelog
 
 This project uses **semantic versioning** (`MAJOR.MINOR.PATCH`):
-- **PATCH:** bug fixes, documentation, test improvements
+- **PATCH:** bug fixes, documentation, test improvements, and small security fixes
 - **MINOR:** new backward-compatible features
 - **MAJOR:** breaking changes
 
 See [`CHANGELOG.md`](CHANGELOG.md) for release history.  
-See [`docs/REPO_ANALYSIS.md`](docs/REPO_ANALYSIS.md) for architecture and cleanup status.
+See [`docs/VERSIONING.md`](docs/VERSIONING.md) for the synchronization policy.  
+See [`docs/REPO_ANALYSIS.md`](docs/REPO_ANALYSIS.md) for current architecture and cleanup status.
