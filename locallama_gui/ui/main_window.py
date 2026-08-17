@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 import logging
 import sys
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
-from dataclasses import asdict
 
 import psutil
 from PySide6.QtCore import QByteArray, Qt, Signal
@@ -49,6 +49,12 @@ from locallama_gui.core.managers import (
     PromptManager,
     SessionManager,
 )
+from locallama_gui.ui.chat_view import (
+    assistant_label,
+    compute_scroll_restore_plan,
+    redacted_request_messages,
+    visible_chat_messages,
+)
 from locallama_gui.ui.controllers import ChatController, ModelController, PluginController
 from locallama_gui.ui.dialogs import (
     AgentBuilderDialog,
@@ -68,12 +74,6 @@ from locallama_gui.ui.diagnostics import (
 )
 from locallama_gui.ui.theme import DARK_QSS, dark_qss
 from locallama_gui.ui.workers import AsyncTask, StreamTask
-from locallama_gui.ui.chat_view import (
-    assistant_label,
-    compute_scroll_restore_plan,
-    redacted_request_messages,
-    visible_chat_messages,
-)
 
 LOG = logging.getLogger(__name__)
 
@@ -703,7 +703,7 @@ class MainWindow(QMainWindow):
         tab = self.current_tab()
         if not tab:
             return
-        path, selected = QFileDialog.getSaveFileName(
+        path, _selected = QFileDialog.getSaveFileName(
             self,
             "Export Chat",
             f"{tab.session.title}.md",
