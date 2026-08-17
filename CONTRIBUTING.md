@@ -10,15 +10,19 @@ Changes in `locallama_gui/**` are the primary target for reviews, required CI ch
 
 ## Legacy and archive directories
 
-The following roots are retained as legacy/archive code:
+Legacy code is retained under the `archive/` tree:
 
-- `llm_studio/`
-- `ollama_GUI/`
-- `archive/`
+- `archive/legacy_code/llm_studio/`
+- `archive/old_apps/ollama_GUI/`
+- `archive/old_docs/`
+- `archive/notes/`
 
-Changes there are allowed, but they are not part of the active product surface and receive limited maintenance.
+These trees are historical storage, not active product roots. Changes there are allowed only when needed for archive maintenance, provenance, or a deliberate restoration effort.
 
 ## Pull request guidance
 
 - Prefer feature and bug-fix work inside `locallama_gui/**`.
-- If you modify legacy roots, keep changes minimal and clearly document why they are needed.
+- Keep changes focused and preserve existing behavior unless the task requires a behavior change.
+- Do not revive archived code in place. Move useful code into the active tree and validate it there.
+- When security-sensitive behavior changes, include regression coverage where practical.
+- Update version and changelog entries for meaningful implementation changes according to `AGENTS.md` and `docs/VERSIONING.md`.
