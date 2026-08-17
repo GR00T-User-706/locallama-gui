@@ -31,18 +31,18 @@ class CredentialStore:
     service_name = APP_NAME
 
     @classmethod
-    def _username(cls, profile: "ProviderProfile") -> str:
+    def _username(cls, profile: ProviderProfile) -> str:
         return f"{profile.provider_type}:{profile.name}"
 
     @classmethod
-    def get(cls, profile: "ProviderProfile") -> str:
+    def get(cls, profile: ProviderProfile) -> str:
         try:
             return keyring.get_password(cls.service_name, cls._username(profile)) or ""
         except KeyringError:
             return ""
 
     @classmethod
-    def set(cls, profile: "ProviderProfile", api_key: str) -> None:
+    def set(cls, profile: ProviderProfile, api_key: str) -> None:
         if not api_key:
             try:
                 keyring.delete_password(cls.service_name, cls._username(profile))
@@ -71,7 +71,7 @@ class AppPaths:
     plugins_dir: Path
 
     @classmethod
-    def create(cls) -> "AppPaths":
+    def create(cls) -> AppPaths:
         config_dir = Path(user_config_dir(APP_NAME, "LocalLama"))
         data_dir = Path(user_data_dir(APP_NAME, "LocalLama"))
         logs_dir = Path(user_log_dir(APP_NAME, "LocalLama"))
@@ -197,7 +197,7 @@ class AppConfig:
         return data, migrated
 
     @classmethod
-    def load(cls) -> "AppConfig":
+    def load(cls) -> AppConfig:
         paths = AppPaths.create()
         path = paths.config_dir / "config.json"
         if not path.exists():
@@ -207,7 +207,7 @@ class AppConfig:
 
         raw_data = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(raw_data, dict):
-            raise ValueError("LocalLama config must contain a JSON object at the top level.")
+            raise TypeError("LocalLama config must contain a JSON object at the top level.")  # noqa: TRY004
         data, migrated_schema = cls._migrate_data(raw_data)
         profiles: list[ProviderProfile] = []
         migrated_credentials = False
