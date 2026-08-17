@@ -211,6 +211,19 @@ class PluginManager:
                 except (PermissionError, ImportError, RuntimeError, ValueError):
                     continue
 
+    def trust(self, plugin_id: str) -> None:
+        if not any(p.get("id") == plugin_id and not p.get("error") for p in self.discover()):
+            raise ValueError(f"Plugin '{plugin_id}' is not a valid discovered plugin")
+        if plugin_id not in self.config.trusted_plugins:
+            self.config.trusted_plugins.append(plugin_id)
+            self.config.save()
+
+    def untrust(self, plugin_id: str) -> None:
+        self.disable(plugin_id)
+        if plugin_id in self.config.trusted_plugins:
+            self.config.trusted_plugins.remove(plugin_id)
+        self.config.save()
+
     def enable(self, path: Path) -> None:
         manifest = self._read_static_manifest(path)
         plugin_id = manifest["id"]
@@ -241,6 +254,20 @@ class PluginManager:
         for plugin_id in list(self.loaded):
             self.disable(plugin_id)
         self.load_enabled()
+
+    def remove(self, plugin_id: str) -> None:
+        loaded = self.loaded.get(plugin_id)
+        path = loaded.path if loaded else None
+        if path is None:
+            for item in self.discover():
+                if item.get("id") == plugin_id:
+                    path = Path(item["path"])
+                    break
+        self.untrust(plugin_id)
+        self.config.enabled_plugins.pop(plugin_id, None)
+        self.config.save()
+        if path is not None and path.exists():
+            path.unlink()
 
     def _load_module(self, path: Path) -> ModuleType:
         spec = importlib.util.spec_from_file_location(f"locallama_user_plugin_{path.stem}", path)
