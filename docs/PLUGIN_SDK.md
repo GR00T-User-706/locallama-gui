@@ -2,7 +2,7 @@
 
 By default, LocalLama only discovers plugins from the **user plugin directory** shown in **Help → Diagnostics**. Repository `plugins/` is only scanned when `developer_mode` is enabled in config.
 
-A plugin exposes a `Plugin` class with a `manifest`, `activate(context)`, and `deactivate()`.
+A plugin exposes a `Plugin` class with a **static literal** `manifest`, `activate(context)`, and `deactivate()`.
 
 ```python
 class Plugin:
@@ -26,13 +26,17 @@ Plugin manifests must contain all required keys:
 - `name`
 - `version`
 
-Plugins with missing keys are treated as invalid and cannot be enabled.
+The `manifest` must be a static Python literal dictionary assigned on the `Plugin` class. LocalLama parses this declaration with the Python AST during discovery so plugin module code is not imported merely to inspect metadata.
+
+Plugins with missing, malformed, or dynamic manifests are treated as invalid and cannot be enabled.
 
 ## Trust boundary
 
-Plugins are loaded as Python code in the same process as the app. Before a plugin can be enabled, its manifest `id` must be explicitly added to `trusted_plugins` in the app config.
+Plugins are loaded as Python code in the same process as the app. Before plugin code is imported for enablement, LocalLama checks the manifest ID against `trusted_plugins` in the app config.
 
 Being discoverable is **not** the same as being trusted.
+
+Discovery itself does not import plugin modules.
 
 ## Threat model notes
 
@@ -40,8 +44,9 @@ Being discoverable is **not** the same as being trusted.
 - A malicious plugin may read or modify local files accessible to the user.
 - A plugin can intercept chat traffic through chat interceptors.
 - A plugin can register commands/tools that trigger external process or network actions.
+- Trust is ID-based; LocalLama does not currently provide code signing or hash pinning.
 
-Only trust plugin IDs from vetted sources, and review plugin source code before adding to `trusted_plugins`.
+Only trust plugin IDs from vetted sources, and review plugin source code before adding them to `trusted_plugins`.
 
 ## Capabilities
 
@@ -49,7 +54,7 @@ Only trust plugin IDs from vetted sources, and review plugin source code before 
 - **Commands**: UI or automation commands.
 - **Chat interceptors**: receive and return the outbound `ChatMessage` list before a request is sent.
 - **UI extensions**: add custom PySide6 panels with `context.add_panel`.
-- **Memory providers**: register custom memory backends on `context.memory_providers`.
+- **Memory providers**: custom providers may use `context.memory_providers`; a dedicated registration helper is not yet provided.
 - **Backend integrations**: provide command/tool wrappers around additional services.
 
 Plugins run in-process and should avoid blocking the GUI thread. Use worker threads or async clients for slow operations.
