@@ -9,10 +9,15 @@ Scope: Current repository versioning policy and synchronization rules.
 - `pyproject.toml` version: `1.1.8`
 - `locallama_gui/__init__.py` version: `1.1.8`
 - `CHANGELOG.md` latest version heading: `1.1.8` (dated 2026-08-17)
+- persisted configuration schema: `2`
 
 ### Source of truth
 
 `pyproject.toml` is the packaging/release version source. `locallama_gui/__init__.py` must remain synchronized with it for runtime metadata.
+
+The persisted configuration schema has a separate source of truth: `CONFIG_SCHEMA_VERSION` in `locallama_gui/core/config.py`. Configuration schema versions describe persisted-data compatibility and must not be treated as application release versions.
+
+See `docs/CONFIG_SCHEMA.md` for the persisted configuration contract and migration policy.
 
 ## Semantic Versioning Rules
 
@@ -22,7 +27,7 @@ Use `MAJOR.MINOR.PATCH`.
 - MINOR: backward-compatible user-facing features or workflows.
 - MAJOR: breaking behavior, incompatible configuration changes, or architecture shifts.
 
-## Sync Targets for Any Future Version Bump
+## Sync Targets for Any Future Application Version Bump
 
 Verify and update as needed:
 
@@ -33,6 +38,20 @@ Verify and update as needed:
 5. Any About/version display paths
 
 Do not maintain a separate `VERSION` file unless the repository explicitly adopts one as a new source of truth.
+
+## Configuration Schema Versioning
+
+Configuration schema versioning is independent from application release versioning.
+
+When persisted configuration changes incompatibly:
+
+1. increment `CONFIG_SCHEMA_VERSION`;
+2. add an explicit migration step in `AppConfig._migrate_data()`;
+3. add migration/round-trip regression tests;
+4. update `docs/CONFIG_SCHEMA.md`;
+5. reject unsupported future schemas instead of guessing their meaning.
+
+A package release does not require a schema increment when the persisted representation remains compatible. A schema increment does not imply a major application release when the application can safely migrate existing data.
 
 ## Changelog Format
 
