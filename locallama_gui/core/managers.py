@@ -103,7 +103,7 @@ class AgentManager:
 class PluginAPI(Protocol):
     manifest: dict[str, Any]
 
-    def activate(self, context: "PluginContext") -> None: ...
+    def activate(self, context: PluginContext) -> None: ...
 
     def deactivate(self) -> None: ...
 
@@ -194,7 +194,7 @@ class PluginManager:
             manifest = {"id": path.stem, "name": path.stem, "path": str(path)}
             try:
                 manifest.update(self._read_static_manifest(path))
-            except Exception as exc:  # noqa: BLE001 - surfaced in Plugin Manager
+            except Exception as exc:  # noqa: BLE001, S112 - discovery must isolate invalid plugins
                 manifest["error"] = str(exc)
             discovered.append(manifest)
         return discovered
@@ -203,7 +203,7 @@ class PluginManager:
         for path in self.plugin_paths():
             try:
                 manifest = self._read_static_manifest(path)
-            except Exception:
+            except Exception:  # noqa: BLE001, S112 - one invalid plugin must not block startup
                 continue
             if self.config.enabled_plugins.get(manifest["id"], False):
                 try:
