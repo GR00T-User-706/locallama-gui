@@ -4,3 +4,4 @@ platformdirs>=4.2.0
 pydantic>=2.8.0
 psutil>=6.0.0
 markdown>=3.6
+keyring>=25.0.0
