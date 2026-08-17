@@ -1,91 +1,77 @@
 # Repository Analysis Report
 
-Date: 2026-05-24
+Date: 2026-08-17
+Scope: Current-state read-only audit findings and stabilization status.
 
 ## 1. Current project structure
 
 Primary maintained runtime package:
-- `locallama_gui/` (PySide6 desktop app, backends, core config/domain, controllers, workers).
+- `locallama_gui/` (PySide6 desktop app, backends, core config/domain/managers, controllers, workers, diagnostics, UI).
 
 Supporting project files:
 - `pyproject.toml` (packaging + version + scripts)
-- `requirements.txt`
+- `requirements.txt` (runtime dependency mirror; keep synchronized or retire)
 - `README.md`
 - `tests/`
 - `docs/`
+- `packaging/linux/`
+- `scripts/`
 
-Archived legacy/parallel trees:
-- `archive/old_apps/ollama_GUI/` (legacy Python + Qt/QML implementations)
-- `archive/legacy_code/llm_studio/` (parallel app and harvested experimental modules)
+Archived legacy tree:
+- `archive/old_apps/ollama_GUI/`
+- `archive/legacy_code/llm_studio/`
+- `archive/old_docs/`
+- `archive/notes/`
 
-## 2. Entry points
+## 2. Current version
 
-- Console script: `locallama-gui = locallama_gui.app:main` (`pyproject.toml`)
-- Module execution: `python -m locallama_gui` (`locallama_gui/__main__.py`)
+- `pyproject.toml`: `1.1.8`
+- `locallama_gui/__init__.py`: `1.1.8`
+- Changelog latest release: `1.1.8`
 
-## 3. Main GUI files
+## 3. Security stabilization completed in 1.1.8
 
-- `locallama_gui/ui/main_window.py` — main window, menus, dock panels, model table, chat tabs, diagnostics panels.
-- `locallama_gui/ui/dialogs.py` — dialogs for endpoints/parameters/plugins/agent builder/modelfile editor.
-- `locallama_gui/ui/workers.py` — background async/thread workers for non-blocking operations.
-- `locallama_gui/ui/controllers/*.py` — chat/model/plugin actions and wiring.
+- API keys are no longer serialized into `config.json`; provider credentials are stored through the OS credential store using `keyring`.
+- Existing plaintext `api_key` fields are migrated to the credential store during configuration load.
+- The configuration file is written with restrictive `0600` permissions where supported.
+- Plugin discovery parses a static `Plugin.manifest` literal with Python AST instead of importing plugin modules.
+- Plugin enablement validates the static manifest and trust list before importing plugin code.
+- Security regression tests cover credential persistence and plugin import boundaries.
 
-## 4. Ollama integration files
+## 4. Documentation reconciliation completed in 1.1.8
 
-- `locallama_gui/backends/ollama.py` — Ollama API implementation (tags/chat/pull/push/delete/copy/create/show).
-- `locallama_gui/backends/manager.py` — backend factory selection.
-- `locallama_gui/backends/base.py` — backend interface + status contracts.
+- `docs/VERSIONING.md` now reflects version `1.1.8` and current synchronization rules.
+- `CONTRIBUTING.md` now references the actual archive paths instead of retired top-level legacy roots.
+- The duplicate `1.1.3` changelog entries were merged into one historical release entry.
 
-## 5. Config/settings files
+## 5. Remaining architecture hotspots
 
-- `locallama_gui/core/config.py` — persisted config, provider profiles, generation parameters, plugin trust/settings, UI state.
-- Runtime data directories created through `platformdirs`.
+- `locallama_gui/ui/main_window.py` remains large and mixes UI construction, lifecycle orchestration, diagnostics, backend refresh, and generation state.
+- Agent profiles are persisted and editable but remain only partially integrated with chat generation/tool execution.
+- Plugin trust is an explicit in-process trust boundary; plugins are not sandboxed.
+- OpenAI-compatible and llama.cpp providers intentionally share one backend implementation, but their feature parity with Ollama generation controls is narrower.
+- Configuration persistence still has no formal schema-version migration framework beyond field-level compatibility logic.
 
-## 6. Usable as-is
+## 6. Remaining documentation/process gaps
 
-- `locallama_gui/backends/ollama.py`: broad CLI-parity API feature surface through HTTP endpoints.
-- `locallama_gui/core/config.py`: robust dataclass-based settings persistence.
-- `locallama_gui/ui/workers.py`: async-safe background execution pattern to avoid UI freezes.
-- `locallama_gui/ui/controllers/`: separate action handlers reduce direct UI coupling.
+Recommended follow-up documents/processes:
+- `docs/ARCHITECTURE.md`
+- `docs/DATA_LAYOUT.md`
+- `docs/RELEASING.md`
+- expanded `docs/FEATURE_MATRIX.md` coverage for all visible workflows
+- cross-platform CI validation if Linux/macOS/Windows support is to remain a tested claim
 
-## 7. Needs repair/refactor (incremental)
+## 7. Testing status
 
-- `locallama_gui/ui/main_window.py` is very large and mixes responsibilities (UI build, orchestration, backend lifecycle, diagnostics logging).
-  - Recommendation: incremental extraction into helper methods/controllers without behavior changes.
-- Tests currently emphasize controller regressions but need stronger backend/config coverage.
+The repository has backend, configuration, controller, diagnostics, model-operation, and chat-view regression tests. Version 1.1.8 adds security-boundary coverage for credential serialization and plugin trust/import behavior.
 
-## 8. Dead/duplicate/experimental/obsolete candidates
+Continue expanding coverage for:
+- configuration corruption and migration
+- OpenAI-compatible backend streaming/error behavior
+- plugin discovery/enable/disable failure paths
+- credential-store failures
+- GUI theme switching and other known manual-test defects
 
-- `archive/old_apps/ollama_GUI/`: archived legacy codebase not used by current entrypoint.
-- `archive/legacy_code/llm_studio/`: archived parallel code tree and experimental content.
+## 8. Archive policy
 
-These are now archived and should remain preserved for historical reference.
-
-## 9. Archive status
-
-Previously recommended archive candidates have now been physically moved under `archive/` in this repository state.
-
-Maintain `archive/ARCHIVE_INDEX.md` for any additional future archive moves with provenance and reason.
-
-## 10. Security, stability, packaging issues
-
-- Dynamic plugin loading is powerful but assumes trusted local code. Continue to enforce trust lists and explicit enablement.
-- Large monolithic main window increases maintenance risk and regression surface.
-- Multiple parallel trees increase contributor confusion and accidental import risk.
-- Packaging for active runtime is clean in `pyproject.toml`, but documentation must clearly define active vs legacy trees.
-
-## 11. Recommended next steps
-
-1. Stabilize documentation/process first:
-   - Add this analysis report, archive index, changelog discipline, and versioning policy.
-   - Maintain [`docs/BUGS/KNOWN_BUGS.md`](BUGS/KNOWN_BUGS.md) as the working record for manually discovered defects and regression verification.
-2. Expand test coverage:
-   - Ollama model parsing and API error behavior via mocks.
-   - Config load/save roundtrip and invalid-state guard tests.
-3. Perform incremental archival of clearly non-runtime experimental code.
-4. Begin targeted refactor of `main_window.py` in small behavior-preserving commits.
-5. Continue feature completion against Ollama CLI parity via existing backend abstraction.
-
-## 12. Bug-tracking process
-
-`docs/BUGS/KNOWN_BUGS.md` is the first place to check before investigating a UI or runtime defect. Each entry records observed behavior, expected behavior, reproduction steps, evidence, unconfirmed code areas, and verification requirements. Keep entries updated as fixes are implemented and verified. Do not mark an issue fixed solely because code was changed; verify the behavior.
+Archived code under `archive/**` is historical storage and excluded from routine production CI. If code is revived, move it into the active runtime tree and validate it there. Maintain `archive/ARCHIVE_INDEX.md` for provenance.
