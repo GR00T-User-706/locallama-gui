@@ -1,6 +1,12 @@
 from pathlib import Path
 
-from locallama_gui.core.config import AppConfig, AppPaths, GenerationParameters, ProviderProfile, UISettings
+from locallama_gui.core.config import (
+    AppConfig,
+    AppPaths,
+    GenerationParameters,
+    ProviderProfile,
+    UISettings,
+)
 
 
 def test_config_load_save_roundtrip(monkeypatch, tmp_path):
