@@ -201,13 +201,13 @@ class PluginManager:
 
     def load_enabled(self) -> None:
         for path in self.plugin_paths():
-            self.enable(path)
+            manifest = self._read_static_manifest(path)
+            if self.config.enabled_plugins.get(manifest["id"], False):
+                self.enable(path)
 
     def enable(self, path: Path) -> None:
         manifest = self._read_static_manifest(path)
         plugin_id = manifest["id"]
-        if not self.config.enabled_plugins.get(plugin_id, False):
-            return
         if plugin_id not in self.config.trusted_plugins:
             raise PermissionError(f"Plugin '{plugin_id}' is not trusted. Add it to trusted_plugins before enabling.")
 
@@ -218,21 +218,11 @@ class PluginManager:
         instance = cls()
         runtime_manifest = self._validate_manifest(getattr(instance, "manifest", {}), path)
         if runtime_manifest.get("id") != plugin_id:
-            raise ValueError(
-                f"Plugin {path.name} manifest ID changed between discovery and load"
-            )
+            raise ValueError(f"Plugin {path.name} manifest ID changed between discovery and load")
         instance.activate(self.context)
         self.loaded[plugin_id] = LoadedPlugin(path, module, instance)
         self.config.enabled_plugins[plugin_id] = True
         self.config.save()
-
-    def enable_explicit(self, path: Path) -> None:
-        manifest = self._read_static_manifest(path)
-        plugin_id = manifest["id"]
-        if plugin_id not in self.config.trusted_plugins:
-            raise PermissionError(f"Plugin '{plugin_id}' is not trusted. Add it to trusted_plugins before enabling.")
-        self.config.enabled_plugins[plugin_id] = True
-        self.enable(path)
 
     def disable(self, plugin_id: str) -> None:
         loaded = self.loaded.pop(plugin_id, None)
