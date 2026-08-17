@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Protocol
 
 
-
 class PluginWindowPort(Protocol):
     def log(self, text: str) -> None: ...
 
