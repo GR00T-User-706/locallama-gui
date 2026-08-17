@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import keyring
-from keyring.errors import KeyringError
+from keyring.errors import KeyringError, PasswordDeleteError
 from platformdirs import user_config_dir, user_data_dir, user_log_dir
 
 APP_NAME = "locallama-gui"
@@ -51,7 +51,7 @@ class CredentialStore:
             else:
                 try:
                     keyring.delete_password(cls.service_name, cls._username(profile))
-                except keyring.errors.PasswordDeleteError:
+                except PasswordDeleteError:
                     pass
         except KeyringError as exc:
             raise RuntimeError(
