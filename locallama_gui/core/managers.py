@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import importlib.util
 import json
 import shutil
@@ -150,6 +151,35 @@ class PluginManager:
             raise ValueError(f"Plugin {path.name} manifest missing required keys: {', '.join(missing)}")
         return manifest
 
+    def _read_static_manifest(self, path: Path) -> dict[str, Any]:
+        """Read a Plugin.manifest literal without importing or executing plugin code."""
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in tree.body:
+            if not isinstance(node, ast.ClassDef) or node.name != "Plugin":
+                continue
+            for statement in node.body:
+                value_node: ast.expr | None = None
+                if isinstance(statement, ast.Assign):
+                    if any(isinstance(target, ast.Name) and target.id == "manifest" for target in statement.targets):
+                        value_node = statement.value
+                elif (
+                    isinstance(statement, ast.AnnAssign)
+                    and isinstance(statement.target, ast.Name)
+                    and statement.target.id == "manifest"
+                ):
+                    value_node = statement.value
+                if value_node is not None:
+                    try:
+                        manifest = ast.literal_eval(value_node)
+                    except (ValueError, SyntaxError) as exc:
+                        raise ValueError(
+                            f"Plugin {path.name} manifest must be a static literal dictionary"
+                        ) from exc
+                    if not isinstance(manifest, dict):
+                        raise ValueError(f"Plugin {path.name} manifest must be a dictionary")
+                    return self._validate_manifest(manifest, path)
+        raise ValueError(f"Plugin {path.name} must define a static Plugin.manifest dictionary")
+
     def plugin_paths(self) -> list[Path]:
         paths = list(self.config.paths.plugins_dir.glob("*.py"))
         if self.config.developer_mode:
@@ -163,35 +193,46 @@ class PluginManager:
         for path in self.plugin_paths():
             manifest = {"id": path.stem, "name": path.stem, "path": str(path)}
             try:
-                text = path.read_text(encoding="utf-8")
-                if "manifest" in text:
-                    module = self._load_module(path)
-                    cls = getattr(module, "Plugin", None)
-                    if cls:
-                        manifest.update(self._validate_manifest(getattr(cls(), "manifest", {}), path))
-            except Exception as exc:  # noqa: BLE001
+                manifest.update(self._read_static_manifest(path))
+            except Exception as exc:  # noqa: BLE001 - surfaced in Plugin Manager
                 manifest["error"] = str(exc)
             discovered.append(manifest)
         return discovered
 
     def load_enabled(self) -> None:
         for path in self.plugin_paths():
-            plugin_id = path.stem
-            if self.config.enabled_plugins.get(plugin_id, False):
-                self.enable(path)
+            self.enable(path)
 
     def enable(self, path: Path) -> None:
-        module = self._load_module(path)
-        cls = getattr(module, "Plugin")
-        instance = cls()
-        manifest = self._validate_manifest(getattr(instance, "manifest", {}), path)
+        manifest = self._read_static_manifest(path)
         plugin_id = manifest["id"]
+        if not self.config.enabled_plugins.get(plugin_id, False):
+            return
         if plugin_id not in self.config.trusted_plugins:
             raise PermissionError(f"Plugin '{plugin_id}' is not trusted. Add it to trusted_plugins before enabling.")
+
+        module = self._load_module(path)
+        cls = getattr(module, "Plugin", None)
+        if cls is None:
+            raise ValueError(f"Plugin {path.name} does not define a Plugin class")
+        instance = cls()
+        runtime_manifest = self._validate_manifest(getattr(instance, "manifest", {}), path)
+        if runtime_manifest.get("id") != plugin_id:
+            raise ValueError(
+                f"Plugin {path.name} manifest ID changed between discovery and load"
+            )
         instance.activate(self.context)
         self.loaded[plugin_id] = LoadedPlugin(path, module, instance)
         self.config.enabled_plugins[plugin_id] = True
         self.config.save()
+
+    def enable_explicit(self, path: Path) -> None:
+        manifest = self._read_static_manifest(path)
+        plugin_id = manifest["id"]
+        if plugin_id not in self.config.trusted_plugins:
+            raise PermissionError(f"Plugin '{plugin_id}' is not trusted. Add it to trusted_plugins before enabling.")
+        self.config.enabled_plugins[plugin_id] = True
+        self.enable(path)
 
     def disable(self, plugin_id: str) -> None:
         loaded = self.loaded.pop(plugin_id, None)
