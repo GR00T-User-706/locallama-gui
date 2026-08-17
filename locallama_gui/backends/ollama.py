@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import time
 from collections.abc import AsyncIterator
-from typing import Any
+from typing import Any, ClassVar
 
 import httpx
 
@@ -13,7 +13,7 @@ from locallama_gui.core.domain import ChatMessage, ModelInfo
 
 class OllamaBackend(LLMBackend):
     name = "ollama"
-    SUPPORTED_OPTIONS = {
+    SUPPORTED_OPTIONS: ClassVar[set[str]] = {
         "temperature",
         "top_k",
         "top_p",
@@ -158,14 +158,15 @@ class OllamaBackend(LLMBackend):
             return response.json()
 
     async def _stream_endpoint(self, path: str, payload: dict[str, Any]) -> AsyncIterator[str]:
-        async with httpx.AsyncClient(timeout=None) as client:
-            async with client.stream("POST", f"{self.base_url}{path}", json=payload) as response:
-                response.raise_for_status()
-                async for line in response.aiter_lines():
-                    if not line:
-                        continue
-                    data = json.loads(line)
-                    error = str(data.get("error") or "").strip()
-                    if error:
-                        raise RuntimeError(error)
-                    yield json.dumps(data, separators=(",", ":"))
+        async with httpx.AsyncClient(timeout=None) as client, client.stream(
+            "POST", f"{self.base_url}{path}", json=payload
+        ) as response:
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if not line:
+                    continue
+                data = json.loads(line)
+                error = str(data.get("error") or "").strip()
+                if error:
+                    raise RuntimeError(error)
+                yield json.dumps(data, separators=(",", ":"))
