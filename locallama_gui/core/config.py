@@ -10,6 +10,7 @@ from keyring.errors import KeyringError, PasswordDeleteError
 from platformdirs import user_config_dir, user_data_dir, user_log_dir
 
 APP_NAME = "locallama-gui"
+CONFIG_SCHEMA_VERSION = 2
 APP_SYSTEM_PROMPT = """You are running inside LocalLama Control Center, a PySide6 desktop frontend for Ollama.
 
 You are the active local assistant selected by the user through LocalLama.
@@ -107,7 +108,6 @@ class GenerationParameters:
     min_p: float = 0.0
     repeat_penalty: float = 1.1
     repeat_last_n: int = 64
-    # Retained only so older configs and presets continue to load safely.
     mirostat: int = 0
     mirostat_eta: float = 0.1
     mirostat_tau: float = 5.0
@@ -124,7 +124,6 @@ class GenerationParameters:
     normal_mode: bool = True
 
     def __post_init__(self) -> None:
-        # Backward compatibility for older configs/presets that used booleans.
         if self.reasoning_mode not in {"normal", "thinking", "plan"}:
             self.reasoning_mode = "normal"
         if self.reasoning_mode == "normal":
@@ -168,6 +167,7 @@ class UISettings:
 @dataclass(slots=True)
 class AppConfig:
     paths: AppPaths = field(default_factory=AppPaths.create)
+    schema_version: int = CONFIG_SCHEMA_VERSION
     provider_profiles: list[ProviderProfile] = field(default_factory=lambda: [ProviderProfile()])
     active_provider: str = "Local Ollama"
     parameters: GenerationParameters = field(default_factory=GenerationParameters)
@@ -183,6 +183,20 @@ class AppConfig:
         return self.paths.config_dir / "config.json"
 
     @classmethod
+    def _migrate_data(cls, data: dict[str, Any]) -> tuple[dict[str, Any], bool]:
+        """Normalize persisted config data to the current schema."""
+        version = int(data.get("schema_version", 1))
+        if version > CONFIG_SCHEMA_VERSION:
+            raise ValueError(
+                f"Unsupported config schema version {version}; this application supports up to {CONFIG_SCHEMA_VERSION}."
+            )
+        migrated = version != CONFIG_SCHEMA_VERSION
+        if version == 1:
+            data = dict(data)
+            data["schema_version"] = 2
+        return data, migrated
+
+    @classmethod
     def load(cls) -> "AppConfig":
         paths = AppPaths.create()
         path = paths.config_dir / "config.json"
@@ -191,7 +205,10 @@ class AppConfig:
             cfg.save()
             return cfg
 
-        data = json.loads(path.read_text(encoding="utf-8"))
+        raw_data = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(raw_data, dict):
+            raise ValueError("LocalLama config must contain a JSON object at the top level.")
+        data, migrated_schema = cls._migrate_data(raw_data)
         profiles: list[ProviderProfile] = []
         migrated_credentials = False
         for raw_profile in data.get("provider_profiles", []):
@@ -208,6 +225,7 @@ class AppConfig:
 
         cfg = cls(
             paths=paths,
+            schema_version=CONFIG_SCHEMA_VERSION,
             provider_profiles=profiles or [ProviderProfile()],
             active_provider=data.get("active_provider", "Local Ollama"),
             parameters=GenerationParameters(**data.get("parameters", {})),
@@ -220,15 +238,17 @@ class AppConfig:
                 "global_system_prompt", "You are a helpful, concise assistant."
             ),
         )
-        if migrated_credentials:
+        if migrated_schema or migrated_credentials:
             cfg.save()
         return cfg
 
     def save(self) -> None:
+        self.schema_version = CONFIG_SCHEMA_VERSION
         for profile in self.provider_profiles:
             CredentialStore.set(profile, profile.api_key)
 
         data = {
+            "schema_version": self.schema_version,
             "provider_profiles": [
                 {
                     "name": profile.name,
