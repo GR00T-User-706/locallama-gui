@@ -5,6 +5,8 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+import keyring
+from keyring.errors import KeyringError
 from platformdirs import user_config_dir, user_data_dir, user_log_dir
 
 APP_NAME = "locallama-gui"
@@ -20,6 +22,41 @@ Use the selected model and current conversation context.
 Be concise, useful, and technically accurate.
 When the user asks about LocalLama, treat it as this application.
 When the user asks about models, prompts, parameters, requests, tokens, or logs, assume they are referring to the current LocalLama session unless stated otherwise."""
+
+
+class CredentialStore:
+    """Store provider credentials in the operating system credential store."""
+
+    service_name = APP_NAME
+
+    @classmethod
+    def _username(cls, profile: "ProviderProfile") -> str:
+        return f"{profile.provider_type}:{profile.name}"
+
+    @classmethod
+    def get(cls, profile: "ProviderProfile") -> str:
+        try:
+            return keyring.get_password(cls.service_name, cls._username(profile)) or ""
+        except KeyringError as exc:
+            raise RuntimeError(
+                "The operating system credential store is unavailable. "
+                "API keys will not be read from config.json."
+            ) from exc
+
+    @classmethod
+    def set(cls, profile: "ProviderProfile", api_key: str) -> None:
+        try:
+            if api_key:
+                keyring.set_password(cls.service_name, cls._username(profile), api_key)
+            else:
+                try:
+                    keyring.delete_password(cls.service_name, cls._username(profile))
+                except keyring.errors.PasswordDeleteError:
+                    pass
+        except KeyringError as exc:
+            raise RuntimeError(
+                f"Cannot store the API key for provider '{profile.name}' in the operating system credential store."
+            ) from exc
 
 
 @dataclass(slots=True)
@@ -154,8 +191,22 @@ class AppConfig:
             cfg = cls(paths=paths)
             cfg.save()
             return cfg
+
         data = json.loads(path.read_text(encoding="utf-8"))
-        profiles = [ProviderProfile(**item) for item in data.get("provider_profiles", [])]
+        profiles: list[ProviderProfile] = []
+        migrated_credentials = False
+        for raw_profile in data.get("provider_profiles", []):
+            item = dict(raw_profile)
+            legacy_api_key = str(item.pop("api_key", "") or "")
+            profile = ProviderProfile(**item)
+            if legacy_api_key:
+                profile.api_key = legacy_api_key
+                CredentialStore.set(profile, legacy_api_key)
+                migrated_credentials = True
+            else:
+                profile.api_key = CredentialStore.get(profile)
+            profiles.append(profile)
+
         cfg = cls(
             paths=paths,
             provider_profiles=profiles or [ProviderProfile()],
@@ -166,13 +217,29 @@ class AppConfig:
             trusted_plugins=data.get("trusted_plugins", []),
             developer_mode=data.get("developer_mode", False),
             ui=UISettings(**data.get("ui", {})),
-            global_system_prompt=data.get("global_system_prompt", "You are a helpful, concise assistant."),
+            global_system_prompt=data.get(
+                "global_system_prompt", "You are a helpful, concise assistant."
+            ),
         )
+        if migrated_credentials:
+            cfg.save()
         return cfg
 
     def save(self) -> None:
+        for profile in self.provider_profiles:
+            CredentialStore.set(profile, profile.api_key)
+
         data = {
-            "provider_profiles": [asdict(profile) for profile in self.provider_profiles],
+            "provider_profiles": [
+                {
+                    "name": profile.name,
+                    "provider_type": profile.provider_type,
+                    "base_url": profile.base_url,
+                    "default_model": profile.default_model,
+                    "enabled": profile.enabled,
+                }
+                for profile in self.provider_profiles
+            ],
             "active_provider": self.active_provider,
             "parameters": asdict(self.parameters),
             "parameter_presets": self.parameter_presets,
@@ -182,7 +249,12 @@ class AppConfig:
             "ui": asdict(self.ui),
             "global_system_prompt": self.global_system_prompt,
         }
+        self.paths.config_dir.mkdir(parents=True, exist_ok=True)
         self.file_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        try:
+            self.file_path.chmod(0o600)
+        except OSError:
+            pass
 
     def active_profile(self) -> ProviderProfile:
         for profile in self.provider_profiles:
