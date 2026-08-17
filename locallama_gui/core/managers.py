@@ -201,9 +201,15 @@ class PluginManager:
 
     def load_enabled(self) -> None:
         for path in self.plugin_paths():
-            manifest = self._read_static_manifest(path)
+            try:
+                manifest = self._read_static_manifest(path)
+            except Exception:
+                continue
             if self.config.enabled_plugins.get(manifest["id"], False):
-                self.enable(path)
+                try:
+                    self.enable(path)
+                except (PermissionError, ImportError, RuntimeError, ValueError):
+                    continue
 
     def enable(self, path: Path) -> None:
         manifest = self._read_static_manifest(path)
