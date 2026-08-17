@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from typing import ClassVar
+
 from PySide6.QtWidgets import QLabel, QTextEdit, QVBoxLayout, QWidget
 
 
 class Plugin:
-    manifest = {
+    manifest: ClassVar[dict[str, str]] = {
         "id": "sample_plugin",
         "name": "Sample Productivity Plugin",
         "version": "1.0.0",
