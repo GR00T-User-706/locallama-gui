@@ -18,7 +18,16 @@ def _paths(tmp_path: Path) -> AppPaths:
         modelfiles_dir=tmp_path / "data" / "modelfiles",
         plugins_dir=tmp_path / "data" / "plugins",
     )
-    for path in vars(paths).values():
+    for path in (
+        paths.config_dir,
+        paths.data_dir,
+        paths.logs_dir,
+        paths.sessions_dir,
+        paths.prompts_dir,
+        paths.agents_dir,
+        paths.modelfiles_dir,
+        paths.plugins_dir,
+    ):
         path.mkdir(parents=True, exist_ok=True)
     return paths
 
@@ -42,7 +51,6 @@ def test_api_key_is_not_serialized_to_config(monkeypatch, tmp_path):
 
 
 def test_plugin_discovery_does_not_execute_module_code(tmp_path):
-    plugin_path = tmp_path / "plugins" / "evil.py"
     paths = _paths(tmp_path)
     plugin_path = paths.plugins_dir / "evil.py"
     marker = paths.data_dir / "executed.txt"
@@ -55,7 +63,8 @@ def test_plugin_discovery_does_not_execute_module_code(tmp_path):
         "    def deactivate(self): pass\n",
         encoding="utf-8",
     )
-    manager = PluginManager(AppConfig(paths=paths), PluginContext(None, AppConfig(paths=paths)))
+    cfg = AppConfig(paths=paths)
+    manager = PluginManager(cfg, PluginContext(None, cfg))
 
     discovered = manager.discover()
 
