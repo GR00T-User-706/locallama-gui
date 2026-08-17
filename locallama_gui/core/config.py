@@ -37,22 +37,21 @@ class CredentialStore:
     def get(cls, profile: "ProviderProfile") -> str:
         try:
             return keyring.get_password(cls.service_name, cls._username(profile)) or ""
-        except KeyringError as exc:
-            raise RuntimeError(
-                "The operating system credential store is unavailable. "
-                "API keys will not be read from config.json."
-            ) from exc
+        except KeyringError:
+            return ""
 
     @classmethod
     def set(cls, profile: "ProviderProfile", api_key: str) -> None:
+        if not api_key:
+            try:
+                keyring.delete_password(cls.service_name, cls._username(profile))
+            except PasswordDeleteError:
+                pass
+            except KeyringError:
+                pass
+            return
         try:
-            if api_key:
-                keyring.set_password(cls.service_name, cls._username(profile), api_key)
-            else:
-                try:
-                    keyring.delete_password(cls.service_name, cls._username(profile))
-                except PasswordDeleteError:
-                    pass
+            keyring.set_password(cls.service_name, cls._username(profile), api_key)
         except KeyringError as exc:
             raise RuntimeError(
                 f"Cannot store the API key for provider '{profile.name}' in the operating system credential store."
@@ -200,8 +199,8 @@ class AppConfig:
             legacy_api_key = str(item.pop("api_key", "") or "")
             profile = ProviderProfile(**item)
             if legacy_api_key:
-                profile.api_key = legacy_api_key
                 CredentialStore.set(profile, legacy_api_key)
+                profile.api_key = legacy_api_key
                 migrated_credentials = True
             else:
                 profile.api_key = CredentialStore.get(profile)
