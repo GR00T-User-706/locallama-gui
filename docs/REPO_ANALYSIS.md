@@ -78,9 +78,14 @@ Maintain `archive/ARCHIVE_INDEX.md` for any additional future archive moves with
 
 1. Stabilize documentation/process first:
    - Add this analysis report, archive index, changelog discipline, and versioning policy.
+   - Maintain [`docs/BUGS/KNOWN_BUGS.md`](BUGS/KNOWN_BUGS.md) as the working record for manually discovered defects and regression verification.
 2. Expand test coverage:
    - Ollama model parsing and API error behavior via mocks.
    - Config load/save roundtrip and invalid-state guard tests.
 3. Perform incremental archival of clearly non-runtime experimental code.
 4. Begin targeted refactor of `main_window.py` in small behavior-preserving commits.
 5. Continue feature completion against Ollama CLI parity via existing backend abstraction.
+
+## 12. Bug-tracking process
+
+`docs/BUGS/KNOWN_BUGS.md` is the first place to check before investigating a UI or runtime defect. Each entry records observed behavior, expected behavior, reproduction steps, evidence, unconfirmed code areas, and verification requirements. Keep entries updated as fixes are implemented and verified. Do not mark an issue fixed solely because code was changed; verify the behavior.
