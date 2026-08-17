@@ -207,7 +207,7 @@ class AppConfig:
 
         raw_data = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(raw_data, dict):
-            raise TypeError("LocalLama config must contain a JSON object at the top level.")  # noqa: TRY004
+            raise ValueError("LocalLama config must contain a JSON object at the top level.")  # noqa: TRY004
         data, migrated_schema = cls._migrate_data(raw_data)
         profiles: list[ProviderProfile] = []
         migrated_credentials = False
