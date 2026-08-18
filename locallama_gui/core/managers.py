@@ -251,8 +251,16 @@ class PluginManager:
         self.config.save()
 
     def reload(self) -> None:
+        enabled_plugin_ids = [
+            plugin_id
+            for plugin_id in self.loaded
+            if self.config.enabled_plugins.get(plugin_id, False)
+        ]
         for plugin_id in list(self.loaded):
             self.disable(plugin_id)
+        for plugin_id in enabled_plugin_ids:
+            self.config.enabled_plugins[plugin_id] = True
+        self.config.save()
         self.load_enabled()
 
     def remove(self, plugin_id: str) -> None:
