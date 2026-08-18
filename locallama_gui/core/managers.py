@@ -194,7 +194,7 @@ class PluginManager:
             manifest = {"id": path.stem, "name": path.stem, "path": str(path)}
             try:
                 manifest.update(self._read_static_manifest(path))
-            except Exception as exc:  # noqa: BLE001, S112 - discovery must isolate invalid plugins
+            except Exception as exc:  # noqa: BLE001 - discovery must isolate invalid plugins
                 manifest["error"] = str(exc)
             discovered.append(manifest)
         return discovered

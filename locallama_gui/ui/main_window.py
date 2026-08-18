@@ -27,9 +27,9 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QPushButton,
     QSplitter,
-    QTabWidget,
     QTableWidget,
     QTableWidgetItem,
+    QTabWidget,
     QTextEdit,
     QToolBar,
     QTreeWidget,
@@ -56,14 +56,6 @@ from locallama_gui.ui.chat_view import (
     visible_chat_messages,
 )
 from locallama_gui.ui.controllers import ChatController, ModelController, PluginController
-from locallama_gui.ui.dialogs import (
-    AgentBuilderDialog,
-    EndpointDialog,
-    ModelfileEditor,
-    ParameterDialog,
-    PluginManagerDialog,
-    PromptManagerDialog,
-)
 from locallama_gui.ui.diagnostics import (
     DiagnosticsSignals,
     LineBufferedStream,
@@ -71,6 +63,14 @@ from locallama_gui.ui.diagnostics import (
     OperationUpdate,
     QtLogHandler,
     append_output,
+)
+from locallama_gui.ui.dialogs import (
+    AgentBuilderDialog,
+    EndpointDialog,
+    ModelfileEditor,
+    ParameterDialog,
+    PluginManagerDialog,
+    PromptManagerDialog,
 )
 from locallama_gui.ui.theme import DARK_QSS, dark_qss
 from locallama_gui.ui.workers import AsyncTask, StreamTask
