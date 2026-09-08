@@ -1,0 +1,5 @@
+myloai (1.2.0-1) UNRELEASED; urgency=medium
+
+  * Add production MyLoAI Control Center Debian packaging foundation.
+
+ -- MyLoAI contributors <noreply@example.invalid>  Tue, 08 Sep 2026 10:14:00 -0500
