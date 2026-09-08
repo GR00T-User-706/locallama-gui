@@ -6,8 +6,10 @@ arch=('x86_64')
 url='https://github.com/GR00T-User-706/locallama-gui'
 license=('custom')
 depends=('python' 'python-pyside6' 'python-httpx' 'python-platformdirs' 'python-pydantic' 'python-psutil' 'python-markdown' 'python-keyring')
-source=('myloai')
+source=('myloai' 'myloai.desktop' 'myloai.1')
 
 package() {
     install -Dm755 "${srcdir}/myloai" "${pkgdir}/usr/bin/myloai"
+    install -Dm644 "${srcdir}/myloai.desktop" "${pkgdir}/usr/share/applications/myloai.desktop"
+    install -Dm644 "${srcdir}/myloai.1" "${pkgdir}/usr/share/man/man1/myloai.1"
 }
