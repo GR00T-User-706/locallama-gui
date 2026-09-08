@@ -1,0 +1,13 @@
+pkgname=myloai
+pkgver=1.2.0
+pkgrel=1
+pkgdesc='MyLoAI Control Center'
+arch=('x86_64')
+url='https://github.com/GR00T-User-706/locallama-gui'
+license=('custom')
+depends=('python' 'python-pyside6' 'python-httpx' 'python-platformdirs' 'python-pydantic' 'python-psutil' 'python-markdown' 'python-keyring')
+source=('myloai')
+
+package() {
+    install -Dm755 "${srcdir}/myloai" "${pkgdir}/usr/bin/myloai"
+}
