@@ -3,13 +3,13 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "myloai-control-center"
+name = "locallama-gui"
 version = "1.2.0"
 description = "MyLoAI Control Center: a production-grade PySide6 desktop control center for local and remote LLMs."
 readme = "README.md"
 requires-python = ">=3.11"
 license = {file = "LICENSE"}
-authors = [{name = "MyLoAI contributors"}]
+authors = [{name = "locallama-gui contributors"}]
 dependencies = [
   "PySide6>=6.8.0",
   "httpx>=0.27.0",
