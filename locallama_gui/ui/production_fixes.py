@@ -132,12 +132,27 @@ def _show_model_browser(window) -> None:
     ModelBrowserDialog(window, recommended).exec()
 
 
+def _build_diagnostics_submenu(window, developer) -> None:
+    for text in ("Logs", "Console", "Operations", "Request Viewer", "Token Viewer", "Request Inspector", "Diagnostics"):
+        _remove_action(developer, text)
+    diagnostics_menu = developer.addMenu("Diagnostics")
+    for text, callback in (
+        ("Logs", window.show_logs_dock),
+        ("Console", window.show_console_dock),
+        ("Operations", window.show_operations_dock),
+        ("Request Viewer", window.show_request_dock),
+        ("Token Viewer", window.show_token_dock),
+    ):
+        action = diagnostics_menu.addAction(text)
+        action.triggered.connect(callback)
+
+
 def apply_production_fixes(window, first_run: bool = False) -> None:
     window.setWindowTitle("MyLoAI Control Center")
 
     developer = _menu(window, "Developer")
-    _remove_action(developer, "Request Inspector")
-    _remove_action(developer, "Diagnostics")
+    if developer is not None:
+        _build_diagnostics_submenu(window, developer)
 
     help_menu = _menu(window, "Help")
     _remove_action(help_menu, "Diagnostics")
