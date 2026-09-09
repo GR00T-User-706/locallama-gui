@@ -19,12 +19,12 @@
 
 ## Target artifacts
 
+- Python wheel and source distribution.
 - Windows native installer and bundled application.
-- macOS application bundle and disk image.
-- Linux Debian package.
-- Linux Arch package.
-- Linux RPM package.
-- Linux AppImage.
+- macOS application bundles and disk images for arm64 and x86_64.
+- Linux Debian package for amd64.
+- Linux Arch package recipe for x86_64.
+- Linux AppImage for x86_64.
 
 ## End-user content allowed in release payloads
 
