@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Validate that a staged production release contains no repository-only material."""
 from __future__ import annotations
 
