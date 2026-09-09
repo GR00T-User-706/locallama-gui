@@ -59,13 +59,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.12'
       - name: Install build tools
         run: |
-          python -m pip install --upgrade pip build
+          python -m pip install --upgrade pip pyinstaller
           sudo apt-get update
-          sudo apt-get install -y debhelper devscripts dh-python python3-all python3-setuptools python3-pip python3-venv
-          python -m pip install pyinstaller
+          sudo apt-get install -y python3-venv dpkg-dev
       - name: Build AppImage
         run: |
           curl -L --fail --retry 3 -o build-appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
@@ -75,11 +74,7 @@ jobs:
           bash packaging/linux/appimage/build-appimage.sh
       - name: Build Debian package
         run: |
-          cp -a packaging/linux/debian ./debian
-          chmod +x debian/rules
-          dpkg-buildpackage -us -uc -b
-          mkdir -p dist/deb
-          mv ../myloai_*.deb dist/deb/
+          bash packaging/linux/debian/build-deb.sh
       - name: Validate Linux release payloads
         run: |
           test -n "$(find dist -maxdepth 1 -type f -name 'MyLoAI-Control-Center-*-x86_64.AppImage' -print -quit)"
