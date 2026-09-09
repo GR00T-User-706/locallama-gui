@@ -133,7 +133,15 @@ def _show_model_browser(window) -> None:
 
 
 def _build_diagnostics_submenu(window, developer) -> None:
-    for text in ("Logs", "Console", "Operations", "Request Viewer", "Token Viewer", "Request Inspector", "Diagnostics"):
+    for text in (
+        "Logs",
+        "Console",
+        "Operations",
+        "Request Viewer",
+        "Token Viewer",
+        "Request Inspector",
+        "Diagnostics",
+    ):
         _remove_action(developer, text)
     diagnostics_menu = developer.addMenu("Diagnostics")
     for text, callback in (
@@ -147,6 +155,14 @@ def _build_diagnostics_submenu(window, developer) -> None:
         action.triggered.connect(callback)
 
 
+def _add_ai_model_settings(settings, window) -> None:
+    _remove_action(settings, "Model Settings")
+    _remove_action(settings, "AI Model Settings...")
+    action = QAction("AI Model Settings...", window)
+    action.triggered.connect(window.open_parameters)
+    settings.addAction(action)
+
+
 def apply_production_fixes(window, first_run: bool = False) -> None:
     window.setWindowTitle("MyLoAI Control Center")
 
@@ -158,7 +174,7 @@ def apply_production_fixes(window, first_run: bool = False) -> None:
     _remove_action(help_menu, "Diagnostics")
 
     settings = _menu(window, "Settings")
-    _remove_action(settings, "Model Settings")
+    _add_ai_model_settings(settings, window)
     _replace_action(settings, "Themes", lambda: _choose_theme(window))
 
     agents = _menu(window, "Agents")
