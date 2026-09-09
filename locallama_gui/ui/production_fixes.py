@@ -7,8 +7,9 @@ from pathlib import Path
 
 import psutil
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QInputDialog, QMessageBox
+from PySide6.QtWidgets import QFileDialog, QInputDialog, QMessageBox
 
+from locallama_gui.core.domain import AgentProfile
 from locallama_gui.ui.model_browser import ModelBrowserDialog
 from locallama_gui.ui.setup_wizard import FirstRunWizard
 from locallama_gui.ui.theme import dark_qss
@@ -82,9 +83,6 @@ def _choose_theme(window) -> None:
 
 
 def _import_agent(window) -> None:
-    from PySide6.QtWidgets import QFileDialog
-    from locallama_gui.core.domain import AgentProfile
-
     path, _ = QFileDialog.getOpenFileName(window, "Import Agent", "", "JSON (*.json)")
     if not path:
         return
@@ -97,8 +95,6 @@ def _import_agent(window) -> None:
 
 
 def _export_agent(window) -> None:
-    from PySide6.QtWidgets import QFileDialog
-
     agents = window.agents.list()
     if not agents:
         QMessageBox.information(window, "Export Agent", "There are no saved agents to export.")
