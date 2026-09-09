@@ -11,6 +11,7 @@ VERSION="$(python -c 'import pathlib,tomllib; print(tomllib.loads(pathlib.Path("
 ARCH="amd64"
 APP_NAME="MyLoAI Control Center"
 
+python packaging/assets/generate_myloai_icon.py
 rm -rf "$BUILD_DIR"
 mkdir -p "$STAGE_DIR/DEBIAN" \
     "$STAGE_DIR/opt/myloai" \
