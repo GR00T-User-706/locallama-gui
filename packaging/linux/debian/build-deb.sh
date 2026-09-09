@@ -51,7 +51,7 @@ Section: utils
 Priority: optional
 Architecture: ${ARCH}
 Maintainer: MyLoAI contributors
-Depends: python3 (>= 3.11), libgl1, libegl1, libglib2.0-0, libdbus-1-3, libfontconfig1, libx11-6, libxext6, libxrender1, libxkbcommon0, libxkbcommon-x11-0, libxcb1, libxcb-cursor0
+Depends: python3 (>= 3.11), libgl1, libegl1, libglib2.0-0t64 | libglib2.0-0, libdbus-1-3, libfontconfig1, libx11-6, libxext6, libxrender1, libxkbcommon0, libxkbcommon-x11-0, libxcb1, libxcb-cursor0
 Homepage: https://github.com/GR00T-User-706/locallama-gui
 Description: MyLoAI Control Center
  Native desktop control center for local and remote large language model backends.
