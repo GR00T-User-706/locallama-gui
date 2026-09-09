@@ -20,7 +20,7 @@ def main() -> int:
     config = AppConfig.load()
     configure_logging(config.paths.logs_dir)
     app = QApplication(sys.argv)
-    app.setApplicationName("LocalLama Control Center")
+    app.setApplicationName("MyLoAI Control Center")
     app.setOrganizationName("LocalLama")
     app.setAttribute(Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings, True)
     win = MainWindow(config)
