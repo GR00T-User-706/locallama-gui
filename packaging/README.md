@@ -10,12 +10,12 @@ They must not include repository archives, development agents/prompts, CI config
 
 ## Package targets
 
+- Python: wheel and source distribution
 - Debian-family Linux: `.deb`
-- Arch-family Linux: `.pkg.tar.zst`
-- RPM-family Linux: `.rpm`
+- Arch-family Linux: `PKGBUILD` / `.pkg.tar.zst`
 - Portable Linux: AppImage
 - Windows: native installer/bundled application
-- macOS: `.app` and `.dmg`
+- macOS: `.app` and `.dmg` for arm64 and x86_64
 
 The package build definitions are intentionally separate from the active runtime package so that distribution concerns do not alter application behavior.
 
