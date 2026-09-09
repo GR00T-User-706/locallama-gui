@@ -4,6 +4,7 @@ Type=Application
 Name=MyLoAI Control Center
 Comment=Desktop control center for local and remote LLMs
 Exec=myloai
+Icon=myloai
 Terminal=false
 Categories=Development;Utility;
 Keywords=LLM;Ollama;AI;MyLoAI;
