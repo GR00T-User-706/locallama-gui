@@ -1,24 +1,31 @@
-# LocalLama GUI
+# MyLoAI Control Center
 
-A production-grade **native desktop UI** for managing local and remote LLMs. Built with PySide6—chat, model operations, Modelfiles, system prompts, agents, plugins, and full diagnostics all in one power-user workstation.
+A production-grade **native desktop UI** for managing local and remote LLMs. Built with PySide6, MyLoAI brings chat, model operations, Modelfiles, system prompts, agents, plugins, and diagnostics into one power-user workstation.
 
 Works with **Ollama**, **OpenAI-compatible APIs**, and **llama.cpp** servers. Python 3.11+, Linux/macOS/Windows.
+
+The repository and Python import namespace remain `locallama-gui` / `locallama_gui` for compatibility.
 
 ---
 
 ## Quick Start
 
+For end users, use the native installer from a tagged GitHub release when available. Native installers do not require Python, pip, Git, or a terminal.
+
+For source/development use:
+
 ```bash
 # 1. Create venv and install
 python3.11 -m venv .venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+source .venv/bin/activate  # or .venv\\Scripts\\activate on Windows
 pip install -e .
 
 # 2. Start your backend (example: Ollama)
 ollama serve
 
 # 3. Launch the GUI
-locallama-gui
+myloai
+# compatibility command: locallama-gui
 # or: python -m locallama_gui
 ```
 
@@ -56,9 +63,22 @@ Check [`docs/FEATURE_MATRIX.md`](docs/FEATURE_MATRIX.md) for the current operati
   - llama.cpp OpenAI-compatible server
 - **Credential storage:** provider API keys are stored through the operating system credential store via `keyring`; they are not persisted in `config.json`.
 
+Native installers bundle the application runtime and do not require a separate Python installation.
+
 ---
 
 ## Installation
+
+### Native end-user installers
+
+Tagged releases produce platform-specific artifacts:
+
+- **Windows:** MyLoAI Control Center `.exe` installer
+- **macOS:** MyLoAI Control Center `.dmg`
+- **Linux:** AppImage and amd64 Debian `.deb`
+- **Arch Linux:** `PKGBUILD` for native package builds
+
+The production packaging layer deliberately excludes the repository archive, tests, CI configuration, development prompts, and other internal material from installed application payloads.
 
 ### From repository (development)
 
@@ -89,6 +109,12 @@ See [`docs/LAUNCHING.md`](docs/LAUNCHING.md) for full launcher and platform-spec
 ### Run the application
 
 ```bash
+myloai
+```
+
+The compatibility command remains available:
+
+```bash
 locallama-gui
 ```
 
@@ -111,11 +137,13 @@ See [`docs/FEATURE_MATRIX.md`](docs/FEATURE_MATRIX.md) for the current status of
 
 ### Data locations
 
-The app uses platform-native directories via `platformdirs`:
+The application continues to use the existing platform-native directories for compatibility:
 
 - **Config:** `user_config_dir("locallama-gui", "LocalLama")`
 - **Data:** `user_data_dir("locallama-gui", "LocalLama")`
 - **Logs:** `user_log_dir("locallama-gui", "LocalLama")`
+
+These paths are intentionally unchanged during the product rename to avoid unnecessary user-data migration risk.
 
 Use **Help → Diagnostics** to see exact paths on your system.
 
@@ -140,7 +168,7 @@ Plugins can provide:
 - Memory providers
 - Backend integrations
 
-**Security:** plugins are arbitrary Python code executed in the LocalLama process. Discovery does not import plugin modules, but enabling a plugin executes it with the same local-user privileges as the application. Review plugin source code and explicitly trust only plugins you intend to run.
+**Security:** plugins are arbitrary Python code executed in the MyLoAI process. Discovery does not import plugin modules, but enabling a plugin executes it with the same local-user privileges as the application. Review plugin source code and explicitly trust only plugins you intend to run.
 
 ### Project structure
 
@@ -177,16 +205,16 @@ archive/                 # Historical legacy code and documentation
 
 ### Legacy code
 
-Older experimental Tkinter and Qt/QML artifacts are archived under `archive/old_apps/ollama_GUI/` for historical reference.  
+Older experimental Tkinter and Qt/QML artifacts are archived under `archive/old_apps/ollama_GUI/` for historical reference.
 Additional legacy code is archived under `archive/legacy_code/` with an index at [`archive/ARCHIVE_INDEX.md`](archive/ARCHIVE_INDEX.md).
 
 ---
 
 ## Screenshots
 
-<img width="1453" height="979" alt="LocalLama GUI chat interface" src="https://github.com/user-attachments/assets/64dca141-3edf-4d59-9093-c78629dcd7e7" />
+<img width="1453" height="979" alt="MyLoAI Control Center chat interface" src="https://github.com/user-attachments/assets/64dca141-3edf-4d59-9093-c78629dcd7e7" />
 
-<img width="1920" height="1023" alt="LocalLama GUI model and plugin management" src="https://github.com/user-attachments/assets/20f4e35c-8989-4e62-8d90-20255fe75b99" />
+<img width="1920" height="1023" alt="MyLoAI Control Center model and plugin management" src="https://github.com/user-attachments/assets/20f4e35c-8989-4e62-8d90-20255fe75b99" />
 
 ---
 
@@ -197,6 +225,6 @@ This project uses **semantic versioning** (`MAJOR.MINOR.PATCH`):
 - **MINOR:** new backward-compatible features
 - **MAJOR:** breaking changes
 
-See [`CHANGELOG.md`](CHANGELOG.md) for release history.  
-See [`docs/VERSIONING.md`](docs/VERSIONING.md) for the synchronization policy.  
+See [`CHANGELOG.md`](CHANGELOG.md) for release history.
+See [`docs/VERSIONING.md`](docs/VERSIONING.md) for the synchronization policy.
 See [`docs/REPO_ANALYSIS.md`](docs/REPO_ANALYSIS.md) for current architecture and cleanup status.
