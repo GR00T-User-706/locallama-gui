@@ -14,6 +14,10 @@ ICON_PATH = ROOT_DIR / "packaging" / "assets" / "MyLoAI.ico"
 
 hiddenimports = collect_submodules(PACKAGE)
 datas = collect_data_files(PACKAGE, include_py_files=False)
+datas += [
+    (str(ROOT_DIR / "packaging" / "USER_MANUAL.md"), "docs"),
+    (str(ROOT_DIR / "docs" / "PLUGIN_SDK.md"), "docs"),
+]
 
 analysis = Analysis(
     [str(ROOT_DIR / PACKAGE / "__main__.py")],
