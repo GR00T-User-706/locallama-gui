@@ -1,4 +1,3 @@
-#define MyLoAIVersion GetStringFileVersion(AddBackslash(SourcePath) + "..\\..\\dist\\MyLoAI Control Center\\MyLoAI Control Center.exe")
 #ifndef MyLoAIVersion
   #define MyLoAIVersion "1.2.0"
 #endif
