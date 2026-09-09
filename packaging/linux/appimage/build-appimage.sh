@@ -10,6 +10,7 @@ APPIMAGE="$DIST_DIR/MyLoAI-Control-Center-${VERSION}-x86_64.AppImage"
 APPIMAGETOOL="${APPIMAGETOOL:-$ROOT_DIR/build/appimagetool}"
 
 cd "$ROOT_DIR"
+python packaging/assets/generate_myloai_icon.py
 rm -rf "$APPDIR"
 mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/share/applications" "$APPDIR/usr/share/doc/myloai"
 
