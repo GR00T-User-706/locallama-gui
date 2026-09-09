@@ -1,3 +1,4 @@
+# MyLoAI native release matrix: Linux x86_64, Windows x64, and macOS arm64/x86_64.
 name: MyLoAI Production Packaging
 
 on:
