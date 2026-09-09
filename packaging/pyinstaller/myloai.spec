@@ -29,21 +29,20 @@ analysis = Analysis(
 
 pyz = PYZ(analysis.pure)
 
-exe = EXE(
-    pyz,
-    analysis.scripts,
-    analysis.binaries,
-    analysis.datas,
-    [],
-    name=APP_NAME,
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=False,
-    upx=False,
-    console=False,
-)
-
 if sys.platform == "darwin":
+    exe = EXE(
+        pyz,
+        analysis.scripts,
+        analysis.binaries,
+        analysis.datas,
+        [],
+        name=APP_NAME,
+        debug=False,
+        bootloader_ignore_signals=False,
+        strip=False,
+        upx=False,
+        console=False,
+    )
     app = BUNDLE(
         exe,
         name=f"{APP_NAME}.app",
@@ -51,6 +50,17 @@ if sys.platform == "darwin":
         bundle_identifier="com.myloai.controlcenter",
     )
 else:
+    exe = EXE(
+        pyz,
+        analysis.scripts,
+        exclude_binaries=True,
+        name=APP_NAME,
+        debug=False,
+        bootloader_ignore_signals=False,
+        strip=False,
+        upx=False,
+        console=False,
+    )
     app = COLLECT(
         exe,
         analysis.binaries,
