@@ -22,5 +22,6 @@ package() {
     install -Dm644 packaging/linux/myloai.desktop "$pkgdir/usr/share/applications/myloai.desktop"
     install -Dm644 packaging/linux/myloai.1 "$pkgdir/usr/share/man/man1/myloai.1"
     install -Dm644 packaging/USER_MANUAL.md "$pkgdir/usr/share/doc/myloai/USER_MANUAL.md"
+    install -Dm644 packaging/linux/appimage/myloai.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/myloai.svg"
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/myloai/LICENSE"
 }
