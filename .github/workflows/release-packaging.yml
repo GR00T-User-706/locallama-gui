@@ -124,8 +124,16 @@ jobs:
           if-no-files-found: error
 
   macos-package:
-    name: macOS DMG
-    runs-on: macos-14
+    name: macOS DMG (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
     needs: python-package
     steps:
       - name: Checkout
@@ -142,11 +150,11 @@ jobs:
       - name: Build macOS application and DMG
         run: bash packaging/macos/build-dmg.sh
       - name: Validate macOS DMG
-        run: test -n "$(find dist -maxdepth 1 -type f -name 'MyLoAI-Control-Center-*-macOS.dmg' -print -quit)"
+        run: test -n "$(find dist -maxdepth 1 -type f -name 'MyLoAI-Control-Center-*-macOS-${{ matrix.arch }}.dmg' -print -quit)"
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v4
         with:
-          name: myloai-macos-dmg
+          name: myloai-macos-dmg-${{ matrix.arch }}
           path: dist/*.dmg
           if-no-files-found: error
 
