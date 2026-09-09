@@ -1,8 +1,24 @@
-# Launching LocalLama GUI
+# Launching MyLoAI Control Center
+
+MyLoAI Control Center is the end-user product name. The repository and Python
+module namespace remain `locallama-gui` / `locallama_gui` for compatibility.
+
+## Native installers
+
+Production releases provide native installation media for supported platforms:
+
+- Windows: MyLoAI Control Center `.exe` installer
+- macOS: MyLoAI Control Center `.dmg`
+- Linux: AppImage and amd64 Debian `.deb`
+- Arch Linux: `PKGBUILD`
+
+Native installers bundle the application runtime and do not require Python,
+pip, Git, or a terminal.
 
 ## Launch methods
 
-- Package script: `locallama-gui`
+- Canonical package command: `myloai`
+- Compatibility command: `locallama-gui`
 - Module: `python -m locallama_gui`
 - Repository launcher: `./run-locallama`
 
