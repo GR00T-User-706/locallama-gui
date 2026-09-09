@@ -13,8 +13,8 @@ hiddenimports = collect_submodules(PACKAGE)
 datas = collect_data_files(PACKAGE, include_py_files=False)
 
 analysis = Analysis(
-    ["../../locallama_gui/__main__.py"],
-    pathex=["../.."],
+    ["locallama_gui/__main__.py"],
+    pathex=["."],
     binaries=[],
     datas=datas,
     hiddenimports=hiddenimports,
