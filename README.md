@@ -74,7 +74,7 @@ Native installers bundle the application runtime and do not require a separate P
 Tagged releases produce platform-specific artifacts:
 
 - **Windows:** MyLoAI Control Center `.exe` installer
-- **macOS:** MyLoAI Control Center `.dmg`
+- **macOS:** MyLoAI Control Center `.dmg` for Apple Silicon arm64 and Intel x86_64
 - **Linux:** AppImage and amd64 Debian `.deb`
 - **Arch Linux:** `PKGBUILD` for native package builds
 
