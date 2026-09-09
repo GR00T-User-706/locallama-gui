@@ -10,6 +10,7 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 APP_NAME = "MyLoAI Control Center"
 PACKAGE = "locallama_gui"
 ROOT_DIR = Path(SPECPATH).resolve().parents[1]
+ICON_PATH = ROOT_DIR / "packaging" / "assets" / "MyLoAI.ico"
 
 hiddenimports = collect_submodules(PACKAGE)
 datas = collect_data_files(PACKAGE, include_py_files=False)
@@ -37,6 +38,7 @@ if sys.platform == "darwin":
         analysis.datas,
         [],
         name=APP_NAME,
+        icon=None,
         debug=False,
         bootloader_ignore_signals=False,
         strip=False,
@@ -55,6 +57,7 @@ else:
         analysis.scripts,
         exclude_binaries=True,
         name=APP_NAME,
+        icon=str(ICON_PATH),
         debug=False,
         bootloader_ignore_signals=False,
         strip=False,
