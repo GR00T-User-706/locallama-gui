@@ -5,9 +5,10 @@ pkgdesc='MyLoAI Control Center'
 arch=('x86_64')
 url='https://github.com/GR00T-User-706/locallama-gui'
 license=('custom')
-depends=('python' 'python-pyside6' 'python-httpx' 'python-platformdirs' 'python-pydantic' 'python-psutil' 'python-markdown' 'python-keyring')
+depends=('python' 'pyside6' 'python-httpx' 'python-platformdirs' 'python-pydantic' 'python-psutil' 'python-markdown' 'python-keyring')
 makedepends=('python-build' 'python-installer' 'python-wheel')
 source=("myloai-${pkgver}.tar.gz::https://github.com/GR00T-User-706/locallama-gui/archive/refs/tags/v${pkgver}.tar.gz")
+# Replace SKIP with the release tarball SHA256 before publishing the Arch package.
 sha256sums=('SKIP')
 
 build() {
