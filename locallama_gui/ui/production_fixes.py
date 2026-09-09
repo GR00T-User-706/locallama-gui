@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import json
 import sys
+from dataclasses import asdict
 from pathlib import Path
 
 import psutil
-from PySide6.QtCore import QUrl
-from PySide6.QtGui import QAction, QDesktopServices
+from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QInputDialog, QMessageBox
 
 from locallama_gui.ui.model_browser import ModelBrowserDialog
@@ -88,7 +89,7 @@ def _import_agent(window) -> None:
     if not path:
         return
     try:
-        agent = AgentProfile(**__import__("json").loads(Path(path).read_text(encoding="utf-8")))
+        agent = AgentProfile(**json.loads(Path(path).read_text(encoding="utf-8")))
         window.agents.upsert(agent)
         QMessageBox.information(window, "Import Agent", f"Imported agent: {agent.name}")
     except (OSError, ValueError, TypeError, KeyError) as error:
@@ -97,7 +98,6 @@ def _import_agent(window) -> None:
 
 def _export_agent(window) -> None:
     from PySide6.QtWidgets import QFileDialog
-    import json
 
     agents = window.agents.list()
     if not agents:
@@ -112,7 +112,7 @@ def _export_agent(window) -> None:
     if not path:
         return
     try:
-        Path(path).write_text(json.dumps(agent.__dict__, indent=2), encoding="utf-8")
+        Path(path).write_text(json.dumps(asdict(agent), indent=2), encoding="utf-8")
         QMessageBox.information(window, "Export Agent", f"Exported agent: {agent.name}")
     except OSError as error:
         QMessageBox.critical(window, "Export Agent", str(error))
@@ -120,7 +120,15 @@ def _export_agent(window) -> None:
 
 def _show_model_browser(window) -> None:
     ram = psutil.virtual_memory().total / 1024**3
-    recommended = "gemma3:1b" if ram < 6 else "qwen3.5:4b" if ram < 12 else "mistral:7b" if ram < 24 else "deepseek-r1:7b"
+    recommended = (
+        "gemma3:1b"
+        if ram < 6
+        else "qwen3.5:4b"
+        if ram < 12
+        else "mistral:7b"
+        if ram < 24
+        else "deepseek-r1:7b"
+    )
     ModelBrowserDialog(window, recommended).exec()
 
 
