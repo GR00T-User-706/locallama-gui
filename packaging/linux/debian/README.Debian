@@ -2,8 +2,8 @@ MyLoAI Control Center
 ======================
 
 The canonical binary Debian package is built by `build-deb.sh` in this
-directory. It produces an amd64 `.deb` with the MyLoAI Python runtime and
-PyPI dependencies bundled under `/usr/lib/myloai/python`.
+directory. It produces an amd64 `.deb` containing the native MyLoAI runtime
+under `/opt/myloai`, with no separate Python installation required.
 
 The installed desktop application is named MyLoAI Control Center and is
 launched with the `myloai` command.
