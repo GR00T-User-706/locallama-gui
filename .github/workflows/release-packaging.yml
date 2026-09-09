@@ -82,7 +82,7 @@ jobs:
           mv ../myloai_*.deb dist/deb/
       - name: Validate Linux release payloads
         run: |
-          test -f dist/MyLoAI-Control-Center-1.2.0-x86_64.AppImage
+          test -n "$(find dist -maxdepth 1 -type f -name 'MyLoAI-Control-Center-*-x86_64.AppImage' -print -quit)"
           test -n "$(find dist/deb -type f -name '*.deb' -print -quit)"
       - name: Upload Linux packages
         uses: actions/upload-artifact@v4
@@ -147,7 +147,7 @@ jobs:
       - name: Build macOS application and DMG
         run: bash packaging/macos/build-dmg.sh
       - name: Validate macOS DMG
-        run: test -f dist/MyLoAI-Control-Center-1.2.0-macOS.dmg
+        run: test -n "$(find dist -maxdepth 1 -type f -name 'MyLoAI-Control-Center-*-macOS.dmg' -print -quit)"
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v4
         with:
