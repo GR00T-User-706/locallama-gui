@@ -39,5 +39,5 @@ if [ ! -x "$APPIMAGETOOL" ]; then
 fi
 
 rm -f "$APPIMAGE"
-ARCH=x86_64 "$APPIMAGETOOL" "$APPDIR" "$APPIMAGE"
+ARCH=x86_64 "$APPIMAGETOOL" --appimage-extract-and-run "$APPDIR" "$APPIMAGE"
 echo "Created $APPIMAGE"
