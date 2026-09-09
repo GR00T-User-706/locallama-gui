@@ -2,6 +2,8 @@
 # The spec intentionally starts from the active application entry point and
 # collects only the locallama_gui package plus its runtime imports.
 
+import sys
+
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 APP_NAME = "MyLoAI Control Center"
@@ -39,9 +41,19 @@ exe = EXE(
     console=False,
 )
 
-app = BUNDLE(
-    exe,
-    name=f"{APP_NAME}.app",
-    icon=None,
-    bundle_identifier="com.myloai.controlcenter",
-)
+if sys.platform == "darwin":
+    app = BUNDLE(
+        exe,
+        name=f"{APP_NAME}.app",
+        icon=None,
+        bundle_identifier="com.myloai.controlcenter",
+    )
+else:
+    app = COLLECT(
+        exe,
+        analysis.binaries,
+        analysis.datas,
+        strip=False,
+        upx=False,
+        name=APP_NAME,
+    )
