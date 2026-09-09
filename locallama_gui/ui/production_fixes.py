@@ -62,6 +62,14 @@ def _open_bundled_document(window, title: str, name: str) -> None:
     window._show_text_dialog(title, content[:20000])
 
 
+def _show_about(window) -> None:
+    QMessageBox.about(
+        window,
+        "About MyLoAI",
+        "MyLoAI Control Center\n\nA desktop control center for local and remote LLM services.\n\nVersion 1.2.0",
+    )
+
+
 def _choose_theme(window) -> None:
     choice, ok = QInputDialog.getItem(
         window,
@@ -104,7 +112,9 @@ def _export_agent(window) -> None:
     if not ok:
         return
     agent = agents[names.index(name)]
-    path, _ = QFileDialog.getSaveFileName(window, "Export Agent", f"{agent.name}.json", "JSON (*.json)")
+    path, _ = QFileDialog.getSaveFileName(
+        window, "Export Agent", f"{agent.name}.json", "JSON (*.json)"
+    )
     if not path:
         return
     try:
@@ -166,8 +176,13 @@ def apply_production_fixes(window, first_run: bool = False) -> None:
     if developer is not None:
         _build_diagnostics_submenu(window, developer)
 
+    view_menu = _menu(window, "View")
+    _remove_action(view_menu, "Diagnostics")
+
     help_menu = _menu(window, "Help")
     _remove_action(help_menu, "Diagnostics")
+    _replace_action(help_menu, "Documentation", lambda: _open_bundled_document(window, "Documentation", "USER_MANUAL.md"))
+    _replace_action(help_menu, "About", lambda: _show_about(window))
 
     settings = _menu(window, "Settings")
     _add_ai_model_settings(settings, window)
@@ -183,14 +198,10 @@ def apply_production_fixes(window, first_run: bool = False) -> None:
         browser_action.triggered.connect(lambda: _show_model_browser(window))
         models.insertAction(models.actions()[0] if models.actions() else None, browser_action)
 
-    window.open_docs = lambda: _open_bundled_document(window, "Documentation", "USER_MANUAL.md")
-    window.open_plugin_docs = lambda: _open_bundled_document(window, "Plugin SDK", "PLUGIN_SDK.md")
-    window.about = lambda: QMessageBox.about(
-        window,
-        "About MyLoAI",
-        "MyLoAI Control Center\n\nA desktop control center for local and remote LLM services.\n\nVersion 1.2.0",
-    )
+    plugins = _menu(window, "Plugins")
+    _replace_action(plugins, "Developer Mode", lambda: _open_bundled_document(window, "Plugin SDK", "PLUGIN_SDK.md"))
 
     if first_run:
         from PySide6.QtCore import QTimer
+
         QTimer.singleShot(250, lambda: FirstRunWizard(window.config, window).exec())
