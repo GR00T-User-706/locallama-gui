@@ -1,4 +1,7 @@
-#define MyLoAIVersion "1.2.0"
+#define MyLoAIVersion GetStringFileVersion(AddBackslash(SourcePath) + "..\\..\\dist\\MyLoAI Control Center\\MyLoAI Control Center.exe")
+#ifndef MyLoAIVersion
+  #define MyLoAIVersion "1.2.0"
+#endif
 #define MyLoAIName "MyLoAI Control Center"
 #define MyLoAIPublisher "MyLoAI"
 #define MyLoAIExe "MyLoAI Control Center.exe"
@@ -8,7 +11,7 @@ AppId={{D6A6A1C1-0C0B-4E4C-9B44-7A4D1E2A3F90}
 AppName={#MyLoAIName}
 AppVersion={#MyLoAIVersion}
 AppPublisher={#MyLoAIPublisher}
-DefaultDirName={autopf}\MyLoAI Control Center
+DefaultDirName={localappdata}\Programs\MyLoAI Control Center
 DefaultGroupName={#MyLoAIName}
 DisableProgramGroupPage=yes
 OutputDir=..\..\dist\installer
@@ -18,7 +21,7 @@ SolidCompression=yes
 WizardStyle=modern
 UninstallDisplayIcon={app}\{#MyLoAIExe}
 ArchitecturesInstallIn64BitMode=x64compatible
-PrivilegesRequired=admin
+PrivilegesRequired=lowest
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
