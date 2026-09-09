@@ -1,0 +1,26 @@
+.TH MYLOAI 1 "2026-09-08" "MyLoAI Control Center 1.2.0" "User Commands"
+.SH NAME
+myloai \- MyLoAI Control Center desktop application
+.SH SYNOPSIS
+.B myloai
+.RI [ options ]
+.SH DESCRIPTION
+MyLoAI Control Center is a native PySide6 desktop application for managing local and remote LLM backends and models.
+.PP
+The canonical Linux command is
+.B myloai .
+.SH OPTIONS
+.TP
+.B \-\-help
+Show command-line help.
+.TP
+.B \-\-version
+Show the installed MyLoAI version.
+.SH CONFIGURATION
+Application configuration, data, sessions, plugins, and logs are stored in platform-native per-user directories. Use Help \(-> Diagnostics in the graphical application to inspect exact paths.
+.SH BACKENDS
+MyLoAI supports Ollama, OpenAI-compatible APIs, and llama.cpp-compatible servers. Backend availability is determined by the local system and configured endpoints.
+.SH FILES
+The installed package contains only production runtime files, required resources, redistribution notices, and this user-facing manual.
+.SH SEE ALSO
+.BR ollama (1)

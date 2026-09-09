@@ -1,0 +1,28 @@
+pkgname=myloai
+pkgver=1.2.0
+pkgrel=1
+pkgdesc='MyLoAI Control Center'
+arch=('x86_64')
+url='https://github.com/GR00T-User-706/locallama-gui'
+license=('custom')
+depends=('python' 'pyside6' 'python-httpx' 'python-platformdirs' 'python-pydantic' 'python-psutil' 'python-markdown' 'python-keyring')
+makedepends=('python-build' 'python-installer' 'python-wheel')
+source=("myloai-${pkgver}.tar.gz::https://github.com/GR00T-User-706/locallama-gui/archive/refs/tags/v${pkgver}.tar.gz")
+# Replace SKIP with the release tarball SHA256 before publishing the Arch package.
+sha256sums=('SKIP')
+
+build() {
+    cd "locallama-gui-${pkgver}"
+    python -m build --wheel --no-isolation
+}
+
+package() {
+    cd "locallama-gui-${pkgver}"
+    python -m installer --destdir="$pkgdir" dist/*.whl
+    install -Dm755 packaging/linux/myloai "$pkgdir/usr/bin/myloai"
+    install -Dm644 packaging/linux/myloai.desktop "$pkgdir/usr/share/applications/myloai.desktop"
+    install -Dm644 packaging/linux/myloai.1 "$pkgdir/usr/share/man/man1/myloai.1"
+    install -Dm644 packaging/USER_MANUAL.md "$pkgdir/usr/share/doc/myloai/USER_MANUAL.md"
+    install -Dm644 packaging/linux/appimage/myloai.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/myloai.svg"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/myloai/LICENSE"
+}

@@ -1,0 +1,190 @@
+# MyLoAI production packaging workflow. A source change triggers a fresh native build so installer artifacts reflect the current branch state.
+name: MyLoAI Production Packaging
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+jobs:
+  python-package:
+    name: Python distribution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Build distribution
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+      - name: Validate distribution identity and entry points
+        run: |
+          python - <<'PY'
+          import importlib.metadata
+          import pathlib
+          import tomllib
+          data = tomllib.loads(pathlib.Path('pyproject.toml').read_text())
+          assert data['project']['name'] == 'locallama-gui'
+          assert data['project']['version'] == '1.2.0'
+          dist = importlib.metadata.metadata('locallama-gui')
+          assert dist['Name'] == 'locallama-gui'
+          assert dist['Version'] == '1.2.0'
+          scripts = importlib.metadata.entry_points(group='console_scripts')
+          names = {entry.name for entry in scripts if entry.name in {'myloai', 'locallama-gui'}}
+          assert names == {'myloai', 'locallama-gui'}
+          PY
+      - name: Validate wheel payload
+        run: |
+          python packaging/check-release-payload.py dist
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile
+          wheel = next(Path('dist').glob('*.whl'))
+          with zipfile.ZipFile(wheel) as zf:
+              names = zf.namelist()
+              assert any(name.startswith('locallama_gui/') for name in names)
+              assert not any(name.startswith(('archive/', 'tests/', '.github/')) for name in names)
+          PY
+      - name: Upload Python distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: myloai-python-distributions
+          path: dist/*
+          if-no-files-found: error
+
+  linux-packages:
+    name: Linux packages
+    runs-on: ubuntu-22.04
+    needs: python-package
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip pyinstaller pillow
+          sudo apt-get update
+          sudo apt-get install -y python3-venv dpkg-dev
+      - name: Build AppImage
+        run: |
+          curl -L --fail --retry 3 -o build-appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x build-appimagetool
+          mkdir -p build
+          mv build-appimagetool build/appimagetool
+          bash packaging/linux/appimage/build-appimage.sh
+      - name: Build Debian package
+        run: |
+          bash packaging/linux/debian/build-deb.sh
+      - name: Validate Linux release payloads
+        run: |
+          test -n "$(find dist -maxdepth 1 -type f -name 'MyLoAI-Control-Center-*-x86_64.AppImage' -print -quit)"
+          test -n "$(find dist/deb -type f -name '*.deb' -print -quit)"
+      - name: Upload Linux packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: myloai-linux-packages
+          path: |
+            dist/*.AppImage
+            dist/deb/*.deb
+          if-no-files-found: error
+
+  windows-package:
+    name: Windows installer
+    runs-on: windows-latest
+    needs: python-package
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install Python build dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pyinstaller pillow
+          python -m pip install .
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+      - name: Build Windows installer
+        shell: pwsh
+        run: packaging\windows\build-installer.ps1
+      - name: Validate Windows installer
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem dist\installer\*.exe
+          if (-not $installer) { throw 'Windows installer was not produced.' }
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: myloai-windows-installer
+          path: dist/installer/*.exe
+          if-no-files-found: error
+
+  macos-package:
+    name: macOS DMG (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    needs: python-package
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip pyinstaller
+          python -m pip install .
+      - name: Build macOS application and DMG
+        run: bash packaging/macos/build-dmg.sh
+      - name: Validate macOS DMG
+        run: |
+          test -n "$(find dist -maxdepth 1 -type f -name 'MyLoAI-Control-Center-*-macOS-${{ matrix.arch }}.dmg' -print -quit)"
+      - name: Upload macOS DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: myloai-macos-dmg-${{ matrix.arch }}
+          path: dist/*.dmg
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish tagged release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [python-package, linux-packages, windows-package, macos-package]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: myloai-*
+          path: release-assets
+          merge-multiple: true
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
