@@ -9,3 +9,4 @@ override_dh_auto_install:
 	install -Dm644 ../myloai.desktop debian/myloai/usr/share/applications/myloai.desktop
 	install -Dm644 ../myloai.1 debian/myloai/usr/share/man/man1/myloai.1
 	install -Dm644 ../RELEASE_PAYLOAD.md debian/myloai/usr/share/doc/myloai/README.packaging
+	install -Dm644 ../appimage/myloai.svg debian/myloai/usr/share/icons/hicolor/scalable/apps/myloai.svg
