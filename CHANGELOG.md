@@ -1,14 +1,16 @@
 ## [1.2.0] - 2026-09-08
 
 ### Added
-- Added MyLoAI Control Center production packaging foundation while preserving the `locallama-gui` repository identity.
+- Added MyLoAI Control Center production packaging and installation media while preserving the `locallama-gui` repository and Python distribution identity.
 - Added canonical `myloai` and compatibility `locallama-gui` Python console entry points.
-- Added Linux MyLoAI desktop entry and user manual.
-- Added Debian and Arch packaging foundations.
+- Added Linux MyLoAI desktop entry, launcher, man page, Debian package, Arch package, and AppImage build.
+- Added Windows PyInstaller bundle and Inno Setup installer.
+- Added macOS PyInstaller application bundle and DMG build.
+- Added an end-user manual to production installers.
 - Added a release payload contract that excludes archived, development-only, CI, test, and internal project material from production installers.
 
 ### Changed
-- Promoted package metadata to the MyLoAI Control Center product identity.
+- Promoted the installed application and installer identity to MyLoAI Control Center without changing the existing Python module or distribution namespace.
 - Synchronized runtime version metadata to `1.2.0`.
 - Extended routine Ruff exclusion to the repository archive while keeping existing active application paths unchanged.
 
