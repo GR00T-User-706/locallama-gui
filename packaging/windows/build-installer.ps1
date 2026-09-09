@@ -10,6 +10,9 @@ if (-not (Test-Path $PyInstaller)) {
 
 Push-Location $RepoRoot
 try {
+    $Version = python -c "import pathlib,tomllib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])"
+    if ($LASTEXITCODE -ne 0 -or -not $Version) { throw 'Unable to read project version from pyproject.toml.' }
+
     & $PyInstaller --noconfirm --clean --distpath $DistRoot --workpath (Join-Path $RepoRoot 'build\pyinstaller') (Join-Path $RepoRoot 'packaging\pyinstaller\myloai.spec')
     if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed with exit code $LASTEXITCODE" }
 
@@ -26,7 +29,7 @@ try {
     }
     if (-not $IsccPath) { throw 'Inno Setup 6 (ISCC.exe) is required to create the Windows installer.' }
 
-    & $IsccPath (Join-Path $RepoRoot 'packaging\windows\MyLoAI.iss')
+    & $IsccPath "/DMyLoAIVersion=$Version" (Join-Path $RepoRoot 'packaging\windows\MyLoAI.iss')
     if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with exit code $LASTEXITCODE" }
 
     Write-Host "Windows installer created under $DistRoot\installer"
