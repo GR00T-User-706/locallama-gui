@@ -28,6 +28,7 @@ License: LGC-1.0
  Unless otherwise agreed in writing, commercial use requires payment of 15% of gross
  revenue directly attributable to products, services, features, or offerings that
  incorporate, depend on, or are substantially derived from this software.
+ .
  A separate written commercial agreement is required before commercial use begins.
  .
  5. Definition of Derivative Works
@@ -46,7 +47,8 @@ License: LGC-1.0
  .
  8. No Trademark or Endorsement Rights
  This license does not grant permission to use the project name, author name, logos,
- branding, or related marks to imply endorsement or association without explicit written permission.
+ branding, or related marks to imply endorsement or association without explicit
+ written permission.
  .
  9. Disclaimer of Warranty
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
@@ -55,19 +57,20 @@ License: LGC-1.0
  .
  10. Limitation of Liability
  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES,
- OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  .
  11. Termination
  Any material violation of this license automatically terminates your rights under this
- license. Reinstatement requires written acknowledgment of compliance and correction of the violation.
+ license. Reinstatement requires written acknowledgment of compliance and correction of
+ the violation.
  .
  12. Enforcement and Compliance
  Commercial users must maintain accurate records demonstrating compliance with revenue
  reporting requirements. The copyright holder may request documentation of revenue,
- usage, and derivative works at any time. The copyright holder may request documentation
- of compliance as described in the license.
+ usage, and derivative works at any time. Failure to provide requested documentation
+ within 30 days constitutes a material breach of this license.
  .
  13. Dispute Resolution
  Any disputes arising from this license shall be resolved through binding arbitration
