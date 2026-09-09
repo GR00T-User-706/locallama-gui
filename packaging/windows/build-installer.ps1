@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $DistRoot = Join-Path $RepoRoot 'dist'
 $PyInstaller = Join-Path $RepoRoot '.venv\Scripts\pyinstaller.exe'
+$IconGenerator = Join-Path $RepoRoot 'packaging\assets\generate_myloai_icon.py'
 
 if (-not (Test-Path $PyInstaller)) {
     $PyInstaller = 'pyinstaller'
@@ -12,6 +13,9 @@ Push-Location $RepoRoot
 try {
     $Version = python -c "import pathlib,tomllib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])"
     if ($LASTEXITCODE -ne 0 -or -not $Version) { throw 'Unable to read project version from pyproject.toml.' }
+
+    python $IconGenerator
+    if ($LASTEXITCODE -ne 0) { throw "MyLoAI icon generation failed with exit code $LASTEXITCODE" }
 
     & $PyInstaller --noconfirm --clean --distpath $DistRoot --workpath (Join-Path $RepoRoot 'build\pyinstaller') (Join-Path $RepoRoot 'packaging\pyinstaller\myloai.spec')
     if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed with exit code $LASTEXITCODE" }
