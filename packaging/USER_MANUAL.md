@@ -6,10 +6,13 @@ MyLoAI Control Center is a desktop interface for working with local and remote l
 
 ## First launch
 
-1. Install MyLoAI Control Center using the installer for your operating system.
-2. Start **MyLoAI Control Center** from the application menu or desktop shortcut.
-3. Configure the LLM service you want to use in the provider/API settings.
-4. Select an available model and start a session.
+On the first launch, MyLoAI runs a short setup wizard. It reports basic CPU/RAM information, checks the local Ollama endpoint, recommends a starter model appropriate to the detected system memory, and can pull that model when Ollama is already available.
+
+If Ollama is not installed or running, the wizard leaves the application configured and provides a direct path to the official Ollama download page. You can return later and use **Models → Browse & Pull Models...**.
+
+## Model discovery
+
+Use **Models → Browse & Pull Models...** to see curated starter models without having to know model names in advance. The browser includes small general-purpose models, a classic 7B model, reasoning and coding options, and a link to the official Ollama model library for broader discovery.
 
 MyLoAI does not itself provide model weights. A local provider such as Ollama must have the desired model available, or a compatible remote API must be configured.
 
@@ -27,7 +30,7 @@ MyLoAI stores application state using platform-appropriate per-user application 
 
 ## Diagnostics
 
-Use the diagnostics and connection tools when a provider cannot be reached. Verify the service is running, the endpoint is correct, and local firewall/network rules permit the connection.
+Use the diagnostics and connection tools when a provider cannot be reached. Verify the service is running, the endpoint is correct, and local firewall/network rules permit the connection. Developer diagnostics expose separate logs, console, operations, request, and token surfaces rather than multiple aliases for the same panel.
 
 ## Updating
 
