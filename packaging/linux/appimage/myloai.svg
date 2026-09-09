@@ -1,6 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
   <title id="title">MyLoAI</title>
   <desc id="desc">MyLoAI Control Center application mark</desc>
-  <rect x="16" y="16" width="224" height="224" rx="48" fill="none" stroke="#111" stroke-width="16"/>
-  <path d="M68 176V80l60 72 60-72v96" fill="none" stroke="#111" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <linearGradient id="bg" x1="24" y1="24" x2="232" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="1" stop-color="#111b32"/>
+    </linearGradient>
+    <linearGradient id="signal" x1="52" y1="72" x2="204" y2="190" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#60e2ff"/>
+      <stop offset="1" stop-color="#9774ff"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#bg)"/>
+  <rect x="16" y="16" width="224" height="224" rx="46" fill="none" stroke="#3f5276" stroke-width="2"/>
+  <path d="M55 183V75l73 80 73-80v108" fill="none" stroke="url(#signal)" stroke-width="21" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M68 172V98l60 66 60-66v74" fill="none" stroke="#d3d6ff" stroke-opacity=".82" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M55 75L128 155 201 75" fill="none" stroke="#cbd3ff" stroke-opacity=".55" stroke-width="3"/>
+  <g fill="#ecf9ff">
+    <circle cx="55" cy="75" r="9"/>
+    <circle cx="128" cy="155" r="11"/>
+    <circle cx="201" cy="75" r="9"/>
+  </g>
+  <g fill="#60e2ff">
+    <circle cx="55" cy="75" r="4.5"/>
+    <circle cx="128" cy="155" r="5.5"/>
+    <circle cx="201" cy="75" r="4.5"/>
+  </g>
 </svg>
