@@ -8,7 +8,7 @@ STAGE_DIR="$BUILD_DIR/root"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 
 cd "$ROOT_DIR"
-VERSION="$(python -c 'import pathlib,tomllib; print(tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"])')"
+VERSION="$($PYTHON_BIN -c 'import pathlib,tomllib; print(tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"])')"
 ARCH="amd64"
 
 rm -rf "$BUILD_DIR"
