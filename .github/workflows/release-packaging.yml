@@ -72,10 +72,11 @@ jobs:
           chmod +x build-appimagetool
           mkdir -p build
           mv build-appimagetool build/appimagetool
-          packaging/linux/appimage/build-appimage.sh
+          bash packaging/linux/appimage/build-appimage.sh
       - name: Build Debian package
         run: |
           cp -a packaging/linux/debian ./debian
+          chmod +x debian/rules
           dpkg-buildpackage -us -uc -b
           mkdir -p dist/deb
           mv ../myloai_*.deb dist/deb/
@@ -144,7 +145,7 @@ jobs:
           python -m pip install pyinstaller
           python -m pip install .
       - name: Build macOS application and DMG
-        run: packaging/macos/build-dmg.sh
+        run: bash packaging/macos/build-dmg.sh
       - name: Validate macOS DMG
         run: test -f dist/MyLoAI-Control-Center-1.2.0-macOS.dmg
       - name: Upload macOS DMG
