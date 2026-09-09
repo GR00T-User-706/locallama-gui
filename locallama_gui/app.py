@@ -28,7 +28,15 @@ def main() -> int:
     app.setApplicationName("MyLoAI Control Center")
     app.setOrganizationName("LocalLama")
     app.setAttribute(Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings, True)
-    win = MainWindow(config)
+
+    original_refresh_backend = MainWindow.refresh_backend
+    if first_run:
+        MainWindow.refresh_backend = lambda self: None
+    try:
+        win = MainWindow(config)
+    finally:
+        MainWindow.refresh_backend = original_refresh_backend
+
     apply_production_fixes(win, first_run=first_run)
     win.show()
     return app.exec()
