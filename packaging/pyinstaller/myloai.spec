@@ -3,18 +3,20 @@
 # collects only the locallama_gui package plus its runtime imports.
 
 import sys
+from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 APP_NAME = "MyLoAI Control Center"
 PACKAGE = "locallama_gui"
+ROOT_DIR = Path(__file__).resolve().parents[2]
 
 hiddenimports = collect_submodules(PACKAGE)
 datas = collect_data_files(PACKAGE, include_py_files=False)
 
 analysis = Analysis(
-    ["locallama_gui/__main__.py"],
-    pathex=["."],
+    [str(ROOT_DIR / PACKAGE / "__main__.py")],
+    pathex=[str(ROOT_DIR)],
     binaries=[],
     datas=datas,
     hiddenimports=hiddenimports,
