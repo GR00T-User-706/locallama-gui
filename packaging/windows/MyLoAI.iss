@@ -18,6 +18,7 @@ OutputBaseFilename=MyLoAI-Control-Center-{#MyLoAIVersion}-Windows-x64
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=..\assets\MyLoAI.ico
 UninstallDisplayIcon={app}\{#MyLoAIExe}
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
@@ -34,8 +35,8 @@ Source: "..\USER_MANUAL.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "..\..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\{#MyLoAIName}"; Filename: "{app}\{#MyLoAIExe}"
-Name: "{autodesktop}\{#MyLoAIName}"; Filename: "{app}\{#MyLoAIExe}"; Tasks: desktopicon
+Name: "{autoprograms}\{#MyLoAIName}"; Filename: "{app}\{#MyLoAIExe}"; IconFilename: "{app}\{#MyLoAIExe}"
+Name: "{autodesktop}\{#MyLoAIName}"; Filename: "{app}\{#MyLoAIExe}"; IconFilename: "{app}\{#MyLoAIExe}"; Tasks: desktopicon
 Name: "{autoprograms}\{#MyLoAIName} User Manual"; Filename: "{app}\docs\USER_MANUAL.md"
 
 [Run]
