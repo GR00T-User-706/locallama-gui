@@ -17,6 +17,8 @@ python -m PyInstaller --noconfirm --clean --distpath "$DIST_DIR" --workpath "$RO
 cp -a "$DIST_DIR/$APP_NAME/." "$APPDIR/usr/bin/"
 cp packaging/linux/myloai.desktop "$APPDIR/usr/share/applications/myloai.desktop"
 sed -i 's/^Exec=myloai$/Exec=MyLoAI Control Center/' "$APPDIR/usr/share/applications/myloai.desktop"
+sed -i '/^Keywords=/a Icon=myloai' "$APPDIR/usr/share/applications/myloai.desktop"
+cp packaging/linux/appimage/myloai.svg "$APPDIR/myloai.svg"
 cp packaging/USER_MANUAL.md "$APPDIR/usr/share/doc/myloai/USER_MANUAL.md"
 cp LICENSE "$APPDIR/usr/share/doc/myloai/LICENSE"
 
