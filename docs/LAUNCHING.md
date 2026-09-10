@@ -28,6 +28,14 @@ Dry run:
 
 Default target: `${HOME}/.local/share/applications/com.github.gr00t-user-706.locallama-gui.desktop`
 
+The desktop entry references the scalable application icon:
+
+```text
+packaging/linux/icons/com.github.gr00t-user-706.locallama-gui.svg
+```
+
+The desktop installer must install that icon into an XDG icon-theme location before refreshing the desktop database so the entry resolves its `Icon=` name correctly.
+
 Dry run:
 
 ```bash

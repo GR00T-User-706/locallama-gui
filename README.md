@@ -80,6 +80,8 @@ pip install -e .
 ./scripts/install-desktop-entry
 ```
 
+The Linux desktop entry uses the packaged scalable icon at `packaging/linux/icons/com.github.gr00t-user-706.locallama-gui.svg`.
+
 See [`docs/LAUNCHING.md`](docs/LAUNCHING.md) for full launcher and platform-specific details.
 
 ---
