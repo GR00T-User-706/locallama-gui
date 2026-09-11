@@ -1,0 +1,35 @@
+this is a diagram of a possible memory system setup not yet decided
+
+                    LOCAL LAMA
+                        │
+              ┌─────────┴─────────┐
+              │   Memory Manager  │
+              └─────────┬─────────┘
+                        │
+        ┌───────────────┼────────────────┐
+        │               │                │
+        ▼               ▼                ▼
+ Conversation       Long-Term       Semantic
+   History           Memory           Memory
+        │               │                │
+        ▼               ▼                ▼
+     SQLite          SQLite/PG       Vector DB
+        │               │                │
+        └───────────────┼────────────────┘
+                        ▼
+                 Context Builder
+                        │
+                        ▼
+                       LLM
+
+ChatController / request pipeline
+          │
+          ▼
+    Memory interface
+          │
+     ┌────┴─────┐
+     │          │
+ session      long-term
+ memory       memory plugin
+     │          │
+ JSON files   SQLite/Postgres/etc.
