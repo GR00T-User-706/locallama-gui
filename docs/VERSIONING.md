@@ -6,9 +6,9 @@ Scope: Current repository versioning policy and synchronization rules.
 ## Current State Snapshot
 
 ### CONFIRMED
-- `pyproject.toml` version: `1.2.3`
-- `locallama_gui/__init__.py` version: `1.2.3`
-- `CHANGELOG.md` latest version heading: `1.2.3` (dated 2026-09-20)
+- `pyproject.toml` version: `1.2.4`
+- `locallama_gui/__init__.py` version: `1.2.4`
+- `CHANGELOG.md` latest version heading: `1.2.4` (dated 2026-09-20)
 - persisted configuration schema: `2`
 
 ### Source of truth
