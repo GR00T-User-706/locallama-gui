@@ -13,39 +13,40 @@ Production releases provide native installation media for supported platforms:
 - Arch Linux: `PKGBUILD`
 
 Native installers bundle the application runtime and do not require Python,
-pip, Git, or a terminal.
+pip, Git, PyInstaller, or a terminal at runtime.
 
-## Launch methods
+## Production launch methods
 
-- Canonical package command: `myloai`
-- Compatibility command: `locallama-gui`
-- Module: `python -m locallama_gui`
-- Repository launcher: `./run-locallama`
+- Canonical Linux command: `myloai`
+- Debian installed executable: `/opt/myloai/MyLoAI_Control_Center`
+- AppImage entry point: `AppRun`
+- Filesystem-safe executable identity: `MyLoAI_Control_Center`
+- Compatibility Python command: `locallama-gui`
 
-## Install user launcher
+The production Linux desktop entry uses `Exec=myloai`. Native package launch
+paths do not invoke the repository source-tree launcher.
 
-```bash
-./scripts/install-launcher
-```
+## Source/development launch methods
 
-Default target: `${HOME}/.local/bin/run-locallama`
+These methods are for repository development only:
 
-Dry run:
+- `python -m locallama_gui`
+- `./run-locallama`
+- `./scripts/install-launcher`
+- `./scripts/install-desktop-entry`
+
+The source-tree launcher and its installation helpers are not part of the
+native production runtime path.
+
+## Development launcher dry runs
 
 ```bash
 ./scripts/install-launcher --dry-run
 ```
 
-## Install desktop entry
-
-```bash
-./scripts/install-desktop-entry
-```
-
-Default target: `${HOME}/.local/share/applications/com.github.gr00t-user-706.locallama-gui.desktop`
-
-Dry run:
-
 ```bash
 ./scripts/install-desktop-entry --dry-run
 ```
+
+Production users should install the generated native artifact instead of using
+these source-tree helpers.
