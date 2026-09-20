@@ -1,3 +1,8 @@
+## [1.2.5] - 2026-09-20
+
+### Fixed
+- Tracked the first-run setup connectivity worker in the main window worker registry so closing the application cannot destroy the wizard's active thread.
+
 ## [1.2.4] - 2026-09-20
 
 ### Fixed
