@@ -624,4 +624,6 @@ The repository launcher and installer helpers remain development-only:
 
 Native production desktop entries must not depend on those source-tree launchers.
 
+The canonical Linux production build command is `./packaging/build-linux.sh`; build prerequisites and platform-specific packaging commands are documented in `docs/BUILDING.md`.
+
 Routine CI/lint/test validation must stay scoped to active production paths and active tests. Do not include archive/legacy trees in routine validation; use manual archive-specific workflows only when intentionally auditing archives.
