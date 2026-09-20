@@ -1,6 +1,6 @@
 # MyLoAI Control Center Windows Packaging
 
-The Windows release is a bundled desktop application named **MyLoAI Control Center**.
+The Windows release is a bundled desktop application named **MyLoAI Control Center**. Its executable identity is `MyLoAI_Control_Center.exe`; filesystem paths contain no spaces.
 
 The production installer must contain only the application, its runtime dependencies/resources, required redistribution notices, installer metadata, and concise end-user help.
 
