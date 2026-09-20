@@ -71,7 +71,7 @@ You can also point to another copy:
 APPIMAGETOOL=/path/to/appimagetool ./packaging/build-linux.sh
 \`\`\`
 
-If the machine is offline, copy the appimagetool AppImage/executable to the build machine before starting.
+If the machine is offline, copy the appimagetool AppImage/executable to the build machine before starting. Current appimagetool builds can also require a local AppImage runtime. Put that runtime on the build machine and set `APPIMAGERUNTIME=/path/to/runtime-x86_64` when running the build command. The official appimagetool documentation explicitly supports `--runtime-file` for builds without Internet access.
 
 ### 6. Build everything
 
