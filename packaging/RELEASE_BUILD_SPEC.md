@@ -6,7 +6,15 @@
 - Short name: MyLoAI
 - Repository: locallama-gui
 - Canonical Linux command: `myloai`
+- Filesystem-safe application executable: `MyLoAI_Control_Center`
 - Canonical Python package namespace remains `locallama_gui` for compatibility with the existing application.
+
+## Runtime and launcher contract
+
+- Native production artifacts must launch the bundled application runtime directly; they must not depend on the source repository, `python`, `pip`, PyInstaller, or the development launcher at runtime.
+- Debian installs the bundled executable at `/opt/myloai/MyLoAI_Control_Center` and exposes `/usr/bin/myloai` as the stable launcher.
+- AppImage `AppRun` launches `usr/bin/MyLoAI_Control_Center`.
+- No production filesystem or executable path may contain spaces.
 
 ## Release principles
 
