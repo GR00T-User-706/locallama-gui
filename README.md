@@ -90,17 +90,22 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-### Desktop launcher (Linux/macOS)
+### Desktop launchers
+
+Native production packages provide the runtime and desktop integration directly.
+On Debian, the installed command is `myloai` and the bundled executable is
+`/opt/myloai/MyLoAI_Control_Center`. AppImage uses its bundled `AppRun`
+entry point.
+
+For repository development only, the source-tree launcher helpers remain
+available:
 
 ```bash
-# Install user-local launcher script
-./scripts/install-launcher
-
-# (Optional) Install Linux desktop entry
-./scripts/install-desktop-entry
+./scripts/install-launcher --dry-run
+./scripts/install-desktop-entry --dry-run
 ```
 
-See [`docs/LAUNCHING.md`](docs/LAUNCHING.md) for full launcher and platform-specific details.
+See [`docs/LAUNCHING.md`](docs/LAUNCHING.md) for full launch and platform-specific details.
 
 ---
 
