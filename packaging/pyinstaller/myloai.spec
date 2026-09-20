@@ -5,7 +5,7 @@
 import sys
 from pathlib import Path
 
-from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata, copy_metadata
 
 APP_NAME = "MyLoAI Control Center"
 APP_EXECUTABLE = "MyLoAI_Control_Center"
@@ -13,8 +13,8 @@ PACKAGE = "locallama_gui"
 ROOT_DIR = Path(SPECPATH).resolve().parents[1]
 ICON_PATH = ROOT_DIR / "packaging" / "assets" / "MyLoAI.ico"
 
-hiddenimports = collect_submodules(PACKAGE) + collect_submodules("keyring.backends")
-datas = collect_data_files(PACKAGE, include_py_files=False) + copy_metadata("keyring")
+hiddenimports = collect_submodules(PACKAGE) + collect_submodules("keyring.backends") + collect_submodules("keyring.backends")
+datas = collect_data_files(PACKAGE, include_py_files=False) + copy_metadata("keyring") + copy_metadata("keyring")
 datas += [
     (str(ROOT_DIR / "packaging" / "USER_MANUAL.md"), "docs"),
     (str(ROOT_DIR / "docs" / "PLUGIN_SDK.md"), "docs"),
