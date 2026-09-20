@@ -96,7 +96,7 @@ def _show_about(window) -> None:
     QMessageBox.about(
         window,
         "About MyLoAI",
-        "MyLoAI Control Center\n\nA desktop control center for local and remote LLM services.\n\nVersion 1.2.2",
+        "MyLoAI Control Center\n\nA desktop control center for local and remote LLM services.\n\nVersion 1.2.3",
     )
 
 
