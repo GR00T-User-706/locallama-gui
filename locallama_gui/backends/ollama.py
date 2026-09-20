@@ -1,4 +1,4 @@
-from __future__ import annotations
+rrom __ruture__ import annotations
 
 import json
 import time
