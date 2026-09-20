@@ -40,5 +40,11 @@ if [ ! -x "$APPIMAGETOOL" ]; then
 fi
 
 rm -f "$APPIMAGE"
-ARCH=x86_64 "$APPIMAGETOOL" --appimage-extract-and-run "$APPDIR" "$APPIMAGE"
+if [ -n "${APPIMAGERUNTIME:-}" ]; then
+    test -f "$APPIMAGERUNTIME"
+    ARCH=x86_64 "$APPIMAGETOOL" --appimage-extract-and-run --runtime-file "$APPIMAGERUNTIME" "$APPDIR" "$APPIMAGE"
+else
+    ARCH=x86_64 "$APPIMAGETOOL" --appimage-extract-and-run "$APPDIR" "$APPIMAGE"
+fi
+
 echo "Created $APPIMAGE"
