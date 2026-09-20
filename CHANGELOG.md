@@ -1,3 +1,8 @@
+## [1.2.7] - 2026-09-20
+
+### Documentation
+- Corrected Markdown escaping in the production build guide so the documented commands and paths render correctly.
+
 ## [1.2.6] - 2026-09-20
 
 ### Fixed
