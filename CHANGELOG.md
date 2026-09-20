@@ -1,3 +1,8 @@
+## [1.2.6] - 2026-09-20
+
+### Fixed
+- Corrected shell variable expansion in the canonical Linux production build script so it executes correctly under Bash.
+
 ## [1.2.5] - 2026-09-20
 
 ### Fixed
