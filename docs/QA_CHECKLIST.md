@@ -215,10 +215,11 @@ Also verify:
 
 ## 13. Desktop integration
 
-- [ ] `run-locallama` launches the application from the repository/install context where supported.
-- [ ] Linux desktop entry is present under `packaging/linux/`.
-- [ ] Desktop launcher installation script completes successfully.
-- [ ] Installed launcher starts the same application entry point.
+- [ ] Debian package installs `/opt/myloai/MyLoAI_Control_Center`.
+- [ ] Debian `/usr/bin/myloai` launches the bundled application without Python or the source repository.
+- [ ] AppImage `AppRun` launches `usr/bin/MyLoAI_Control_Center`.
+- [ ] Linux desktop entry uses `Exec=myloai`.
+- [ ] Source-tree `run-locallama` remains limited to development use.
 
 ## 14. Release sign-off
 
