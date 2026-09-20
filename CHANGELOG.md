@@ -1,3 +1,13 @@
+## [1.2.2] - 2026-09-20
+
+### Fixed
+- Included keyring backend modules and package metadata in PyInstaller bundles so credential-store discovery is preserved in frozen builds.
+- Synchronized the Windows installer fallback version and Linux man-page version with the application version.
+- Clarified that the Arch package recipe uses system Python dependencies while the Debian, AppImage, Windows, and macOS artifacts bundle the runtime.
+
+### Documentation
+- Added a canonical Linux production build path and explicit build prerequisites for the generated `.deb` and AppImage artifacts.
+
 ## [1.2.1] - 2026-09-20
 
 ### Changed
