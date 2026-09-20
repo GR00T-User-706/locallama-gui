@@ -1,3 +1,10 @@
+## [1.2.8] - 2026-09-20
+
+### Fixed
+- Validated and normalized chat message roles/content before sending requests to Ollama or OpenAI-compatible backends.
+- Added server response details to chat HTTP errors so a `400 Bad Request` now exposes the backend's actual error message instead of only the status code.
+- Added regression tests for user prompt serialization, empty requests, and invalid message roles.
+
 ## [1.2.7] - 2026-09-20
 
 ### Documentation
