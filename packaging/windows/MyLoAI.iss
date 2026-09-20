@@ -3,14 +3,14 @@
 #endif
 #define MyLoAIName "MyLoAI Control Center"
 #define MyLoAIPublisher "MyLoAI"
-#define MyLoAIExe "MyLoAI Control Center.exe"
+#define MyLoAIExe "MyLoAI_Control_Center.exe"
 
 [Setup]
 AppId={{D6A6A1C1-0C0B-4E4C-9B44-7A4D1E2A3F90}
 AppName={#MyLoAIName}
 AppVersion={#MyLoAIVersion}
 AppPublisher={#MyLoAIPublisher}
-DefaultDirName={localappdata}\Programs\MyLoAI Control Center
+DefaultDirName={localappdata}\Programs\MyLoAI-Control-Center
 DefaultGroupName={#MyLoAIName}
 DisableProgramGroupPage=yes
 OutputDir=..\..\dist\installer
@@ -30,7 +30,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
 
 [Files]
-Source: "..\..\dist\MyLoAI Control Center\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\dist\MyLoAI_Control_Center\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\USER_MANUAL.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "..\..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
