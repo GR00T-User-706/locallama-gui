@@ -1,3 +1,11 @@
+## [1.2.3] - 2026-09-20
+
+### Fixed
+- Added an offline AppImage build path that accepts a locally supplied AppImage runtime through `APPIMAGERUNTIME`.
+
+### Documentation
+- Documented the complete Linux production build prerequisites and offline AppImage runtime requirement.
+
 ## [1.2.2] - 2026-09-20
 
 ### Fixed
