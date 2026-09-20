@@ -1,3 +1,8 @@
+## [1.2.4] - 2026-09-20
+
+### Fixed
+- Made asynchronous worker cancellation interrupt the active asyncio task instead of waiting indefinitely for a network operation to return during application shutdown.
+
 ## [1.2.3] - 2026-09-20
 
 ### Fixed
