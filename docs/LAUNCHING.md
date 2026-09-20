@@ -10,10 +10,9 @@ Production releases provide native installation media for supported platforms:
 - Windows: MyLoAI Control Center `.exe` installer
 - macOS: MyLoAI Control Center `.dmg`
 - Linux: AppImage and amd64 Debian `.deb`
-- Arch Linux: `PKGBUILD`
+- Arch Linux: `PKGBUILD` source package recipe
 
-Native installers bundle the application runtime and do not require Python,
-pip, Git, PyInstaller, or a terminal at runtime.
+Debian, AppImage, Windows, and macOS production artifacts bundle the application runtime and do not require Python, pip, Git, or PyInstaller at runtime. The Arch `PKGBUILD` is a native Arch Python package recipe and intentionally uses system Python/runtime dependencies.
 
 ## Production launch methods
 
