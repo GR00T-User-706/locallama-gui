@@ -4,6 +4,7 @@ $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $DistRoot = Join-Path $RepoRoot 'dist'
 $PyInstaller = Join-Path $RepoRoot '.venv\Scripts\pyinstaller.exe'
 $IconGenerator = Join-Path $RepoRoot 'packaging\assets\generate_myloai_icon.py'
+$AppExecutable = 'MyLoAI_Control_Center'
 
 if (-not (Test-Path $PyInstaller)) {
     $PyInstaller = 'pyinstaller'
@@ -20,7 +21,7 @@ try {
     & $PyInstaller --noconfirm --clean --distpath $DistRoot --workpath (Join-Path $RepoRoot 'build\pyinstaller') (Join-Path $RepoRoot 'packaging\pyinstaller\myloai.spec')
     if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed with exit code $LASTEXITCODE" }
 
-    $Bundle = Join-Path $DistRoot 'MyLoAI Control Center'
+    $Bundle = Join-Path $DistRoot $AppExecutable
     if (-not (Test-Path $Bundle)) { throw "PyInstaller output not found: $Bundle" }
 
     $IsccCommand = Get-Command iscc -ErrorAction SilentlyContinue
