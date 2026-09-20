@@ -5,7 +5,7 @@
 import sys
 from pathlib import Path
 
-from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata, copy_metadata
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
 
 APP_NAME = "MyLoAI Control Center"
 APP_EXECUTABLE = "MyLoAI_Control_Center"
