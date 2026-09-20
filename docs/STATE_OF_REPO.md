@@ -1,3 +1,23 @@
+# Current Packaging Synchronization Note
+
+Date: 2026-09-20
+
+The historical audit below predates the current MyLoAI production-packaging work. For packaging and launcher behavior, the current contract is:
+
+- Application version: `1.2.1`
+- Human-facing product: `MyLoAI Control Center`
+- Filesystem-safe application executable: `MyLoAI_Control_Center`
+- Canonical Linux command: `myloai`
+- Debian executable: `/opt/myloai/MyLoAI_Control_Center`
+- Debian launcher: `/usr/bin/myloai`
+- AppImage entry point: `AppRun`
+- Native production package launchers do not depend on `run-locallama`, `scripts/install-launcher`, or `scripts/install-desktop-entry`.
+- Those source-tree launcher helpers remain development-only compatibility tools.
+
+The versioning, changelog, release payload, release build, launcher, feature-matrix, and QA documents have been synchronized to this contract.
+
+---
+
 # State of the Repo Audit
 
 Date: 2026-05-25
