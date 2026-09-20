@@ -7,7 +7,7 @@ from pathlib import Path
 
 import psutil
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QFileDialog, QInputDialog, QMessageBox
+from PySide6.QtWidgets import QFileDialog, QInputDialog, QMenu, QMessageBox
 
 from locallama_gui.core.domain import AgentProfile
 from locallama_gui.ui.model_browser import ModelBrowserDialog
@@ -15,21 +15,51 @@ from locallama_gui.ui.setup_wizard import FirstRunWizard
 from locallama_gui.ui.theme import dark_qss
 
 
-def _menu(window, title: str):
-    for action in window.menuBar().actions():
-        menu = action.menu()
-        if menu and menu.title() == title:
-            return menu
+def _menu(window, title: str) -> QMenu | None:
+    try:
+        actions = list(window.menuBar().actions())
+    except RuntimeError:
+        return None
+    for action in actions:
+        try:
+            menu = action.menu()
+            if menu is not None and menu.title() == title:
+                return menu
+        except RuntimeError:
+            continue
     return None
 
 
-def _remove_action(menu, text: str) -> None:
+def _submenu(menu: QMenu | None, title: str) -> QMenu | None:
+    if menu is None:
+        return None
+    try:
+        actions = list(menu.actions())
+    except RuntimeError:
+        return None
+    for action in actions:
+        try:
+            submenu = action.menu()
+            if submenu is not None and submenu.title() == title:
+                return submenu
+        except RuntimeError:
+            continue
+    return None
+
+
+def _remove_action(menu: QMenu | None, text: str) -> None:
     if menu is None:
         return
-    for action in list(menu.actions()):
-        if action.text() == text:
-            menu.removeAction(action)
-            action.deleteLater()
+    try:
+        actions = list(menu.actions())
+    except RuntimeError:
+        return
+    for action in actions:
+        try:
+            if action.text() == text:
+                menu.removeAction(action)
+        except RuntimeError:
+            continue
 
 
 def _replace_action(menu, text: str, callback) -> None:
@@ -138,7 +168,12 @@ def _show_model_browser(window) -> None:
     ModelBrowserDialog(window, recommended).exec()
 
 
-def _build_diagnostics_submenu(window, developer) -> None:
+def _build_diagnostics_submenu(window, developer: QMenu | None) -> None:
+    if developer is None:
+        return
+
+    diagnostics_menu = _submenu(developer, "Diagnostics")
+
     for text in (
         "Logs",
         "Console",
@@ -146,10 +181,21 @@ def _build_diagnostics_submenu(window, developer) -> None:
         "Request Viewer",
         "Token Viewer",
         "Request Inspector",
-        "Diagnostics",
     ):
         _remove_action(developer, text)
-    diagnostics_menu = developer.addMenu("Diagnostics")
+
+    if diagnostics_menu is None:
+        _remove_action(developer, "Diagnostics")
+        try:
+            diagnostics_menu = developer.addMenu("Diagnostics")
+        except RuntimeError:
+            return
+    else:
+        try:
+            diagnostics_menu.clear()
+        except RuntimeError:
+            return
+
     for text, callback in (
         ("Logs", window.show_logs_dock),
         ("Console", window.show_console_dock),
@@ -157,8 +203,11 @@ def _build_diagnostics_submenu(window, developer) -> None:
         ("Request Viewer", window.show_request_dock),
         ("Token Viewer", window.show_token_dock),
     ):
-        action = diagnostics_menu.addAction(text)
-        action.triggered.connect(callback)
+        try:
+            action = diagnostics_menu.addAction(text)
+            action.triggered.connect(callback)
+        except RuntimeError:
+            return
 
 
 def _add_ai_model_settings(settings, window) -> None:
