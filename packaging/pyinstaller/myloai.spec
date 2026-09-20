@@ -8,6 +8,7 @@ from pathlib import Path
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 APP_NAME = "MyLoAI Control Center"
+APP_EXECUTABLE = "MyLoAI_Control_Center"
 PACKAGE = "locallama_gui"
 ROOT_DIR = Path(SPECPATH).resolve().parents[1]
 ICON_PATH = ROOT_DIR / "packaging" / "assets" / "MyLoAI.ico"
@@ -41,7 +42,7 @@ if sys.platform == "darwin":
         analysis.binaries,
         analysis.datas,
         [],
-        name=APP_NAME,
+        name=APP_EXECUTABLE,
         icon=None,
         debug=False,
         bootloader_ignore_signals=False,
@@ -51,7 +52,7 @@ if sys.platform == "darwin":
     )
     app = BUNDLE(
         exe,
-        name=f"{APP_NAME}.app",
+        name=f"{APP_EXECUTABLE}.app",
         icon=None,
         bundle_identifier="com.myloai.controlcenter",
     )
@@ -60,7 +61,7 @@ else:
         pyz,
         analysis.scripts,
         exclude_binaries=True,
-        name=APP_NAME,
+        name=APP_EXECUTABLE,
         icon=str(ICON_PATH),
         debug=False,
         bootloader_ignore_signals=False,
@@ -74,5 +75,5 @@ else:
         analysis.datas,
         strip=False,
         upx=False,
-        name=APP_NAME,
+        name=APP_EXECUTABLE,
     )
