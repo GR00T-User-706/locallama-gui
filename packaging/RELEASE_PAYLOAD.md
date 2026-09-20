@@ -2,8 +2,12 @@
 
 A release artifact for MyLoAI Control Center may contain only:
 
+For native production artifacts, the application executable identity is `MyLoAI_Control_Center`; human-facing product text remains `MyLoAI Control Center`. Production runtime paths must not contain spaces.
+
+
 - the production `locallama_gui` application package;
 - runtime Python dependencies when the distribution bundles them;
+- a bundled application runtime for native installers that are intended to run without a separate Python installation;
 - application resources required at runtime;
 - the platform launcher and desktop/application metadata;
 - required license and third-party redistribution notices;
