@@ -1,9 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "\${BASH_SOURCE[0]}")/.." && pwd)"
-PYTHON="\${PYTHON:-python3}"
-APPIMAGETOOL="\${APPIMAGETOOL:-$ROOT_DIR/build/appimagetool}"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PYTHON="${PYTHON:-python3}"
+APPIMAGETOOL="${APPIMAGETOOL:-$ROOT_DIR/build/appimagetool}"
 
 cd "$ROOT_DIR"
 
