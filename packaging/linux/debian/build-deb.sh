@@ -10,6 +10,7 @@ cd "$ROOT_DIR"
 VERSION="$(python -c 'import pathlib,tomllib; print(tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"])')"
 ARCH="amd64"
 APP_NAME="MyLoAI Control Center"
+APP_EXECUTABLE="MyLoAI_Control_Center"
 
 python packaging/assets/generate_myloai_icon.py
 rm -rf "$BUILD_DIR"
@@ -23,11 +24,12 @@ mkdir -p "$STAGE_DIR/DEBIAN" \
 
 python -m PyInstaller --noconfirm --clean --distpath "$DIST_DIR" --workpath "$ROOT_DIR/build/pyinstaller" packaging/pyinstaller/myloai.spec
 
-cp -a "$DIST_DIR/$APP_NAME/." "$STAGE_DIR/opt/myloai/"
+test -x "$DIST_DIR/$APP_EXECUTABLE/$APP_EXECUTABLE"
+cp -a "$DIST_DIR/$APP_EXECUTABLE/." "$STAGE_DIR/opt/myloai/"
 
 cat > "$STAGE_DIR/usr/bin/myloai" <<'EOF'
 #!/bin/sh
-exec "/opt/myloai/MyLoAI Control Center" "$@"
+exec "/opt/myloai/MyLoAI_Control_Center" "$@"
 EOF
 chmod 0755 "$STAGE_DIR/usr/bin/myloai"
 
