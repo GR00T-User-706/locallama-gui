@@ -105,7 +105,7 @@ available:
 ./scripts/install-desktop-entry --dry-run
 ```
 
-See [`docs/LAUNCHING.md`](docs/LAUNCHING.md) for full launch and platform-specific details.
+See [`docs/LAUNCHING.md`](docs/LAUNCHING.md) for launch details and [`docs/BUILDING.md`](docs/BUILDING.md) for the canonical production-build procedure.
 
 ---
 
