@@ -1,3 +1,17 @@
+## [1.2.1] - 2026-09-20
+
+### Changed
+- Consolidated native production package launch paths around the bundled application executable.
+- Kept the human-facing product name as `MyLoAI Control Center` while using the filesystem-safe executable identity `MyLoAI_Control_Center`.
+
+### Fixed
+- Fixed production menu lifecycle handling to avoid using deleted Qt `QMenu` objects during diagnostics menu rebuilding.
+- Fixed application shutdown to wait for active worker threads before Qt destroys the application.
+- Fixed native production packaging executable paths to use `MyLoAI_Control_Center` without spaces.
+
+### Documentation
+- Updated packaging, launcher, QA, versioning, and release documentation to match the 1.2.1 production packaging contract.
+
 ## [1.2.0] - 2026-09-08
 
 ### Added
