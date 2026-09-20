@@ -12,7 +12,7 @@ They must not include repository archives, development agents/prompts, CI config
 
 - Python: wheel and source distribution
 - Debian-family Linux: `.deb`
-- Arch-family Linux: `PKGBUILD` / `.pkg.tar.zst`
+- Arch-family Linux: `PKGBUILD` / `.pkg.tar.zst` using system Python dependencies
 - Portable Linux: AppImage
 - Windows: native installer/bundled application
 - macOS: `.app` and `.dmg` for arm64 and x86_64
