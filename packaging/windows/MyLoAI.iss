@@ -1,5 +1,5 @@
 #ifndef MyLoAIVersion
-  #define MyLoAIVersion "1.2.8"
+  #define MyLoAIVersion "1.2.9"
 #endif
 #define MyLoAIName "MyLoAI Control Center"
 #define MyLoAIPublisher "MyLoAI"
