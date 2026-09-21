@@ -1,3 +1,3 @@
 """MyLoAI Control Center: a modular desktop control center for local and remote LLMs."""
 
-__version__ = "1.2.8"
+__version__ = "1.2.9"
