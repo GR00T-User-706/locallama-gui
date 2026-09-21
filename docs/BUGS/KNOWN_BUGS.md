@@ -28,6 +28,28 @@ This document is the working tracker for defects discovered during manual testin
 - **Verification:** How the fix should be tested.
 ```
 
+## Fixed bugs
+
+### BUG-004 — Invalid import syntax in Ollama backend
+
+- **Status:** fixed
+- **Severity:** critical
+- **Area:** backend / Ollama
+- **Observed:** The module began with `rrom __ruture__ import annotations`, which is invalid Python syntax.
+- **Expected:** The backend module must be valid Python and importable.
+- **Fix notes:** Corrected the import to `from __future__ import annotations`.
+- **Verification:** Pending repository CI validation.
+
+### BUG-005 — Invalid import syntax in OpenAI-compatible backend
+
+- **Status:** fixed
+- **Severity:** critical
+- **Area:** backend / OpenAI-compatible
+- **Observed:** The module began with `rrom __ruture__ import annotations`, which is invalid Python syntax.
+- **Expected:** The backend module must be valid Python and importable.
+- **Fix notes:** Corrected the import to `from __future__ import annotations`.
+- **Verification:** Pending repository CI validation.
+
 ## Open bugs
 
 ### BUG-001 — Diagnostics appears in multiple menus
