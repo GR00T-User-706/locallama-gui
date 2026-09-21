@@ -1,3 +1,12 @@
+## [1.2.9] - 2026-09-21
+
+### Fixed
+- Restored valid `from __future__ import annotations` syntax in the Ollama and OpenAI-compatible backend modules so the active backend package can be parsed and imported.
+- Synchronized the release-packaging workflow and platform packaging version references with application version `1.2.9`.
+
+### Documentation
+- Recorded the active production-packaging audit findings and their verification requirements.
+
 ## [1.2.8] - 2026-09-20
 
 ### Fixed
