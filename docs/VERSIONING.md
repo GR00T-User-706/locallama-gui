@@ -1,14 +1,14 @@
 # Versioning Policy
 
-Date: 2026-09-20
+Date: 2026-09-21
 Scope: Current repository versioning policy and synchronization rules.
 
 ## Current State Snapshot
 
 ### CONFIRMED
-- `pyproject.toml` version: `1.2.8`
-- `locallama_gui/__init__.py` version: `1.2.8`
-- `CHANGELOG.md` latest version heading: `1.2.8` (dated 2026-09-20)
+- `pyproject.toml` version: `1.2.9`
+- `locallama_gui/__init__.py` version: `1.2.9`
+- `CHANGELOG.md` latest version heading: `1.2.9` (dated 2026-09-21)
 - persisted configuration schema: `2`
 
 ### Source of truth
