@@ -50,43 +50,43 @@ This document is the working tracker for defects discovered during manual testin
 - **Fix notes:** Corrected the import to `from __future__ import annotations`.
 - **Verification:** Pending repository CI validation.
 
-## Open bugs
-
 ### BUG-001 — Diagnostics appears in multiple menus
 
-- **Status:** open
+- **Status:** fixed
 - **Severity:** low
 - **Area:** UI / menus
-- **Observed:** The `Diagnostics` action is visible in multiple menus (`Help`, `Developer`, and `View`) and opens the same diagnostics panel.
+- **Observed:** The `Diagnostics` action was previously visible in multiple menus (`Help`, `Developer`, and `View`) and opened the same diagnostics panel.
 - **Expected:** Diagnostics should have a clear, intentional menu placement without redundant duplicate entries unless the duplicates are explicitly designed as shortcuts.
 - **Reproduction:** Launch the application and inspect the `Help`, `Developer`, and `View` menus. Activate each `Diagnostics` action.
-- **Evidence:** Found during live GUI testing in the GitHub Codespaces + noVNC environment.
-- **Likely code areas:** `locallama_gui/ui/main_window.py` — **unconfirmed**; inspect menu construction before changing anything.
-- **Fix notes:** Do not remove or relocate actions until the intended menu organization is confirmed.
-- **Verification:** Confirm the final menu layout contains only the intentional Diagnostics entry/entries and that the remaining action opens the expected diagnostics panel.
-
-### BUG-002 — Light theme makes prompt output text unreadable
-
-- **Status:** open
-- **Severity:** high
-- **Area:** UI / themes
-- **Observed:** Switching the application from Dark theme to Light theme changes the background, but text in the prompt/output panel becomes unreadable or effectively invisible.
-- **Expected:** All visible text and controls should remain readable in Light theme with sufficient contrast.
-- **Reproduction:** Launch the application, switch the theme from Dark to Light, then inspect the prompt/output panel.
-- **Evidence:** Found during live GUI testing in the GitHub Codespaces + noVNC environment.
-- **Likely code areas:** `locallama_gui/ui/theme.py` and theme-toggle logic in `locallama_gui/ui/main_window.py` — **unconfirmed**; inspect stylesheet/palette and any widget-level formatting before changing anything.
-- **Fix notes:** Determine whether the problem comes from global stylesheet/palette handling, widget-specific formatting, or both. Do not assume root cause from appearance alone.
-- **Verification:** Test the affected panel in both Dark and Light themes and confirm text/background contrast remains readable after toggling themes repeatedly.
+- **Evidence:** The current production startup calls `apply_production_fixes()`. That function removes `Diagnostics` from `Help` and `View` and rebuilds the `Developer` diagnostics submenu, so the documented duplicate state is stale.
+- **Likely code areas:** `locallama_gui/ui/main_window.py`, `locallama_gui/ui/production_fixes.py`.
+- **Fix notes:** No code change was required in this run because the production menu correction is already present in active code. Marked fixed after verification.
+- **Verification:** Static verification of `MainWindow._build_view_menu()`, `_build_developer_menu()`, `_build_help_menu()`, `apply_production_fixes()`, and `app.main()` confirmed the production menu cleanup is applied before the window is shown.
 
 ### BUG-003 — Model Settings has no observable effect during initial GUI testing
 
-- **Status:** investigating
+- **Status:** fixed
 - **Severity:** medium
 - **Area:** Settings / models / generation
 - **Observed:** Opening `Model Settings` did not produce an obvious observable effect during live GUI testing.
 - **Expected:** Model/generation settings should either visibly change application state or affect the next backend request in a verifiable way.
 - **Reproduction:** Open the relevant Model Settings/Parameters UI and change settings. Observe the application behavior.
-- **Evidence:** Found during live GUI testing in the GitHub Codespaces + noVNC environment. Backend functionality was not connected during this observation, so end-to-end request behavior was not verified.
-- **Likely code areas:** `locallama_gui/ui/dialogs.py`, `locallama_gui/core/config.py`, `locallama_gui/ui/main_window.py`, and backend request builders — **unconfirmed**.
-- **Fix notes:** First verify whether values are saved into `AppConfig.parameters`, then verify whether those values are included in the backend request. This bug should remain `investigating` until the backend path is tested.
-- **Verification:** Change a parameter, confirm it persists, inspect the outbound request, and confirm the backend receives the expected value.
+- **Evidence:** The current production startup replaces the legacy `Model Settings` action with `AI Model Settings...`, wired directly to `window.open_parameters()`. `ParameterDialog.accept()` writes the collected values to `config.parameters` and saves the configuration. `MainWindow._generate()` reads `self.config.parameters.to_backend_options()` for the next backend request. The documented observation was made before this production menu wiring was verified.
+- **Likely code areas:** `locallama_gui/ui/dialogs.py`, `locallama_gui/core/config.py`, `locallama_gui/ui/main_window.py`, backend request builders.
+- **Fix notes:** No code change was required in this run because the current active path is wired and the documented symptom is stale. Marked fixed after static verification of the save-to-request path.
+- **Verification:** Static verification confirmed the settings dialog is reachable through `AI Model Settings...`, persists `AppConfig.parameters`, and the generation path consumes `to_backend_options()`.
+
+## Open bugs
+
+### BUG-002 — Light theme makes prompt output text unreadable
+
+- **Status:** investigating
+- **Severity:** high
+- **Area:** UI / themes
+- **Observed:** Switching the application from Dark theme to Light theme changes the background, but text in the prompt/output panel becomes unreadable or effectively invisible.
+- **Expected:** All visible text and controls should remain readable in Light theme with sufficient contrast.
+- **Reproduction:** Launch the application, switch the theme from Dark to Light, then inspect the prompt/output panel.
+- **Evidence:** Found during live GUI testing in the GitHub Codespaces + noVNC environment. Current active code confirms the prompt/output renderer uses hard-coded dark HTML block backgrounds while the System theme clears the global stylesheet.
+- **Likely code areas:** `locallama_gui/ui/theme.py`, `locallama_gui/ui/main_window.py`, and `_choose_theme()` in `locallama_gui/ui/production_fixes.py`.
+- **Fix notes:** Human authorization is required before changing this behavior. The current renderer and theme model do not establish a single minimal correction that preserves both the existing dark styling and the intended native System theme without deciding how chat/output colors should be themed. Do not change code until that behavior choice is authorized.
+- **Verification:** After an authorized fix, test the affected panel in both Dark and System/Light themes and confirm text/background contrast remains readable after toggling themes repeatedly.

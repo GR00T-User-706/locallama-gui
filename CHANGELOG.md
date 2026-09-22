@@ -1,3 +1,14 @@
+## [1.2.10] - 2026-09-22
+
+### Fixed
+- Fixed the first-run setup wizard syntax error so the backend connection callback is valid Python.
+- Made the About dialog display the canonical application version.
+- Fixed source-tree Plugin SDK documentation lookup while preserving the frozen-package documentation path.
+
+### Documentation
+- Recorded the verified fixes for the active code audit findings and the remaining authorization-required light-theme issue.
+- Marked stale Diagnostics and Model Settings findings as fixed after verification against the current production menu wiring.
+
 ## [1.2.9] - 2026-09-21
 
 ### Fixed

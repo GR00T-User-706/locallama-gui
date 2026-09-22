@@ -9,6 +9,7 @@ import psutil
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QFileDialog, QInputDialog, QMenu, QMessageBox
 
+from locallama_gui import __version__
 from locallama_gui.core.domain import AgentProfile
 from locallama_gui.ui.model_browser import ModelBrowserDialog
 from locallama_gui.ui.setup_wizard import FirstRunWizard
@@ -79,7 +80,10 @@ def _resource_path(name: str) -> Path:
     frozen_root = getattr(sys, "_MEIPASS", "")
     if frozen_root:
         return Path(frozen_root) / "docs" / name
-    return Path(__file__).resolve().parents[2] / "packaging" / name
+    root = Path(__file__).resolve().parents[2]
+    if name == "PLUGIN_SDK.md":
+        return root / "docs" / name
+    return root / "packaging" / name
 
 
 def _open_bundled_document(window, title: str, name: str) -> None:
@@ -96,7 +100,8 @@ def _show_about(window) -> None:
     QMessageBox.about(
         window,
         "About MyLoAI",
-        "MyLoAI Control Center\n\nA desktop control center for local and remote LLM services.\n\nVersion 1.2.8",
+        "MyLoAI Control Center\n\nA desktop control center for local and remote LLM services.\n\n"
+        f"Version {__version__}",
     )
 
 

@@ -147,7 +147,7 @@ class FirstRunWizard(QWizard):
         self._task = task
         self.parent().add_worker(task)
 
-        def done(status) -> None
+        def done(status) -> None:
             self._connection_ok = status.state == "connected"
             if self._connection_ok:
                 self.status_label.setText(f"Connected ({status.latency_ms:.0f} ms)")
