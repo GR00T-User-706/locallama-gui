@@ -1,6 +1,6 @@
 # Active Code Audit
 
-Date: 2026-09-22
+Date: 2026-09-23
 Branch: feat/myloai-production-packaging
 Scope: Active repository paths only. `archive/**` was excluded.
 
@@ -42,6 +42,50 @@ Scope: Active repository paths only. `archive/**` was excluded.
 - **Minimal fix:** The non-frozen resource resolver now maps only `PLUGIN_SDK.md` to the active `docs/` path and preserves the existing `packaging/` lookup for the user manual.
 - **Validation:** Static inspection confirms source-tree and frozen lookup paths remain distinct and the Developer Mode action still requests `PLUGIN_SDK.md`. Repository CI is required for full validation after this commit.
 
+### AUDIT-006 — Production packaging workflow still asserts version 1.2.9
+
+- **Status:** open
+- **Severity:** high
+- **File:** `.github/workflows/release-packaging.yml`
+- **Symbol:** `python-package` / `Validate distribution identity and entry points`
+- **Observed:** The active production-packaging branch is version `1.2.10` in `pyproject.toml`, but the workflow contains two hard-coded assertions for `1.2.9`: `data['project']['version'] == '1.2.9'` and `dist['Version'] == '1.2.9'`.
+- **Impact:** The Python distribution packaging job will fail its validation step whenever it builds the current `1.2.10` package. This is a directly demonstrable CI/package validation mismatch and is a likely explanation for a CI failure notification on the production branch.
+- **Evidence:** `pyproject.toml` currently declares `version = "1.2.10"`; `docs/VERSIONING.md` records `1.2.10` as the current state; the workflow still asserts `1.2.9`. The workflow runs on pull requests and therefore validates the active production branch.
+- **Recommended next investigation/fix:** Replace the stale hard-coded validation value with a check derived from the repository's canonical version source, or otherwise synchronize the workflow assertion to the current release process. Do not change source code during this audit.
+
+### AUDIT-007 — Arch PKGBUILD is pinned to stale application version 1.2.9
+
+- **Status:** open
+- **Severity:** high
+- **File:** `packaging/linux/PKGBUILD`
+- **Symbol:** `pkgver` and `source`
+- **Observed:** `pkgver=1.2.9` while the active package source of truth is `1.2.10`.
+- **Impact:** The Arch package definition requests the `v1.2.9` source archive and therefore does not describe the current active application release. Attempting to package the current `1.2.10` tree with this PKGBUILD would target the wrong release source and package metadata.
+- **Evidence:** `pyproject.toml` and `docs/VERSIONING.md` are `1.2.10`; `packaging/linux/PKGBUILD` remains `1.2.9` and constructs its source URL directly from `${pkgver}`.
+- **Recommended next investigation/fix:** Synchronize `pkgver` with the canonical application version before using this PKGBUILD for a release. Keep the existing source URL structure unless the packaging contract is intentionally changed.
+
+### AUDIT-008 — Linux man page reports stale application version
+
+- **Status:** open
+- **Severity:** medium
+- **File:** `packaging/linux/myloai.1`
+- **Symbol:** `.TH` header
+- **Observed:** The man page identifies itself as `MyLoAI Control Center 1.2.9` with a `2026-09-21` date, while the active application version is `1.2.10` dated 2026-09-22.
+- **Impact:** Installed Linux users can receive incorrect version information from the packaged `myloai(1)` documentation. The stale version also violates the repository's documented version synchronization target for user-facing version references.
+- **Evidence:** `docs/VERSIONING.md` requires user-facing version references to be checked during version bumps. The active man page still contains `1.2.9`; `pyproject.toml` is `1.2.10`.
+- **Recommended next investigation/fix:** Update the man-page version/date as part of the next version-synchronization change. No source/package file was modified by this audit.
+
+### AUDIT-009 — Windows installer fallback version is stale
+
+- **Status:** open
+- **Severity:** low
+- **File:** `packaging/windows/MyLoAI.iss`
+- **Symbol:** `MyLoAIVersion` fallback definition
+- **Observed:** The Inno Setup script defaults `MyLoAIVersion` to `1.2.9`, while the active application version is `1.2.10`.
+- **Impact:** The normal `build-installer.ps1` path explicitly passes the version read from `pyproject.toml`, so the standard CI build is not currently affected. However, invoking `MyLoAI.iss` directly without `/DMyLoAIVersion=...` produces an installer labeled `1.2.9`, creating a stale packaging fallback and inconsistent standalone installer behavior.
+- **Evidence:** `packaging/windows/build-installer.ps1` reads the version from `pyproject.toml` and passes it to Inno Setup. `packaging/windows/MyLoAI.iss` still defines the fallback as `1.2.9`.
+- **Recommended next investigation/fix:** Synchronize the fallback with the canonical version or replace the fallback with a mechanism that cannot silently drift. No packaging source was modified during this audit.
+
 ## Existing documented findings reviewed
 
 ### BUG-001 — Diagnostics appears in multiple menus
@@ -63,25 +107,24 @@ Scope: Active repository paths only. `archive/**` was excluded.
 
 ## Versioning and changelog
 
-- Application version bumped from `1.2.9` to `1.2.10` because implementation changes were made.
-- Updated `pyproject.toml` and `locallama_gui/__init__.py` to `1.2.10`.
-- Updated `docs/VERSIONING.md` current-state snapshot to `1.2.10`.
-- Added the `1.2.10` entry to `CHANGELOG.md`.
-- No configuration schema change was made.
+- Current application version: `1.2.10`.
+- This audit did not modify application source, package definitions, or version numbers.
+- The newly confirmed version-sync findings above require a separate fix pass if changes are authorized.
 
 ## Validation
 
 - `archive/**` was completely excluded from implementation and validation scope.
-- Pre-change findings were verified against current active code before modification.
-- The missing-colon syntax defect was corrected.
-- Version synchronization was statically verified across package metadata, runtime metadata, versioning documentation, and changelog.
-- Plugin SDK source-tree and frozen resource-path logic was statically verified.
-- Full `ruff check .` and `pytest` execution is delegated to the repository's GitHub Actions CI because the GitHub connector cannot execute the repository test suite directly.
+- Active production branch resolved to commit `18b2d39317c2327c8322c32380e4943f4215007d`.
+- `pyproject.toml`, `docs/VERSIONING.md`, active packaging workflow, Arch PKGBUILD, Linux man page, and Windows installer script were inspected.
+- Static inspection confirmed the stale `1.2.9` references described in AUDIT-006 through AUDIT-009.
+- GitHub commit status for `18b2d39317c2327c8322c32380e4943f4215007d` currently returns no status entries through the available connector; therefore this audit does not claim a current CI result beyond the demonstrable workflow/version mismatch.
+- Full `ruff check .` and `pytest` execution is delegated to repository GitHub Actions because the GitHub connector cannot execute the repository test suite directly.
 
 ## Authorization-required items
 
 - BUG-002 remains unchanged in source code. Human authorization is required to choose the intended System/Light chat-output styling before implementing a narrowly scoped theme correction.
+- AUDIT-006 through AUDIT-009 are documented only. No source, packaging, or workflow file was modified during this audit.
 
 ## Repository instruction note
 
-`AGENTS.md` and `CODE_OF_CONDUCT.md` were inspected before implementation. `CONTRIBUTORS.md` does not exist on the active branch, so no contributor-specific instructions could be read from that filename. `AGENTS.md` requires minimal changes, synchronized versioning, changelog maintenance for implementation changes, and explicit exclusion of `archive/**` from routine validation.
+`AGENTS.md` and `CODE_OF_CONDUCT.md` were inspected before implementation. `CONTRIBUTORS.md` does not exist on the active branch; `CONTRIBUTING.md` does exist. No contributor-specific instructions were invented or inferred from the missing filename. `AGENTS.md` requires minimal changes, synchronized versioning, changelog maintenance for implementation changes, and explicit exclusion of `archive/**` from routine validation.
