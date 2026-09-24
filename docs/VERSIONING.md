@@ -6,13 +6,13 @@ Scope: Current repository versioning policy and synchronization rules.
 ## Current State Snapshot
 
 ### CONFIRMED
-- `pyproject.toml` version: `1.2.11`
-- `locallama_gui/__init__.py` version: `1.2.11`
-- `CHANGELOG.md` latest version heading: `1.2.11` (dated 2026-09-24)
-- Linux Arch package version: `1.2.11`
-- Linux man page version: `1.2.11`
-- Windows installer fallback version: `1.2.11`
-- Linux packaging bundle manifest version: `1.2.11`
+- `pyproject.toml` version: `1.2.12`
+- `locallama_gui/__init__.py` version: `1.2.12`
+- `CHANGELOG.md` latest version heading: `1.2.12` (dated 2026-09-24)
+- Linux Arch package version: `1.2.12`
+- Linux man page version: `1.2.12`
+- Windows installer fallback version: `1.2.12`
+- Linux packaging bundle manifest version: `1.2.12`
 - persisted configuration schema: `2`
 
 ### Source of truth
