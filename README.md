@@ -106,6 +106,9 @@ available:
 ```
 
 See [`docs/LAUNCHING.md`](docs/LAUNCHING.md) for launch details and [`docs/BUILDING.md`](docs/BUILDING.md) for the canonical production-build procedure.
+The Linux desktop entry uses the packaged scalable icon at `packaging/linux/icons/com.github.gr00t-user-706.locallama-gui.svg`.
+
+See [`docs/LAUNCHING.md`](docs/LAUNCHING.md) for full launcher and platform-specific details.
 
 ---
 

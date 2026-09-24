@@ -95,6 +95,17 @@
 
 ### Documentation
 - Added production packaging and release build specifications under `packaging/`.
+## [1.1.10] - 2026-09-09
+
+### Added
+- Added a complete scalable Linux application icon at `packaging/linux/icons/com.github.gr00t-user-706.locallama-gui.svg` for desktop packaging and installer integration.
+
+### Changed
+- Wired the Linux desktop entry to the canonical LocalLama application icon.
+- Synchronized package/runtime version metadata to `1.1.10`.
+
+### Documentation
+- Documented the packaged Linux icon path in the README.
 
 ## [1.1.9] - 2026-08-17
 

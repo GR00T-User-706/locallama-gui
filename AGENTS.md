@@ -627,3 +627,112 @@ Native production desktop entries must not depend on those source-tree launchers
 The canonical Linux production build command is `./packaging/build-linux.sh`; build prerequisites and platform-specific packaging commands are documented in `docs/BUILDING.md`.
 
 Routine CI/lint/test validation must stay scoped to active production paths and active tests. Do not include archive/legacy trees in routine validation; use manual archive-specific workflows only when intentionally auditing archives.
+
+
+---
+
+# Additional Agent Safety and Evidence Rules
+
+The rules below supplement the existing repository rules. They are additive and do not replace or weaken any existing rule.
+
+## A. Read-Only Audit Before Modification
+
+Before modifying files, perform a read-only audit of the relevant project area.
+
+The initial pass must not modify files, install dependencies, alter configuration, create replacement files, commit changes, or otherwise mutate repository state.
+
+Establish the relevant:
+
+- repository structure;
+- existing implementation;
+- project instructions;
+- configuration;
+- version sources;
+- tests and validation commands;
+- Git state when relevant;
+- dependencies and interfaces involved in the task.
+
+Do not begin implementation until the existing state is sufficiently understood.
+
+If a material ambiguity is discovered, stop and identify it before proceeding.
+
+## B. Evidence Over Assumption
+
+**Do not invent facts.**
+
+If information is not confirmed by the repository, current task, tool output, documentation, test results, or explicit user input, treat it as unknown.
+
+Do not invent:
+
+- file contents;
+- APIs or capabilities;
+- dependency behavior or versions;
+- configuration values;
+- architecture;
+- requirements;
+- test results;
+- command output;
+- Git state;
+- successful execution;
+- security guarantees.
+
+Use these distinctions when reporting:
+
+- **Confirmed:** directly observed.
+- **Verified:** tested or independently checked.
+- **Inferred:** logically derived but not directly confirmed.
+- **Unknown:** insufficient evidence.
+- **Blocked:** required information is unavailable.
+
+Never present an inference as a confirmed fact.
+
+## C. Ambiguity and Intent
+
+Do not silently reinterpret an ambiguous request.
+
+If multiple interpretations would materially change the implementation, stop and ask for clarification.
+
+A request to complete a task authorizes the work required for that task, not unrelated refactoring, redesign, deletion, dependency replacement, or architecture changes.
+
+## D. No Fabricated Completion
+
+Never claim an action occurred unless it actually occurred and the result was observed.
+
+Do not claim that tests passed, a build succeeded, documentation was updated, a version was changed, a commit was created, or a deployment succeeded unless that result was actually verified.
+
+If validation could not be performed, state that explicitly.
+
+## E. Post-Change Verification
+
+After editing:
+
+1. Inspect the resulting diff.
+2. Check for unintended changes.
+3. Run the most relevant available validation.
+4. Verify the requested behavior when practical.
+5. Report failures and unverified areas honestly.
+
+## F. Consequential Decisions
+
+Do not independently make materially consequential decisions that were not established by the user or repository instructions, including major architecture changes, public API changes, persistent data migrations, removal of functionality, security-boundary changes, or destructive operations.
+
+If such a decision is necessary, explain the specific blocker and obtain direction before proceeding.
+
+## G. Git Safety
+
+Do not reset user work, discard uncommitted changes, rewrite history, force-push, rebase, amend commits, delete branches, or delete files unless the user explicitly requests the specific operation.
+
+Never claim a Git operation succeeded without observing its result.
+
+## H. Completion Report
+
+When the task is complete, report:
+
+- what changed;
+- files changed;
+- what was verified;
+- what was not verified;
+- known remaining issues;
+- relevant Git state when inspected.
+
+Task completion means the requested work was implemented and the available evidence supports the result. Editing files alone is not proof of completion.
