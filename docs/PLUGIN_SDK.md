@@ -1,6 +1,6 @@
-# LocalLama GUI Plugin SDK
+# MyLoAI Control Center Plugin SDK
 
-By default, LocalLama only discovers plugins from the **user plugin directory** shown in **Help → Diagnostics**. Repository `plugins/` is only scanned when `developer_mode` is enabled in config.
+By default, MyLoAI only discovers plugins from the **user plugin directory** shown by the diagnostics information. Repository `plugins/` is only scanned when `developer_mode` is enabled in config.
 
 A plugin exposes a `Plugin` class with a **static literal** `manifest`, `activate(context)`, and `deactivate()`.
 
@@ -26,13 +26,13 @@ Plugin manifests must contain all required keys:
 - `name`
 - `version`
 
-The `manifest` must be a static Python literal dictionary assigned on the `Plugin` class. LocalLama parses this declaration with the Python AST during discovery so plugin module code is not imported merely to inspect metadata.
+The `manifest` must be a static Python literal dictionary assigned on the `Plugin` class. MyLoAI parses this declaration with the Python AST during discovery so plugin module code is not imported merely to inspect metadata.
 
 Plugins with missing, malformed, or dynamic manifests are treated as invalid and cannot be enabled.
 
 ## Trust boundary
 
-Plugins are loaded as Python code in the same process as the app. Before plugin code is imported for enablement, LocalLama checks the manifest ID against `trusted_plugins` in the app config.
+Plugins are loaded as Python code in the same process as the app. Before plugin code is imported for enablement, MyLoAI checks the manifest ID against `trusted_plugins` in the app config.
 
 Being discoverable is **not** the same as being trusted.
 
@@ -44,7 +44,7 @@ Discovery itself does not import plugin modules.
 - A malicious plugin may read or modify local files accessible to the user.
 - A plugin can intercept chat traffic through chat interceptors.
 - A plugin can register commands/tools that trigger external process or network actions.
-- Trust is ID-based; LocalLama does not currently provide code signing or hash pinning.
+- Trust is ID-based; MyLoAI does not currently provide code signing or hash pinning.
 
 Only trust plugin IDs from vetted sources, and review plugin source code before adding them to `trusted_plugins`.
 

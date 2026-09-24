@@ -1,0 +1,55 @@
+# MyLoAI Control Center Linux portable build bundle
+# Built from Termux/Linux tooling; this bundle is NOT a Termux application.
+# Native Linux .deb/AppImage creation remains packaging/build-linux.sh.
+control:
+  Package: myloai-linux-packaging
+  Version: 1.2.10
+  Architecture: all
+  Maintainer: GR00T-User-706
+  Homepage: https://github.com/GR00T-User-706/locallama-gui
+  Description: |-
+    MyLoAI Control Center Linux production packaging bundle.
+     Contains Linux packaging definitions and build documentation for native
+     x86_64 Linux build hosts. This package does not install MyLoAI itself.
+
+installation_prefix: /data/data/com.termux/files/usr
+
+data_files:
+  share/myloai/packaging/README.md:
+    source: README.md
+  share/myloai/packaging/RELEASE_BUILD_SPEC.md:
+    source: RELEASE_BUILD_SPEC.md
+  share/myloai/packaging/RELEASE_PAYLOAD.md:
+    source: RELEASE_PAYLOAD.md
+  share/myloai/packaging/USER_MANUAL.md:
+    source: USER_MANUAL.md
+  share/myloai/docs/BUILDING.md:
+    source: ../docs/BUILDING.md
+  share/myloai/packaging/build-linux.sh:
+    source: build-linux.sh
+  share/myloai/packaging/check-release-payload.py:
+    source: check-release-payload.py
+  share/myloai/packaging/linux/PKGBUILD:
+    source: linux/PKGBUILD
+  share/myloai/packaging/linux/appimage/README.md:
+    source: linux/appimage/README.md
+  share/myloai/packaging/linux/appimage/build-appimage.sh:
+    source: linux/appimage/build-appimage.sh
+  share/myloai/packaging/linux/appimage/myloai.svg:
+    source: linux/appimage/myloai.svg
+  share/myloai/packaging/linux/debian/build-deb.sh:
+    source: linux/debian/build-deb.sh
+  share/myloai/packaging/linux/debian/README.Debian:
+    source: linux/debian/README.Debian
+  share/myloai/packaging/linux/myloai:
+    source: linux/myloai
+  share/myloai/packaging/linux/myloai.1:
+    source: linux/myloai.1
+  share/myloai/packaging/linux/myloai.desktop:
+    source: linux/myloai.desktop
+  share/myloai/packaging/linux/install-myloai.sh:
+    source: linux/install-myloai.sh
+  share/myloai/packaging/linux/icons/com.github.gr00t-user-706.locallama-gui.svg:
+    source: linux/icons/com.github.gr00t-user-706.locallama-gui.svg
+  share/myloai/packaging/pyinstaller/myloai.spec:
+    source: pyinstaller/myloai.spec
