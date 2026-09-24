@@ -33,11 +33,11 @@ jobs:
           import pathlib
           import tomllib
           data = tomllib.loads(pathlib.Path('pyproject.toml').read_text())
+          expected_version = data['project']['version']
           assert data['project']['name'] == 'locallama-gui'
-          assert data['project']['version'] == '1.2.9'
           dist = importlib.metadata.metadata('locallama-gui')
           assert dist['Name'] == 'locallama-gui'
-          assert dist['Version'] == '1.2.9'
+          assert dist['Version'] == expected_version
           scripts = importlib.metadata.entry_points(group='console_scripts')
           names = {entry.name for entry in scripts if entry.name in {'myloai', 'locallama-gui'}}
           assert names == {'myloai', 'locallama-gui'}
