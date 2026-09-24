@@ -31,11 +31,10 @@ from PySide6.QtWidgets import (
     QToolBar,
     QVBoxLayout,
     QWidget,
-    # QLineEdit,  # Reserved for planned MainWindow text-entry UI.
-    # QSplitter,  # Reserved for planned split-pane MainWindow UI.
-    # QTreeWidget,  # Reserved for planned hierarchical MainWindow UI.
-    # QTreeWidgetItem,  # Reserved with QTreeWidget implementation.
 )
+
+# Reserved MainWindow UI placeholders retained for future implementation:
+# from PySide6.QtWidgets import QLineEdit, QSplitter, QTreeWidget, QTreeWidgetItem
 
 from locallama_gui.backends.manager import create_backend
 from locallama_gui.backends.ollama import OllamaBackend
@@ -72,8 +71,11 @@ from locallama_gui.ui.dialogs import (
     PromptManagerDialog,
 )
 from locallama_gui.ui.theme import dark_qss
-# from locallama_gui.ui.theme import DARK_QSS  # Historical stylesheet constant retained for reference.
 from locallama_gui.ui.workers import AsyncTask, StreamTask
+
+# Historical stylesheet constant retained as a reference; the active MainWindow
+# uses dark_qss(font_size) so font-size changes remain centralized.
+# from locallama_gui.ui.theme import DARK_QSS
 
 LOG = logging.getLogger(__name__)
 
