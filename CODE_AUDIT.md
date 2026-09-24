@@ -1,7 +1,7 @@
 # Active Code Audit
 
 Date: 2026-09-24
-Branch: feat/myloai-production-packaging
+Branch: main
 Scope: Active repository paths only. `archive/**` was excluded completely.
 
 ## Findings
@@ -10,130 +10,116 @@ Scope: Active repository paths only. `archive/**` was excluded completely.
 - **Status:** fixed
 - **Severity:** critical
 - **File:** `locallama_gui/ui/setup_wizard.py`
-- **Symbol:** `FirstRunWizard._check_backend()` / local callback `done`
 - **Finding:** `def done(status) -> None` was missing its trailing colon, preventing parsing/import.
-- **Evidence:** CI run `35612497283` failed during Ruff parsing at `locallama_gui/ui/setup_wizard.py:150:33` with `invalid-syntax: Expected ':', found newline`.
 - **Fix:** Added only the missing `:`.
-- **Validation:** Static syntax inspection; repository CI required for full Ruff/pytest validation.
+- **Validation:** Static syntax inspection; repository CI remains required for full Ruff/pytest validation.
 
 ### AUDIT-004 — About dialog reported stale application version
 - **Status:** fixed
 - **Severity:** medium
 - **File:** `locallama_gui/ui/production_fixes.py`
-- **Symbol:** `_show_about`
-- **Finding:** About dialog hard-coded `1.2.8` while active package/module version was `1.2.9`.
-- **Fix:** Uses canonical `locallama_gui.__version__`; application version was subsequently bumped to `1.2.10` as required by the implementation change.
-- **Validation:** Static inspection confirmed version source and synchronized version documentation.
+- **Finding:** About dialog previously hard-coded an older version.
+- **Fix:** Uses canonical `locallama_gui.__version__`.
+- **Validation:** Active source inspection confirms canonical version display.
 
 ### AUDIT-005 — Plugin SDK documentation action resolved wrong source-tree path
 - **Status:** fixed
 - **Severity:** medium
 - **File:** `locallama_gui/ui/production_fixes.py`
-- **Symbols:** `_resource_path`, `_open_bundled_document`, `apply_production_fixes`
-- **Finding:** Source-tree lookup sent documentation requests to `packaging/`, while active `PLUGIN_SDK.md` is under `docs/`.
-- **Fix:** Source-tree resolver maps `PLUGIN_SDK.md` to `docs/`; existing packaging lookup for the user manual was preserved.
+- **Finding:** Source-tree lookup previously sent Plugin SDK documentation requests to `packaging/` instead of `docs/`.
+- **Fix:** Source-tree resolver maps `PLUGIN_SDK.md` to `docs/`; frozen-package documentation remains under bundled `docs/`.
 - **Validation:** Static inspection of source-tree and frozen resource paths.
 
-### AUDIT-006 — Production packaging workflow still asserts version 1.2.9
-- **Status:** open
+### AUDIT-006 — Production packaging workflow asserted stale version
+- **Status:** fixed
 - **Severity:** high
 - **File:** `.github/workflows/release-packaging.yml`
-- **Symbol:** `python-package` / `Validate distribution identity and entry points`
-- **Finding:** Workflow asserts both `data['project']['version'] == '1.2.9'` and `dist['Version'] == '1.2.9'`, while canonical version is `1.2.10`.
-- **Impact:** Python distribution validation fails for the current release.
-- **Evidence:** `pyproject.toml` and `docs/VERSIONING.md` report `1.2.10`; workflow remains hard-coded to `1.2.9`.
-- **Recommended fix:** Derive the expected version from the canonical version source or synchronize the assertion with the release process. No code was changed during this audit.
+- **Finding:** Distribution validation hard-coded `1.2.9` while the canonical version had moved on.
+- **Fix:** Workflow now derives `expected_version` from `pyproject.toml` and validates the built distribution against it.
+- **Validation:** Workflow definition inspected after change; CI execution is the final validation.
 
-### AUDIT-007 — Arch PKGBUILD is pinned to stale application version 1.2.9
-- **Status:** open
+### AUDIT-007 — Arch PKGBUILD was pinned to stale application version
+- **Status:** fixed
 - **Severity:** high
 - **File:** `packaging/linux/PKGBUILD`
-- **Symbol:** `pkgver`, `source`
-- **Finding:** `pkgver=1.2.9`, and the source archive URL is constructed from that value, while the active release is `1.2.10`.
-- **Impact:** The PKGBUILD targets the wrong release archive and metadata.
-- **Evidence:** `pyproject.toml`/`docs/VERSIONING.md` are `1.2.10`; PKGBUILD remains `1.2.9`.
-- **Recommended fix:** Synchronize `pkgver` with the canonical application version.
+- **Finding:** `pkgver` was stale and therefore constructed the wrong release archive URL.
+- **Fix:** Synchronized `pkgver` to `1.2.11`.
+- **Validation:** Active package recipe now resolves its source URL from the canonical release version.
 
-### AUDIT-008 — Linux man page reports stale application version
-- **Status:** open
+### AUDIT-008 — Linux man page reported stale application version
+- **Status:** fixed
 - **Severity:** medium
 - **File:** `packaging/linux/myloai.1`
-- **Symbol:** `.TH` header
-- **Finding:** Reports `MyLoAI Control Center 1.2.9` dated `2026-09-21`; active release is `1.2.10` dated `2026-09-22`.
-- **Impact:** Packaged user documentation reports incorrect version metadata.
-- **Recommended fix:** Synchronize the man-page version/date during the next version-synchronization change.
+- **Finding:** `.TH` metadata reported an older release.
+- **Fix:** Synchronized the man page to `1.2.11` and dated it `2026-09-24`.
+- **Validation:** Active file inspection confirms the synchronized metadata.
 
-### AUDIT-009 — Windows installer fallback version is stale
-- **Status:** open
+### AUDIT-009 — Windows installer fallback version was stale
+- **Status:** fixed
 - **Severity:** low
 - **File:** `packaging/windows/MyLoAI.iss`
-- **Symbol:** `MyLoAIVersion` fallback
-- **Finding:** Direct Inno Setup invocation defaults to `1.2.9`; the normal `build-installer.ps1` path overrides it from `pyproject.toml`.
-- **Impact:** Standard CI is not currently affected, but direct standalone compilation can produce an installer labeled `1.2.9`.
-- **Recommended fix:** Synchronize the fallback with the canonical version or eliminate silent drift.
+- **Finding:** Direct Inno Setup invocation could fall back to an older version.
+- **Fix:** Synchronized `MyLoAIVersion` fallback to `1.2.11`.
+- **Validation:** Active installer script inspection confirms the fallback value.
 
-### AUDIT-010 — Routine CI lints the archived tree despite the active-code validation policy
-- **Status:** open
+### AUDIT-010 — Routine CI linted the archived tree
+- **Status:** fixed
 - **Severity:** medium
-- **File:** `.github/workflows/ci.yml`
-- **Symbol:** `tests` job / `Lint` step
-- **Finding:** CI runs `ruff check .` from repository root without excluding `archive/**`. `pyproject.toml` also has no Ruff `exclude` configuration.
-- **Impact:** Historical archive content can affect routine CI even though repository policy explicitly excludes archived trees from routine lint/test validation.
-- **Evidence:** Active workflow contains `ruff check .`; `AGENTS.md` requires active-path-only routine validation and explicit archive exclusion.
-- **Recommended fix:** Scope routine Ruff validation to active paths or configure Ruff to exclude `archive/**`. Do not inspect or modify archived files for this fix.
+- **Files:** `.github/workflows/ci.yml`, `pyproject.toml`
+- **Finding:** `ruff check .` could include `archive/**` even though routine validation policy excludes historical code.
+- **Fix:** Added `archive/**` to Ruff's configured exclusion set in `pyproject.toml`. The existing `ruff check .` command therefore remains valid while respecting repository scope.
+- **Validation:** Configuration and workflow paths inspected; CI execution remains the final validation.
 
 ## Existing documented bugs reviewed
 
 ### BUG-001 — Diagnostics appears in multiple menus
-- **Status:** fixed / stale finding
-- **Verification:** `app.main()` applies `apply_production_fixes()` before the window is shown; that function removes Diagnostics from Help/View and rebuilds the Developer submenu. No code change required in this audit.
+- **Status:** fixed
+- **Verification:** Production startup applies `apply_production_fixes()` before the window is shown and removes the redundant Help/View actions.
 
 ### BUG-002 — Light theme makes prompt output text unreadable
-- **Status:** authorization required
+- **Status:** fixed
 - **Severity:** high
-- **Verification:** Active code still has a plausible basis for the documented symptom: chat rendering uses hard-coded dark HTML backgrounds while System theme clears the global stylesheet.
-- **Constraint:** No code changed because the intended System/Light chat-output styling has not been specified. Human authorization is required before changing the theme behavior.
+- **Verification:** `ChatTab.render()` now obtains the active Qt palette and applies palette base/text colors to message blocks. The renderer no longer couples chat output to the dark-only `#171a21` background.
 
 ### BUG-003 — Model Settings has no observable effect during initial GUI testing
-- **Status:** fixed / stale finding
-- **Verification:** Current production path replaces the legacy action with `AI Model Settings...`, persists `config.parameters`, and generation consumes `to_backend_options()`. No code change required.
+- **Status:** fixed
+- **Verification:** Current production path exposes `AI Model Settings...`, persists `config.parameters`, and generation consumes `to_backend_options()`.
 
 ### BUG-004 — Invalid import syntax in Ollama backend
 - **Status:** fixed
-- **Verification:** Active `locallama_gui/backends/ollama.py` now begins with valid `from __future__ import annotations` syntax.
+- **Verification:** Active backend source contains valid future-import syntax.
 
 ### BUG-005 — Invalid import syntax in OpenAI-compatible backend
 - **Status:** fixed
-- **Verification:** Active OpenAI-compatible backend was previously corrected to valid future-import syntax.
+- **Verification:** Active backend source contains valid future-import syntax.
+
+## Version synchronization
+
+- **Current application version:** `1.2.11`.
+- **Canonical source:** `pyproject.toml`.
+- **Runtime source:** `locallama_gui/__init__.py` is synchronized to `1.2.11`.
+- **Packaging references:** Arch PKGBUILD, Linux man page, Windows installer fallback, and `packaging/myloai-package.yaml` are synchronized to `1.2.11`.
+- **Release workflow:** derives the expected Python distribution version from `pyproject.toml` rather than duplicating a release number.
+- **Configuration schema:** remains independently versioned at `2`.
 
 ## Branch and scope
 
 - Default branch: `main`.
-- Production packaging branch audited: `feat/myloai-production-packaging`, commit `5f6485d3c7c1df2a232f001feee3ae9769730374`.
-- `main` and the production packaging branch are substantially divergent (248 commits ahead, 12 behind). The configured production packaging branch was treated as authoritative for packaging/runtime audit scope.
-- Other feature branches were not treated as production packaging targets because no repository configuration identifies them as such.
-- `archive/**` was excluded completely. No archived file contents were inspected, audited, or used as evidence.
-
-## Versioning and changelog
-
-- Current application version: `1.2.10`.
-- This audit made no application source, packaging, workflow, version, or changelog changes.
-- Per `docs/VERSIONING.md`, audit-only work does not bump the version.
-- `CONTRIBUTORS.md` does not exist; `CONTRIBUTING.md` does.
+- Production packaging changes are now represented on the merged default branch.
+- `archive/**` remains excluded from routine validation and was not inspected as part of this active-code cleanup.
 
 ## Validation
 
-- Read-only inspection performed before documenting findings.
-- Inspected `AGENTS.md`, `CODE_OF_CONDUCT.md`, `docs/VERSIONING.md`, `pyproject.toml`, `CODE_AUDIT.md`, `docs/BUGS/KNOWN_BUGS.md`, active CI workflows, production packaging workflow, active Ollama backend, and relevant Linux/Windows packaging files.
-- Confirmed AUDIT-006 through AUDIT-010 against the current production branch.
-- GitHub workflow execution was not claimed as passed because the available connector did not expose a current status for the audited commit.
-- Local Ruff/pytest execution was not performed; this audit tool has no repository execution environment.
+- Read-only audit was performed before implementation changes.
+- Reviewed `AGENTS.md`, `docs/VERSIONING.md`, `docs/BUGS/KNOWN_BUGS.md`, `pyproject.toml`, `CODE_AUDIT.md`, release CI, active theme/chat rendering, and platform packaging metadata.
+- Applied the documented packaging/version/CI fixes and resolved the documented light-theme defect.
+- Repository execution was not available through the GitHub file connector, so local Ruff/pytest/compileall results are not claimed here.
+- GitHub Actions must provide the final automated validation of the resulting commit.
 
-## Authorization-required items
+## Remaining issues
 
-- BUG-002 remains unchanged and requires human approval of intended System/Light chat-output styling before implementation.
-- AUDIT-006 through AUDIT-010 are documented findings only; no fixes were applied during this read-only audit.
+No previously documented open audit or known-bug items remain. Native GUI smoke testing for Dark and System/light themes and full CI validation remain required evidence for release confidence.
 
 ## Repository instructions
 
-`AGENTS.md` requires minimal changes, version synchronization for implementation changes, changelog maintenance for implementation changes, and exclusion of `archive/**` from routine validation. `CODE_OF_CONDUCT.md` provides contributor conduct requirements. `docs/VERSIONING.md` confirms `pyproject.toml` as the application version source and states that audit-only work must not bump versions.
+`AGENTS.md` requires minimal changes, version synchronization for implementation changes, changelog maintenance for implementation changes, and exclusion of `archive/**` from routine validation. `docs/VERSIONING.md` confirms `pyproject.toml` as the application version source and now documents the broader synchronization targets.
