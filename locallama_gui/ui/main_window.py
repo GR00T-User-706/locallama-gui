@@ -31,6 +31,10 @@ from PySide6.QtWidgets import (
     QToolBar,
     QVBoxLayout,
     QWidget,
+    # QLineEdit,  # Reserved for planned MainWindow text-entry UI.
+    # QSplitter,  # Reserved for planned split-pane MainWindow UI.
+    # QTreeWidget,  # Reserved for planned hierarchical MainWindow UI.
+    # QTreeWidgetItem,  # Reserved with QTreeWidget implementation.
 )
 
 from locallama_gui.backends.manager import create_backend
@@ -65,8 +69,10 @@ from locallama_gui.ui.dialogs import (
     ModelfileEditor,
     ParameterDialog,
     PluginManagerDialog,
+    PromptManagerDialog,
 )
 from locallama_gui.ui.theme import dark_qss
+# from locallama_gui.ui.theme import DARK_QSS  # Historical stylesheet constant retained for reference.
 from locallama_gui.ui.workers import AsyncTask, StreamTask
 
 LOG = logging.getLogger(__name__)
@@ -121,7 +127,7 @@ class ChatTab(QWidget):
         base_color = palette.base().color().name()
         text_color = palette.text().color().name()
         html = []
-        colors = {"system": "#8fbcbb", "user": "#a3b48c", "assistant": "#81a1c1", "tool": "#d08770"}
+        colors = {"system": "#8fbcbb", "user": "#a3be8c", "assistant": "#81a1c1", "tool": "#d08770"}
         for idx, msg in enumerate(visible_chat_messages(self.session.messages)):
             safe = (
                 msg.content.replace("&", "&amp;")
@@ -228,6 +234,7 @@ class MainWindow(QMainWindow):
             ("Refresh Models", self.refresh_backend),
             ("Parameters", self.open_parameters),
             ("Plugins", self.open_plugins),
+            ("Prompt Manager", self.open_prompt_manager),
         ]:
             action = QAction(label, self)
             action.triggered.connect(slot)
@@ -390,6 +397,7 @@ class MainWindow(QMainWindow):
         settings_menu = self.menuBar().addMenu("Settings")
         self._menu_action(settings_menu, "API Endpoints", self.open_endpoints)
         self._menu_action(settings_menu, "Parameters", self.open_parameters)
+        self._menu_action(settings_menu, "Prompt Manager", self.open_prompt_manager)
         self._menu_action(settings_menu, "Themes", self.toggle_theme)
         self._menu_action(settings_menu, "Keyboard Shortcuts", self.show_shortcuts)
         self._menu_action(settings_menu, "Default System Prompt", self.edit_default_system_prompt)
@@ -894,6 +902,10 @@ class MainWindow(QMainWindow):
 
     def open_parameters(self) -> None:
         ParameterDialog(self.config, self).exec()
+
+    def open_prompt_manager(self) -> None:
+        PromptManagerDialog(self.prompts, self).exec()
+        self.refresh_prompts()
 
     def edit_default_system_prompt(self) -> None:
         text, ok = QInputDialog.getMultiLineText(
