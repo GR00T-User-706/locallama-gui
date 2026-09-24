@@ -1,0 +1,13 @@
+                    LocalLlama Application
+                            │
+                     Plugin System
+                            │
+             ┌──────────────┴──────────────┐
+             │                             │
+       Plugin API                    Plugin Lifecycle
+             │                             │
+     ┌───────┼────────┐            load / enable
+     │       │        │            disable / unload
+     ▼       ▼        ▼            config / events
+   Models  Chat     Memory
+   API     API       API

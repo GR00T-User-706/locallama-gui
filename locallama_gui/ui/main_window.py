@@ -1013,9 +1013,19 @@ class MainWindow(QMainWindow):
             self.current_stream.cancel()
         self._active_stream_owner = None
         self.current_stream = None
+
+        # Do not let QThread instances outlive the application. A cancel flag only
+        # asks a worker to stop; wait() guarantees the thread has actually exited
+        # before Qt destroys the window/application.
         for worker in list(self.worker_refs):
-            if hasattr(worker, "isRunning") and worker.isRunning() and hasattr(worker, "cancel"):
+            if not hasattr(worker, "isRunning") or not worker.isRunning():
+                continue
+            if hasattr(worker, "cancel"):
                 worker.cancel()
+            worker.requestInterruption()
+            worker.wait()
+
+        self.worker_refs.clear()
         self.config.ui.geometry_hex = bytes(self.saveGeometry().toHex()).decode()
         self.config.ui.state_hex = bytes(self.saveState().toHex()).decode()
         self.config.save()

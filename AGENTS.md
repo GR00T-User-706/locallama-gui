@@ -607,12 +607,24 @@ Because it does.
 
 ## 5.2 Canonical Launcher/Desktop Names
 
-Use these canonical active-path names for launcher integration:
+Production native packaging uses these canonical identities:
 
-- launcher: `run-locallama`
-- launcher install helper: `scripts/install-launcher`
-- desktop install helper: `scripts/install-desktop-entry`
-- desktop file: `packaging/linux/com.github.gr00t-user-706.locallama-gui.desktop`
+- human-facing product: `MyLoAI Control Center`
+- filesystem-safe application executable: `MyLoAI_Control_Center`
+- Linux command: `myloai`
+- Debian executable: `/opt/myloai/MyLoAI_Control_Center`
+- Debian launcher: `/usr/bin/myloai`
+- AppImage entry point: `AppRun`
+
+The repository launcher and installer helpers remain development-only:
+
+- `run-locallama`
+- `scripts/install-launcher`
+- `scripts/install-desktop-entry`
+
+Native production desktop entries must not depend on those source-tree launchers.
+
+The canonical Linux production build command is `./packaging/build-linux.sh`; build prerequisites and platform-specific packaging commands are documented in `docs/BUILDING.md`.
 
 Routine CI/lint/test validation must stay scoped to active production paths and active tests. Do not include archive/legacy trees in routine validation; use manual archive-specific workflows only when intentionally auditing archives.
 

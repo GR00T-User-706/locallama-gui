@@ -1,33 +1,47 @@
-# Launching LocalLama GUI
+# Launching MyLoAI Control Center
 
-## Launch methods
+MyLoAI Control Center is the end-user product name. The repository and Python
+module namespace remain `locallama-gui` / `locallama_gui` for compatibility.
 
-- Package script: `locallama-gui`
-- Module: `python -m locallama_gui`
-- Repository launcher: `./run-locallama`
+## Native installers
 
-## Install user launcher
+Production releases provide native installation media for supported platforms:
 
-```bash
-./scripts/install-launcher
-```
+- Windows: MyLoAI Control Center `.exe` installer
+- macOS: MyLoAI Control Center `.dmg`
+- Linux: AppImage and amd64 Debian `.deb`
+- Arch Linux: `PKGBUILD` source package recipe
 
-Default target: `${HOME}/.local/bin/run-locallama`
+Debian, AppImage, Windows, and macOS production artifacts bundle the application runtime and do not require Python, pip, Git, or PyInstaller at runtime. The Arch `PKGBUILD` is a native Arch Python package recipe and intentionally uses system Python/runtime dependencies.
 
-Dry run:
+## Production launch methods
+
+- Canonical Linux command: `myloai`
+- Debian installed executable: `/opt/myloai/MyLoAI_Control_Center`
+- AppImage entry point: `AppRun`
+- Filesystem-safe executable identity: `MyLoAI_Control_Center`
+- Compatibility Python command: `locallama-gui`
+
+The production Linux desktop entry uses `Exec=myloai`. Native package launch
+paths do not invoke the repository source-tree launcher.
+
+## Source/development launch methods
+
+These methods are for repository development only:
+
+- `python -m locallama_gui`
+- `./run-locallama`
+- `./scripts/install-launcher`
+- `./scripts/install-desktop-entry`
+
+The source-tree launcher and its installation helpers are not part of the
+native production runtime path.
+
+## Development launcher dry runs
 
 ```bash
 ./scripts/install-launcher --dry-run
 ```
-
-## Install desktop entry
-
-```bash
-./scripts/install-desktop-entry
-```
-
-Default target: `${HOME}/.local/share/applications/com.github.gr00t-user-706.locallama-gui.desktop`
-
 The desktop entry references the scalable application icon:
 
 ```text
@@ -41,3 +55,6 @@ Dry run:
 ```bash
 ./scripts/install-desktop-entry --dry-run
 ```
+
+Production users should install the generated native artifact instead of using
+these source-tree helpers.
