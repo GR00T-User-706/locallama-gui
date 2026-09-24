@@ -1,5 +1,5 @@
 from locallama_gui.backends.ollama import OllamaBackend
-from locallama_gui.backends.openai import OpenAICompatibleBackend
+# from locallama_gui.backends.openai import OpenAICompatibleBackend  # Reserved for direct OpenAI payload coverage.
 from locallama_gui.core.domain import ChatMessage
 
 
