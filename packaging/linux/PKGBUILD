@@ -1,5 +1,5 @@
 pkgname=myloai
-pkgver=1.2.11
+pkgver=1.2.12
 pkgrel=1
 pkgdesc='MyLoAI Control Center'
 arch=('x86_64')
