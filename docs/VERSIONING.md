@@ -1,20 +1,25 @@
 # Versioning Policy
 
-Date: 2026-09-22
-Date: 2026-09-09
+Date: 2026-09-24
 Scope: Current repository versioning policy and synchronization rules.
 
 ## Current State Snapshot
 
 ### CONFIRMED
-- `pyproject.toml` version: `1.2.10`
-- `locallama_gui/__init__.py` version: `1.2.10`
-- `CHANGELOG.md` latest version heading: `1.2.10` (dated 2026-09-22)
+- `pyproject.toml` version: `1.2.11`
+- `locallama_gui/__init__.py` version: `1.2.11`
+- `CHANGELOG.md` latest version heading: `1.2.11` (dated 2026-09-24)
+- Linux Arch package version: `1.2.11`
+- Linux man page version: `1.2.11`
+- Windows installer fallback version: `1.2.11`
+- Linux packaging bundle manifest version: `1.2.11`
 - persisted configuration schema: `2`
 
 ### Source of truth
 
 `pyproject.toml` is the packaging/release version source. `locallama_gui/__init__.py` must remain synchronized with it for runtime metadata.
+
+All other user-facing packaging/version references must resolve to the same application release version. CI should derive expected version values from `pyproject.toml` instead of maintaining independent hard-coded assertions.
 
 The persisted configuration schema has a separate source of truth: `CONFIG_SCHEMA_VERSION` in `locallama_gui/core/config.py`. Configuration schema versions describe persisted-data compatibility and must not be treated as application release versions.
 
@@ -37,6 +42,9 @@ Verify and update as needed:
 3. `CHANGELOG.md` with one new top-level entry
 4. Any user-facing version references in docs/README
 5. Any About/version display paths
+6. Linux/Windows/macOS packaging metadata and fallback values
+7. Release workflows and validation scripts
+8. Packaging manifests such as `packaging/myloai-package.yaml`
 
 Do not maintain a separate `VERSION` file unless the repository explicitly adopts one as a new source of truth.
 

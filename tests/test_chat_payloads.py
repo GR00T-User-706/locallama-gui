@@ -23,7 +23,6 @@ def test_ollama_payload_serializes_user_prompt() -> None:
 
 
 def test_openai_payload_serializes_user_prompt() -> None:
-    backend = OpenAICompatibleBackend("http://localhost:1234")
     # The payload is exercised through the backend implementation contract by
     # checking its message normalization helper directly.
     from locallama_gui.backends.base import build_chat_messages

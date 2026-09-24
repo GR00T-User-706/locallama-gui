@@ -1,3 +1,15 @@
+## [1.2.11] - 2026-09-24
+
+### Fixed
+- Fixed light/system theme chat output so message blocks use the active Qt palette instead of a hard-coded dark background.
+- Fixed the production packaging workflow so distribution validation derives the expected version from `pyproject.toml` instead of a stale hard-coded release value.
+- Synchronized Linux Arch packaging, Linux man-page metadata, Windows installer fallback metadata, and the Linux packaging bundle manifest to `1.2.11`.
+- Excluded `archive/**` from routine Ruff validation so historical code cannot fail active CI.
+
+### Documentation
+- Updated the versioning policy to require unified application version metadata across packaging and release validation.
+- Resolved the documented production-packaging audit findings and updated the known-bugs tracker.
+
 ## [1.2.10] - 2026-09-22
 
 ### Fixed
