@@ -3,7 +3,7 @@
 # Native Linux .deb/AppImage creation remains packaging/build-linux.sh.
 control:
   Package: myloai-linux-packaging
-  Version: 1.2.11
+  Version: 1.2.12
   Architecture: all
   Maintainer: GR00T-User-706
   Homepage: https://github.com/GR00T-User-706/locallama-gui
