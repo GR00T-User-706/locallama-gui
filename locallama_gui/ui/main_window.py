@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import logging
 import sys
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -19,21 +18,17 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QInputDialog,
     QLabel,
-    QLineEdit,
     QListWidget,
     QMainWindow,
     QMessageBox,
     QPlainTextEdit,
     QProgressBar,
     QPushButton,
-    QSplitter,
     QTableWidget,
     QTableWidgetItem,
     QTabWidget,
     QTextEdit,
     QToolBar,
-    QTreeWidget,
-    QTreeWidgetItem,
     QVBoxLayout,
     QWidget,
 )
@@ -70,9 +65,8 @@ from locallama_gui.ui.dialogs import (
     ModelfileEditor,
     ParameterDialog,
     PluginManagerDialog,
-    PromptManagerDialog,
 )
-from locallama_gui.ui.theme import DARK_QSS, dark_qss
+from locallama_gui.ui.theme import dark_qss
 from locallama_gui.ui.workers import AsyncTask, StreamTask
 
 LOG = logging.getLogger(__name__)
@@ -127,7 +121,7 @@ class ChatTab(QWidget):
         base_color = palette.base().color().name()
         text_color = palette.text().color().name()
         html = []
-        colors = {"system": "#8fbcbb", "user": "#a3be8c", "assistant": "#81a1c1", "tool": "#d08770"}
+        colors = {"system": "#8fbcbb", "user": "#a3b48c", "assistant": "#81a1c1", "tool": "#d08770"}
         for idx, msg in enumerate(visible_chat_messages(self.session.messages)):
             safe = (
                 msg.content.replace("&", "&amp;")
@@ -150,8 +144,6 @@ class ChatTab(QWidget):
         self.retry.setEnabled(not generating)
         self.regen.setEnabled(not generating)
         self.input.setReadOnly(generating)
-
-
 
 
 class ComposerTextEdit(QPlainTextEdit):
@@ -186,6 +178,7 @@ class ComposerTextEdit(QPlainTextEdit):
                 event.accept()
                 return
         super().wheelEvent(event)
+
 
 class MainWindow(QMainWindow):
     def __init__(self, config: AppConfig) -> None:
@@ -571,7 +564,6 @@ class MainWindow(QMainWindow):
         task.error.connect(lambda e: self._backend_refresh_error(e))
         task.start()
 
-
     def _show_dock(self, dock: QDockWidget | None, name: str) -> None:
         if dock is None:
             self.status.showMessage(f"{name} panel unavailable")
@@ -656,7 +648,6 @@ class MainWindow(QMainWindow):
     def refresh_sessions(self) -> None:
         self.sessions_list.clear()
         for s in self.sessions.list_sessions():
-            item = QTreeWidgetItem() if False else None
             self.sessions_list.addItem(f"{s.updated_at[:19]}  {s.title}")
             self.sessions_list.item(self.sessions_list.count() - 1).setData(
                 Qt.ItemDataRole.UserRole, s.id
