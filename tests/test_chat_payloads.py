@@ -1,6 +1,8 @@
 from locallama_gui.backends.ollama import OllamaBackend
-# from locallama_gui.backends.openai import OpenAICompatibleBackend  # Reserved for direct OpenAI payload coverage.
 from locallama_gui.core.domain import ChatMessage
+
+# Reserved for direct OpenAI payload coverage when that test path is restored.
+# from locallama_gui.backends.openai import OpenAICompatibleBackend
 
 
 def test_ollama_payload_serializes_user_prompt() -> None:
