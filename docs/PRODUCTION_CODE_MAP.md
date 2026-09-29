@@ -225,3 +225,291 @@ Potential side effects performed by `main()` itself are not determinable from th
 - No other unresolved implementation details exist within `locallama_gui/__main__.py` itself.
 
 STATUS: FULLY MAPPED
+
+---
+
+## AUDIT SEQUENCE: 2
+
+- **Repository:** `GR00T-User-706/locallama-gui`
+- **Repository-relative file:** `locallama_gui/app.py`
+- **Filename:** `app.py`
+- **Language:** Python
+- **Package/module:** `locallama_gui.app`
+- **Audit date:** 2026-09-29
+- **Audit status:** Complete
+- **Source revision audited:** `6ff7759dafa38f8c1243cf57e64917702dd99d4d`
+
+### File Identity
+
+- Complete source file parsed.
+- Application bootstrap module for the desktop GUI.
+- No explicit module-level version declaration is present.
+- No module docstring is present.
+
+### Imports
+
+#### `from __future__ import annotations`
+- Classification: Python language feature import.
+- Effect: postpones evaluation of annotations.
+
+#### `import os`
+- Classification: standard library.
+- Used for environment-variable manipulation and path-related access through `os.path.dirname`.
+
+#### `import sys`
+- Classification: standard library.
+- Used for `sys.path`, `sys.argv`, and process exit via `SystemExit`.
+
+#### `from pathlib import Path`
+- Classification: standard library.
+- Imported symbol: `Path`.
+- Used to construct the configuration-file path.
+
+#### `from platformdirs import user_config_dir`
+- Classification: third-party.
+- Used to obtain the platform-specific per-user configuration directory.
+
+#### `from PySide6.QtCore import Qt`
+- Classification: third-party GUI framework.
+- Used for the `AA_DontCreateNativeWidgetSiblings` application attribute.
+
+#### `from PySide6.QtWidgets import QApplication`
+- Classification: third-party GUI framework.
+- Used to construct the Qt application object.
+
+#### `from locallama_gui.core.config import APP_NAME, AppConfig`
+- Classification: internal project import.
+- Imported symbols: `APP_NAME`, `AppConfig`.
+- Used for application configuration loading and configuration-directory naming.
+
+#### `from locallama_gui.core.logging import configure_logging`
+- Classification: internal project import.
+- Imported symbol: `configure_logging`.
+- Used to configure application logging using the configured logs directory.
+
+#### `from locallama_gui.ui.main_window import MainWindow`
+- Classification: internal project import.
+- Imported symbol: `MainWindow`.
+- Used to create the main application window and temporarily replace its `refresh_backend` method during first-run startup.
+
+#### `from locallama_gui.ui.production_fixes import apply_production_fixes`
+- Classification: internal project import.
+- Imported symbol: `apply_production_fixes`.
+- Used after window construction and before display.
+
+### Module-Level Definitions
+
+No explicit module-level constants, variables, classes, or type aliases are defined beyond imported names.
+
+### Functions
+
+#### `main`
+
+- Location: module-level function.
+- Parameters: none.
+- Return annotation: `int`.
+- Decorators: none.
+- Purpose: initializes the application environment, configuration, logging, Qt application, main window, production fixes, and event loop, then returns the Qt event-loop exit code.
+
+##### Implementation sequence
+
+1. Calls `os.environ.setdefault("QT_ENABLE_HIGHDPI_SCALING", "1")`.
+   - Reads the existing environment mapping entry if present.
+   - Sets `QT_ENABLE_HIGHDPI_SCALING` to `"1"` only when absent.
+2. Calls `os.environ.setdefault("QT_AUTO_SCREEN_SCALE_FACTOR", "1")` with the same set-if-absent behavior.
+3. Constructs `config_path` as `Path(user_config_dir(APP_NAME, "LocalLama")) / "config.json"`.
+4. Computes `first_run` as the negation of `config_path.exists()`.
+5. Calls `AppConfig.load()` and stores the resulting object in `config`.
+6. Calls `configure_logging(config.paths.logs_dir)`.
+7. Constructs `QApplication(sys.argv)`.
+8. Sets the Qt application name to `"MyLoAI Control Center"`.
+9. Sets the Qt organization name to `"LocalLama"`.
+10. Sets `Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings` on the application.
+11. Saves the original `MainWindow.refresh_backend` attribute in `original_refresh_backend`.
+12. If `first_run` is true, replaces `MainWindow.refresh_backend` with a lambda accepting `self` and returning `None`.
+13. Enters a `try` block and constructs `MainWindow(config)`, storing the instance in `win`.
+14. The `finally` block restores `MainWindow.refresh_backend` to `original_refresh_backend` regardless of whether window construction succeeds or raises.
+15. Calls `apply_production_fixes(win, first_run=first_run)`.
+16. Calls `win.show()`.
+17. Calls `app.exec()` and returns its result.
+
+##### Variables read
+
+- `os.environ`
+- `sys.argv`
+- `APP_NAME`
+- `AppConfig`
+- `configure_logging`
+- `MainWindow`
+- `apply_production_fixes`
+- `Qt`
+- `QApplication`
+- `Path`
+- `user_config_dir`
+
+##### Variables / state modified
+
+- Environment variables may be modified through the two `setdefault` calls when the keys are absent.
+- `MainWindow.refresh_backend` is temporarily replaced during first-run window construction and restored in `finally`.
+- Local variables created: `config_path`, `first_run`, `config`, `app`, `original_refresh_backend`, `win`.
+- Qt application object state is modified through application name, organization name, and application attribute configuration.
+
+##### Side effects
+
+- May set two process environment variables.
+- Reads the user-specific configuration directory and checks whether `config.json` exists.
+- Loads application configuration through `AppConfig.load()`.
+- Configures application logging.
+- Creates the Qt application object.
+- Mutates the `MainWindow.refresh_backend` class attribute temporarily during first-run construction.
+- Constructs and displays the main window.
+- Enters the Qt event loop.
+
+##### External resources
+
+Directly observed:
+- User configuration filesystem path through `user_config_dir` and `Path.exists()`.
+- Application logging destination through `config.paths.logs_dir` passed to `configure_logging`.
+- Qt GUI subsystem through `QApplication` and `win.show()`.
+
+Potential resources used by imported functions/classes are not expanded beyond this file's direct implementation.
+
+##### Exceptions
+
+- No explicit `raise` statement appears inside `main`.
+- No exception types are caught.
+- The `finally` block guarantees restoration of `MainWindow.refresh_backend` if `MainWindow(config)` raises.
+- Exceptions from configuration loading, logging configuration, Qt initialization, window construction, production-fix application, window display, or the event loop are not caught here and therefore propagate outward.
+
+### Classes
+
+None defined in this file.
+
+### Methods
+
+No methods are defined in this file.
+
+External method calls made by `main` include:
+- `Path.exists()`
+- `AppConfig.load()`
+- `configure_logging(...)`
+- `QApplication(...)`
+- `app.setApplicationName(...)`
+- `app.setOrganizationName(...)`
+- `app.setAttribute(...)`
+- `MainWindow(...)`
+- `apply_production_fixes(...)`
+- `win.show()`
+- `app.exec()`
+
+### Properties
+
+No properties are defined in this file.
+
+### Decorators
+
+None.
+
+### Types / Type Aliases / Enums / Dataclasses / Protocols / Registries
+
+- Return type annotation `int` is present on `main`.
+- No type aliases, enums, dataclasses, protocols, abstract classes, or registries are defined here.
+
+### Inheritance / Composition / Dependency Relationships
+
+- `main` composes the startup sequence from `AppConfig`, `configure_logging`, `QApplication`, `MainWindow`, and `apply_production_fixes`.
+- Direct internal dependency relationships:
+  - `locallama_gui.app` -> `locallama_gui.core.config.APP_NAME`
+  - `locallama_gui.app` -> `locallama_gui.core.config.AppConfig`
+  - `locallama_gui.app` -> `locallama_gui.core.logging.configure_logging`
+  - `locallama_gui.app` -> `locallama_gui.ui.main_window.MainWindow`
+  - `locallama_gui.app` -> `locallama_gui.ui.production_fixes.apply_production_fixes`
+- Third-party dependencies:
+  - `platformdirs`
+  - `PySide6`
+
+### Public / Internal API
+
+- Public module-level function: `main()`.
+- Imported symbols are dependencies rather than definitions originating in this file.
+- No explicitly private functions/classes are defined.
+- The `if __name__ == "__main__"` block exposes direct script execution and raises `SystemExit(main())`.
+
+### Runtime / API Behavior
+
+- Direct execution of the file invokes `main()` and passes its integer result to `SystemExit`.
+- The startup path is intentionally sensitive to whether the user configuration file exists.
+- First-run mode temporarily disables `MainWindow.refresh_backend` during construction by assigning a lambda, then restores the original method before continuing.
+- Normal and first-run startup both call `apply_production_fixes`, `show`, and the Qt event loop.
+
+### CLI / UI / Events
+
+- CLI integration: uses `sys.argv` when constructing `QApplication`.
+- UI integration: creates `MainWindow`, applies production fixes, shows the window.
+- Event integration: starts the Qt event loop through `app.exec()`.
+- No Qt signals, slots, callbacks, or event handlers are declared directly in this file.
+- The temporary `refresh_backend` lambda is a callable substitution, but it is not declared as a Qt signal/slot/callback API.
+
+### Configuration / Environment Dependencies
+
+Direct environment dependencies:
+- `QT_ENABLE_HIGHDPI_SCALING`, defaulted to `"1"` if absent.
+- `QT_AUTO_SCREEN_SCALE_FACTOR`, defaulted to `"1"` if absent.
+
+Direct configuration dependencies:
+- `APP_NAME` is passed to `user_config_dir`.
+- Literal organization name `"LocalLama"` is also passed to `user_config_dir`.
+- `config.json` is used as the existence test for first-run detection.
+- `AppConfig.load()` supplies the runtime configuration.
+- `config.paths.logs_dir` supplies the logging destination.
+
+### Error Handling
+
+- A `try/finally` surrounds `MainWindow(config)`.
+- Its purpose is to restore the original `MainWindow.refresh_backend` whether construction succeeds or fails.
+- No exception is swallowed or transformed by this file.
+- Other startup failures propagate to the caller.
+
+### Directly Observed vs Inferred
+
+**DIRECTLY OBSERVED**
+
+- Both Qt scaling environment variables are set with `setdefault`.
+- `config_path` is based on `user_config_dir(APP_NAME, "LocalLama") / "config.json"`.
+- `first_run` is true exactly when that path does not exist at the time of the check.
+- `AppConfig.load()` is called before `configure_logging`.
+- `QApplication` is created with `sys.argv`.
+- The application name is set to `MyLoAI Control Center`.
+- The organization name is set to `LocalLama`.
+- The Qt application attribute `AA_DontCreateNativeWidgetSiblings` is set.
+- `MainWindow.refresh_backend` is temporarily replaced only when `first_run` is true.
+- The original `refresh_backend` object is restored in `finally`.
+- `apply_production_fixes` receives the window and `first_run` flag.
+- The window is shown and the Qt event loop is executed.
+- The event-loop result is returned from `main`.
+
+**INFERRED**
+
+- The `config.json` existence test is intended to distinguish first-run initialization from subsequent launches.
+- The temporary `refresh_backend` replacement is intended to prevent backend refresh during first-run window construction, because the replacement is conditional on `first_run` and returns `None`.
+- `main()` is the application's primary GUI startup routine, based on its orchestration of configuration, logging, Qt application creation, main-window construction, fixes, display, and event-loop execution.
+
+**UNKNOWN / NOT DETERMINABLE FROM SOURCE**
+
+- The exact configuration fields loaded by `AppConfig.load()`.
+- Whether `AppConfig.load()` creates the configuration file when missing.
+- The exact logging behavior and files opened by `configure_logging`.
+- The exact behavior of `MainWindow.refresh_backend` outside this file.
+- The exact behavior of `MainWindow(config)` and the resources it accesses.
+- The exact behavior of `apply_production_fixes`.
+- Whether the `Qt` environment variables affect this specific PySide6 runtime in all supported environments.
+- The exact integer semantics returned by `QApplication.exec()` beyond the fact that the result is returned by `main`.
+
+### Unresolved Items
+
+- `AppConfig.load()` requires its own production-file audit for complete configuration API mapping.
+- `configure_logging` requires its own production-file audit for complete logging behavior mapping.
+- `MainWindow` requires its own production-file audit for complete UI startup and `refresh_backend` mapping.
+- `apply_production_fixes` requires its own production-file audit for complete startup-fix behavior mapping.
+
+STATUS: FULLY MAPPED
