@@ -513,3 +513,326 @@ Direct configuration dependencies:
 - `apply_production_fixes` requires its own production-file audit for complete startup-fix behavior mapping.
 
 STATUS: FULLY MAPPED
+
+---
+
+## AUDIT SEQUENCE: 3
+
+- **Repository:** `GR00T-User-706/locallama-gui`
+- **Repository-relative file:** `locallama_gui/core/config.py`
+- **Filename:** `config.py`
+- **Language:** Python
+- **Package/module:** `locallama_gui.core.config`
+- **Audit date:** 2026-09-30
+- **Audit status:** Complete
+- **Source revision audited:** `2d6283ec89786f509fa5089c706c422cafb365dd`
+
+### File Identity
+
+- Complete source file parsed.
+- Configuration, provider-profile, credential-store, generation-parameter, UI-settings, and application-configuration module.
+- No explicit module-level version declaration is present.
+- Module-level constants: `APP_NAME`, `CONFIG_SCHEMA_VERSION`, `APP_SYSTEM_PROMPT`.
+
+### Imports
+
+#### `from __future__ import annotations`
+- Classification: Python language feature.
+- Defers annotation evaluation.
+
+#### `import json`
+- Classification: standard library.
+- Used for JSON configuration serialization and parsing.
+
+#### `from dataclasses import asdict, dataclass, field`
+- Classification: standard library.
+- Used for dataclasses, field factories, and serialization of dataclass state.
+
+#### `from pathlib import Path`
+- Classification: standard library.
+- Used for configuration/data/log/session/prompt/agent/modelfile/plugin paths and filesystem operations.
+
+#### `from typing import Any`
+- Classification: standard library typing.
+- Used in dictionary type annotations.
+
+#### `import keyring`
+- Classification: third-party.
+- Used for operating-system credential-store access.
+
+#### `from keyring.errors import KeyringError, PasswordDeleteError`
+- Classification: third-party.
+- Used for credential-store error handling.
+
+#### `from platformdirs import user_config_dir, user_data_dir, user_log_dir`
+- Classification: third-party.
+- Used for platform-specific per-user directories.
+
+### Module-Level Definitions
+
+#### `APP_NAME`
+- Value: `"locallama-gui"`.
+- Used as the application identifier for paths and credential-store service naming.
+
+#### `CONFIG_SCHEMA_VERSION`
+- Value: `2`.
+- Current persisted configuration schema version.
+
+#### `APP_SYSTEM_PROMPT`
+- Multiline string constant containing the application's default system-prompt text.
+- No executable side effects.
+
+### `CredentialStore`
+
+Class purpose: stores provider credentials through the operating-system credential store.
+
+Class attribute:
+- `service_name = APP_NAME`
+
+#### `_username(cls, profile: ProviderProfile) -> str`
+- Decorator: `@classmethod`.
+- Builds the credential-store username as `<provider_type>:<name>`.
+- Reads `profile.provider_type` and `profile.name`.
+- No direct side effects.
+
+#### `get(cls, profile: ProviderProfile) -> str`
+- Decorator: `@classmethod`.
+- Calls `keyring.get_password(cls.service_name, cls._username(profile))`.
+- Returns the stored value or `""` when no value is returned.
+- Catches `KeyringError` and returns `""`.
+- Does not write to the filesystem directly.
+
+#### `set(cls, profile: ProviderProfile, api_key: str) -> None`
+- Decorator: `@classmethod`.
+- Empty `api_key`: calls `keyring.delete_password`; suppresses `PasswordDeleteError` and `KeyringError`; returns.
+- Non-empty `api_key`: calls `keyring.set_password`.
+- Converts `KeyringError` from `set_password` into `RuntimeError`, preserving the original exception as its cause.
+- Side effect: writes/deletes credential-store state.
+
+### `AppPaths`
+
+Dataclass with `slots=True`.
+
+Fields:
+- `config_dir: Path`
+- `data_dir: Path`
+- `logs_dir: Path`
+- `sessions_dir: Path`
+- `prompts_dir: Path`
+- `agents_dir: Path`
+- `modelfiles_dir: Path`
+- `plugins_dir: Path`
+
+#### `create(cls) -> AppPaths`
+- Decorator: `@classmethod`.
+- Calls `user_config_dir(APP_NAME, "LocalLama")`, `user_data_dir(APP_NAME, "LocalLama")`, and `user_log_dir(APP_NAME, "LocalLama")`.
+- Derives application subdirectories from `data_dir`.
+- Instantiates `AppPaths`.
+- Iterates through all path fields using `asdict(paths).values()`.
+- Creates every path with `mkdir(parents=True, exist_ok=True)`.
+- Returns the resulting `AppPaths` instance.
+- Side effect: creates directories on the filesystem.
+
+### `ProviderProfile`
+
+Dataclass with `slots=True`.
+
+Fields/defaults:
+- `name: str = "Local Ollama"`
+- `provider_type: str = "ollama"`
+- `base_url: str = "http://localhost:11434"`
+- `api_key: str = ""`
+- `default_model: str = ""`
+- `enabled: bool = True`
+
+No explicit methods.
+
+### `GenerationParameters`
+
+Dataclass with `slots=True`.
+
+Fields/defaults:
+- `temperature: float = 0.7`
+- `top_k: int = 40`
+- `top_p: float = 0.9`
+- `min_p: float = 0.0`
+- `repeat_penalty: float = 1.1`
+- `repeat_last_n: int = 64`
+- `mirostat: int = 0`
+- `mirostat_eta: float = 0.1`
+- `mirostat_tau: float = 5.0`
+- `tfs_z: float = 1.0`
+- `num_predict: int = 512`
+- `seed: int = -1`
+- `stop: list[str]` with `field(default_factory=list)`
+- `num_ctx: int = 4096`
+- `num_batch: int = 512`
+- `num_gpu: int = -1`
+- `reasoning_mode: str = "normal"`
+- `thinking_mode: bool = False`
+- `plan_mode: bool = False`
+- `normal_mode: bool = True`
+
+#### `__post_init__(self) -> None`
+- Normalizes `reasoning_mode` to one of `normal`, `thinking`, or `plan`.
+- Invalid values become `normal`.
+- When `reasoning_mode` is `normal`, `thinking_mode` takes precedence over `plan_mode` if either legacy boolean is true.
+- Synchronizes all three boolean mode fields from the resulting `reasoning_mode`.
+- Mutates instance state.
+
+#### `to_backend_options(self) -> dict[str, Any]`
+- Builds and returns a dictionary containing the generation parameters used for backend options.
+- Includes `temperature`, `top_k`, `top_p`, `min_p`, `repeat_penalty`, `repeat_last_n`, `num_predict`, `seed`, `stop`, `num_ctx`, `num_batch`, and `num_gpu`.
+- Adds `"think": True` only when `reasoning_mode == "thinking"`.
+- Does not mutate the instance.
+
+### `UISettings`
+
+Dataclass with `slots=True`.
+
+Fields/defaults:
+- `theme: str = "dark"`
+- `geometry_hex: str = ""`
+- `state_hex: str = ""`
+- `active_session_id: str = ""`
+- `font_size: int = 12`
+
+No explicit methods.
+
+### `AppConfig`
+
+Dataclass with `slots=True`.
+
+Fields/defaults:
+- `paths: AppPaths`, default factory `AppPaths.create`
+- `schema_version: int`, default `CONFIG_SCHEMA_VERSION`
+- `provider_profiles: list[ProviderProfile]`, default factory containing one `ProviderProfile`
+- `active_provider: str = "Local Ollama"`
+- `parameters: GenerationParameters`, default factory
+- `parameter_presets: dict[str, dict[str, Any]]`, empty dict factory
+- `enabled_plugins: dict[str, bool]`, empty dict factory
+- `trusted_plugins: list[str]`, empty list factory
+- `developer_mode: bool = False`
+- `ui: UISettings`, default factory
+- `global_system_prompt: str = "You are a helpful, concise assistant."`
+
+#### `file_path(self) -> Path`
+- Decorator: `@property`.
+- Returns `self.paths.config_dir / "config.json"`.
+- No side effects.
+
+#### `_migrate_data(cls, data: dict[str, Any]) -> tuple[dict[str, Any], bool]`
+- Decorator: `@classmethod`.
+- Reads `schema_version`, defaulting to `1`.
+- Converts it to `int`.
+- Raises `ValueError` if the version is greater than `CONFIG_SCHEMA_VERSION`.
+- Marks migration required when the version differs from the current version.
+- For version `1`, copies the dictionary and sets `schema_version` to `2`.
+- Returns `(data, migrated)`.
+
+#### `load(cls) -> AppConfig`
+- Decorator: `@classmethod`.
+- Calls `AppPaths.create()`.
+- Uses `<config_dir>/config.json` as the configuration file.
+- If the file does not exist, creates a default `AppConfig`, saves it, and returns it.
+- Otherwise reads UTF-8 text and parses JSON.
+- Requires the top-level JSON value to be a dictionary; otherwise raises `ValueError`.
+- Calls `_migrate_data`.
+- Reconstructs `ProviderProfile` objects from persisted data.
+- Removes legacy persisted `api_key` from the serialized provider dictionary and migrates it into `CredentialStore` when present.
+- Otherwise retrieves the credential through `CredentialStore.get`.
+- Constructs `AppConfig` including parameters, presets, plugin state, trusted plugins, developer mode, UI settings, and global system prompt.
+- Saves again when schema or credential migration occurred.
+- External resources: filesystem read/write and OS credential store.
+- Potential JSON, filesystem, dataclass, credential-store, and migration exceptions are not generally caught here.
+
+#### `save(self) -> None`
+- Forces `schema_version` to `CONFIG_SCHEMA_VERSION`.
+- Stores each provider credential through `CredentialStore.set`.
+- Serializes provider profiles without `api_key`.
+- Serializes generation parameters and UI settings with `asdict`.
+- Creates the configuration directory if necessary.
+- Writes pretty-printed UTF-8 JSON to `self.file_path`.
+- Attempts `chmod(0o600)` on the configuration file.
+- Suppresses `OSError` from the permission change.
+- Side effects: credential-store writes/deletes, directory creation, configuration-file write, and attempted permission change.
+
+#### `active_profile(self) -> ProviderProfile`
+- Iterates through `provider_profiles` and returns the first profile whose `name` equals `active_provider`.
+- If none matches, returns `provider_profiles[0]`.
+- Potential `IndexError` exists when the list is empty; no local handling is present.
+
+### Types and Relationships
+
+- `AppConfig` composes `AppPaths`, `ProviderProfile`, `GenerationParameters`, and `UISettings`.
+- `CredentialStore` consumes `ProviderProfile`.
+- `AppConfig.load()` and `save()` coordinate the credential store, filesystem configuration, provider profiles, generation parameters, plugin settings, and UI settings.
+- `AppPaths` depends on `platformdirs`.
+- `AppConfig` depends on JSON and dataclass serialization.
+- No inheritance beyond dataclass-generated behavior is defined.
+- No enums, protocols, type aliases, or registries are defined.
+
+### Public vs Internal API
+
+Public/module-facing definitions include `APP_NAME`, `CONFIG_SCHEMA_VERSION`, `APP_SYSTEM_PROMPT`, `CredentialStore`, `AppPaths`, `ProviderProfile`, `GenerationParameters`, `UISettings`, and `AppConfig`.
+
+Internal/private interfaces identifiable by naming include `CredentialStore._username` and `AppConfig._migrate_data`.
+
+### Runtime / API Behavior
+
+- Provides platform-specific application directories.
+- Provides provider configuration and credential-store integration.
+- Provides generation-parameter state and backend-option conversion.
+- Provides UI-state persistence structures.
+- Provides versioned JSON configuration loading, migration, and saving.
+- Separates provider API keys from ordinary persisted JSON data by storing them through `keyring` and omitting them from the serialized provider profile.
+- No Qt widgets, signals, slots, callbacks, subprocesses, networking, or database access are directly implemented in this module.
+
+### Configuration / Environment Dependencies
+
+- `APP_NAME` and organization name `LocalLama` determine platform-specific directories and credential-store service naming.
+- Configuration filename is `config.json`.
+- Current schema version is `2`.
+- No environment variables are directly read.
+
+### Error Handling
+
+- `CredentialStore.get` suppresses `KeyringError` and returns an empty credential.
+- `CredentialStore.set` suppresses delete errors and converts credential-store write errors to `RuntimeError`.
+- `_migrate_data` raises `ValueError` for unsupported future schema versions.
+- `load` raises `ValueError` for non-object JSON configuration.
+- `save` suppresses `OSError` from `chmod(0o600)`.
+- No broad exception handling is present around JSON parsing, filesystem reads/writes, dataclass construction, or other operations.
+
+### Directly Observed vs Inferred
+
+**DIRECTLY OBSERVED**
+
+- All imports, constants, classes, fields, methods, decorators, default values, filesystem operations, JSON operations, credential-store operations, migration logic, and exception handling described above are present in the source.
+- `api_key` is excluded from the JSON provider-profile dictionary written by `save`.
+- Legacy persisted `api_key` values are detected and passed to `CredentialStore.set` by `load`.
+- `GenerationParameters.__post_init__` synchronizes reasoning-mode booleans.
+- `to_backend_options` adds `think=True` only for `thinking` mode.
+
+**INFERRED**
+
+- Credential separation is intended to keep API keys out of the ordinary JSON configuration, based on the observed migration and save behavior.
+- Schema version `1` represents an older persisted format because `_migrate_data` explicitly migrates it to `2`.
+- `config.json` is the persistent application configuration store based on `file_path`, `load`, and `save` behavior.
+
+**UNKNOWN / NOT DETERMINABLE FROM SOURCE**
+
+- Which external modules consume every individual configuration field.
+- Whether every backend supports every field emitted by `to_backend_options`.
+- Whether any older schema existed before version `1`.
+- Whether external code depends on configuration-file permissions being exactly `0600`.
+- Whether an empty provider-profile list can legitimately reach `active_profile`.
+- Whether `APP_SYSTEM_PROMPT` is used by all assistant/session paths elsewhere in the repository.
+
+### Unresolved Items
+
+- Cross-module consumers of `AppConfig`, `GenerationParameters`, and `UISettings` require separate file audits.
+- The behavior of the external `keyring` backend implementation is not part of this source file.
+- The exact platform-specific paths returned by `platformdirs` depend on the runtime environment and are not determinable from source alone.
+
+STATUS: FULLY MAPPED
