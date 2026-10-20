@@ -1,6 +1,14 @@
 # Prerequisites
 *.d
+# Generated application bundles
+/dist/
+/build/
 
+# Arch package build output
+/packaging/linux/src/
+/packaging/linux/pkg/
+/packaging/linux/*.pkg.tar.zst
+/packaging/linux/*.tar.gz
 # Compiled Object files
 *.slo
 *.lo
@@ -94,3 +102,11 @@ __pycache__/
 .venv/
 *.egg-info/
 *.cpython-314.pyc
+
+# Generated PyInstaller and Arch package build output
+/dist/
+/build/
+/packaging/linux/src/
+/packaging/linux/pkg/
+/packaging/linux/*.pkg.tar.zst
+/packaging/linux/*.tar.gz
