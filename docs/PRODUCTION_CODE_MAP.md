@@ -674,16 +674,15 @@ Fields/defaults:
 - `normal_mode: bool = True`
 
 #### `__post_init__(self) -> None`
-- Normalizes `reasoning_mode` to one of `normal`, `thinking`, or `plan`.
-- Invalid values become `normal`.
-- When `reasoning_mode` is `normal`, `thinking_mode` takes precedence over `plan_mode` if either legacy boolean is true.
-- Synchronizes all three boolean mode fields from the resulting `reasoning_mode`.
+- Temporarily forces `reasoning_mode` to `normal` regardless of legacy persisted values.
+- Forces `thinking_mode=False`, `plan_mode=False`, and `normal_mode=True`.
+- Retains the legacy fields only so older configuration files remain readable.
 - Mutates instance state.
 
 #### `to_backend_options(self) -> dict[str, Any]`
 - Builds and returns a dictionary containing the generation parameters used for backend options.
 - Includes `temperature`, `top_k`, `top_p`, `min_p`, `repeat_penalty`, `repeat_last_n`, `num_predict`, `seed`, `stop`, `num_ctx`, `num_batch`, and `num_gpu`.
-- Adds `"think": True` only when `reasoning_mode == "thinking"`.
+- Does not emit `think`, `plan`, or other reasoning-mode request fields.
 - Does not mutate the instance.
 
 ### `UISettings`
@@ -811,8 +810,8 @@ Internal/private interfaces identifiable by naming include `CredentialStore._use
 - All imports, constants, classes, fields, methods, decorators, default values, filesystem operations, JSON operations, credential-store operations, migration logic, and exception handling described above are present in the source.
 - `api_key` is excluded from the JSON provider-profile dictionary written by `save`.
 - Legacy persisted `api_key` values are detected and passed to `CredentialStore.set` by `load`.
-- `GenerationParameters.__post_init__` synchronizes reasoning-mode booleans.
-- `to_backend_options` adds `think=True` only for `thinking` mode.
+- `GenerationParameters.__post_init__` normalizes legacy reasoning fields to normal mode.
+- `to_backend_options` does not emit reasoning-mode request fields.
 
 **INFERRED**
 
