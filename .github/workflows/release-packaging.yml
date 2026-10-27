@@ -31,12 +31,17 @@ jobs:
           python - <<'PY'
           import importlib.metadata
           import pathlib
+          import subprocess
+          import sys
           import tomllib
           data = tomllib.loads(pathlib.Path('pyproject.toml').read_text())
           expected_version = data['project']['version']
-          assert data['project']['name'] == 'locallama-gui'
-          dist = importlib.metadata.metadata('locallama-gui')
-          assert dist['Name'] == 'locallama-gui'
+          expected_name = data['project']['name']
+          assert expected_name == 'myloai'
+          wheel = next(pathlib.Path('dist').glob('*.whl'))
+          subprocess.run([sys.executable, '-m', 'pip', 'install', '--no-deps', str(wheel)], check=True)
+          dist = importlib.metadata.metadata('myloai')
+          assert dist['Name'].lower() == expected_name
           assert dist['Version'] == expected_version
           scripts = importlib.metadata.entry_points(group='console_scripts')
           names = {entry.name for entry in scripts if entry.name in {'myloai', 'locallama-gui'}}
