@@ -51,13 +51,6 @@ class OllamaBackend(LLMBackend):
             sanitized[key] = value
         return sanitized
 
-    @staticmethod
-    def sanitize_request_fields(options: dict[str, Any]) -> dict[str, Any]:
-        request_fields: dict[str, Any] = {}
-        if options.get("think") is True:
-            request_fields["think"] = True
-        return request_fields
-
     @classmethod
     def build_chat_payload(
         cls,
@@ -71,7 +64,6 @@ class OllamaBackend(LLMBackend):
             "messages": [{"role": message.role, "content": message.content} for message in messages],
             "options": cls.sanitize_options(options),
             "stream": stream,
-            **cls.sanitize_request_fields(options),
         }
 
     async def test_connection(self) -> BackendStatus:

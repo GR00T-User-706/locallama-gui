@@ -177,7 +177,7 @@ Also verify:
 - [ ] Reopen/manage an existing agent.
 - [ ] Import an agent JSON file.
 - [ ] Export an agent JSON file.
-- [ ] Model, reasoning, behavior, memory, execution policy, tools and plugins fields round-trip correctly.
+- [ ] Model, behavior, memory, execution policy, tools and plugins fields round-trip correctly.
 - [ ] Confirm the current limitation that agent profiles do not yet alter chat generation/tool execution unless the active application path explicitly wires them in.
 
 ## 10. Prompts
@@ -211,7 +211,12 @@ Also verify:
 - [ ] API keys are retrieved from the OS credential store.
 - [ ] Generation parameters save/load.
 - [ ] Parameter presets save/load.
-- [ ] Reasoning mode persists and maps to the expected backend request behavior.
+- [ ] Reasoning controls are absent from Generation Parameters and Agent Builder.
+- [ ] Legacy reasoning settings load as normal mode.
+- [ ] Outgoing Ollama chat payloads contain neither `think` nor `plan`, including when legacy values are present.
+- [ ] API-key input is masked in the API Endpoints dialog.
+- [ ] Saving an endpoint stores its API key through the OS credential store and excludes it from `config.json`.
+- [ ] Windows packaged build can retrieve a saved API key from the Windows credential store.
 
 ## 13. Desktop integration
 

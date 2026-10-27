@@ -1,32 +1,13 @@
-# Parameters Reference (Baseline)
+# Parameters Reference
 
-Date: 2026-05-25
-Scope: Baseline explanation of generation/config parameters from observed config/backend mapping.
+## Generation parameters
 
-## Reasoning Mode
+The active parameter dialog exposes sampling, context, GPU, and stop-sequence settings. Reasoning, thinking, and planning controls are temporarily disabled for beta compatibility while backend request behavior is reviewed.
 
-### CONFIRMED
-`locallama_gui/core/config.py` defines `reasoning_mode` with allowed values:
-- `normal`
-- `thinking`
-- `plan`
+Legacy configuration fields (`reasoning_mode`, `thinking_mode`, and `plan_mode`) remain readable so existing user configuration files continue to load. On load, these fields are normalized to normal mode. They are not exposed in the UI and are never serialized into chat request payloads.
 
-Backward compatibility logic maps older booleans into `reasoning_mode`.
+## Core generation parameters
 
-Backend option mapping:
-- `thinking` => sends `think: true`
-- `plan` => sends `plan: true`
-- `normal` => sends neither flag
-
-### LIKELY
-- UI currently exposes this as a single exclusive control (per changelog notes).
-
-### UNKNOWN
-- Whether all dialogs/tooltips clearly communicate this behavior to end users.
-
-## Core Generation Parameters (Observed)
-
-From `GenerationParameters` in `core/config.py`:
 - `temperature`
 - `top_k`
 - `top_p`
@@ -44,18 +25,4 @@ From `GenerationParameters` in `core/config.py`:
 - `num_batch`
 - `num_gpu`
 
-## Operational Notes
-
-### CONFIRMED
-- Parameters are persisted via `AppConfig` serialization.
-- Backend options are built through `to_backend_options()`.
-
-### LIKELY
-- Parameter presets are user-editable through parameter dialogs/workflows.
-
-### UNKNOWN
-- Final UI copy quality, guardrails, and validation behavior for edge values.
-
-## TODO
-- Add user-facing recommended ranges and backend compatibility notes.
-- Add examples for common profiles (balanced, deterministic, long-context).
+Parameter values are persisted through `AppConfig`. Parameter presets remain supported; legacy reasoning keys in older presets are ignored.
