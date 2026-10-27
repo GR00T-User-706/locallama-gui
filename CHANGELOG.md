@@ -1,3 +1,13 @@
+## [Unreleased]
+
+### Fixed
+- Corrected production distribution validation to verify the `myloai` wheel metadata and installed console entry points.
+- Temporarily disabled reasoning controls and prevented legacy thinking/planning settings from entering outgoing chat requests.
+- Masked API-key entry in the endpoint editor while retaining OS credential-store persistence.
+
+### Documentation
+- Updated the feature matrix, parameter reference, QA checklist, and README to reflect the temporary reasoning-mode suspension.
+
 ## [1.2.12] - 2026-09-24
 
 ### Fixed
