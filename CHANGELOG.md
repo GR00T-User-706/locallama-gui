@@ -9,6 +9,11 @@
 ### Documentation
 - Kept Prompt Manager functionality aligned with the existing feature matrix and QA expectations.
 
+## [Unreleased]
+
+### Documentation
+- Added project-specific standards for the MyLoAI desktop application, provider behavior, configuration, plugins, user documentation, and supported package formats.
+
 ## [1.2.11] - 2026-09-24
 
 ### Fixed
