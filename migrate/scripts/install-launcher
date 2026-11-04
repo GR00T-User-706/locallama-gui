@@ -1,0 +1,29 @@
+#!/bin/sh
+set -eu
+
+DRY_RUN=0
+if [ "${1:-}" = "--dry-run" ]; then
+  DRY_RUN=1
+elif [ "${1:-}" != "" ]; then
+  echo "Usage: $0 [--dry-run]" >&2
+  exit 2
+fi
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+REPO_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+SOURCE="$REPO_ROOT/run-locallama"
+TARGET_DIR="${HOME}/.local/bin"
+TARGET="$TARGET_DIR/run-locallama"
+
+[ -f "$SOURCE" ] || { echo "Missing launcher at $SOURCE" >&2; exit 1; }
+
+echo "Installing launcher to $TARGET"
+if [ "$DRY_RUN" -eq 1 ]; then
+  echo "[dry-run] mkdir -p $TARGET_DIR"
+  echo "[dry-run] ln -sf $SOURCE $TARGET"
+  exit 0
+fi
+
+mkdir -p "$TARGET_DIR"
+ln -sf "$SOURCE" "$TARGET"
+echo "Installed: $TARGET"
