@@ -236,3 +236,7 @@ This project uses **semantic versioning** (`MAJOR.MINOR.PATCH`):
 See [`CHANGELOG.md`](CHANGELOG.md) for release history.
 See [`docs/VERSIONING.md`](docs/VERSIONING.md) for the synchronization policy.
 See [`docs/REPO_ANALYSIS.md`](docs/REPO_ANALYSIS.md) for current architecture and cleanup status.
+
+## Project standards
+
+See [PROJECT_STANDARDS.md](docs/PROJECT_STANDARDS.md) for the project-specific documentation, packaging, contribution, and validation standards.
