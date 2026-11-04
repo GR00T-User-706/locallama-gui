@@ -1,0 +1,38 @@
+#!/bin/sh
+set -eu
+
+DRY_RUN=0
+if [ "${1:-}" = "--dry-run" ]; then
+  DRY_RUN=1
+elif [ "${1:-}" != "" ]; then
+  echo "Usage: $0 [--dry-run]" >&2
+  exit 2
+fi
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+REPO_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+SOURCE="$REPO_ROOT/packaging/linux/com.github.gr00t-user-706.locallama-gui.desktop"
+TARGET_DIR="${HOME}/.local/share/applications"
+TARGET="$TARGET_DIR/com.github.gr00t-user-706.locallama-gui.desktop"
+LAUNCHER_PATH="${HOME}/.local/bin/run-locallama"
+
+[ -f "$SOURCE" ] || { echo "Missing desktop source file at $SOURCE" >&2; exit 1; }
+
+echo "Installing desktop entry to $TARGET"
+if [ "$DRY_RUN" -eq 1 ]; then
+  echo "[dry-run] mkdir -p $TARGET_DIR"
+  echo "[dry-run] write desktop file with Exec=$LAUNCHER_PATH"
+  if command -v update-desktop-database >/dev/null 2>&1; then
+    echo "[dry-run] update-desktop-database ${HOME}/.local/share/applications"
+  fi
+  exit 0
+fi
+
+mkdir -p "$TARGET_DIR"
+sed "s|^Exec=.*$|Exec=$LAUNCHER_PATH|" "$SOURCE" > "$TARGET"
+
+if command -v update-desktop-database >/dev/null 2>&1; then
+  update-desktop-database "${HOME}/.local/share/applications" || true
+fi
+
+echo "Installed: $TARGET"
