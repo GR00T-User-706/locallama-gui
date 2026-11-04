@@ -16,7 +16,7 @@ The source repository is preserved. Nothing in the original application tree was
 
 ## Migration status
 
-<badge color="success">105 files copied and verified</badge>
+**105 files copied and verified.**
 
 - 105 source files were copied to the same relative paths under `migrate/`.
 - All 105 copied files have Git blob identifiers identical to their source files. This verifies byte-for-byte equality at the Git blob level.
