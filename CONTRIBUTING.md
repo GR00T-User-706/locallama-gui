@@ -26,3 +26,8 @@ These trees are historical storage, not active product roots. Changes there are 
 - Do not revive archived code in place. Move useful code into the active tree and validate it there.
 - When security-sensitive behavior changes, include regression coverage where practical.
 - Update version and changelog entries for meaningful implementation changes according to `AGENTS.md` and `docs/VERSIONING.md`.
+
+
+## Packaging and user documentation contributions
+
+All changes to package formats, metadata, build scripts, installers, release payloads, configuration, CLI help, man pages, and user manuals MUST comply with the Cross-Platform Packaging and User Documentation Contract in `AGENTS.md`. Inspect every supported package path, preserve parity across package formats, update user documentation and payload tests, and report the precise validation performed. Do not claim parity from a successful build of only one format.
