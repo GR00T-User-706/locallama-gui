@@ -1,0 +1,261 @@
+from __future__ import annotations
+
+import json
+import sys
+from dataclasses import asdict
+from pathlib import Path
+
+import psutil
+from PySide6.QtGui import QAction
+from PySide6.QtWidgets import QFileDialog, QInputDialog, QMenu, QMessageBox
+
+from locallama_gui import __version__
+from locallama_gui.core.domain import AgentProfile
+from locallama_gui.ui.model_browser import ModelBrowserDialog
+from locallama_gui.ui.setup_wizard import FirstRunWizard
+from locallama_gui.ui.theme import dark_qss
+
+
+def _menu(window, title: str) -> QMenu | None:
+    try:
+        actions = list(window.menuBar().actions())
+    except RuntimeError:
+        return None
+    for action in actions:
+        try:
+            menu = action.menu()
+            if menu is not None and menu.title() == title:
+                return menu
+        except RuntimeError:
+            continue
+    return None
+
+
+def _submenu(menu: QMenu | None, title: str) -> QMenu | None:
+    if menu is None:
+        return None
+    try:
+        actions = list(menu.actions())
+    except RuntimeError:
+        return None
+    for action in actions:
+        try:
+            submenu = action.menu()
+            if submenu is not None and submenu.title() == title:
+                return submenu
+        except RuntimeError:
+            continue
+    return None
+
+
+def _remove_action(menu: QMenu | None, text: str) -> None:
+    if menu is None:
+        return
+    try:
+        actions = list(menu.actions())
+    except RuntimeError:
+        return
+    for action in actions:
+        try:
+            if action.text() == text:
+                menu.removeAction(action)
+        except RuntimeError:
+            continue
+
+
+def _replace_action(menu, text: str, callback) -> None:
+    if menu is None:
+        return
+    for action in menu.actions():
+        if action.text() == text:
+            try:
+                action.triggered.disconnect()
+            except (RuntimeError, TypeError):
+                pass
+            action.triggered.connect(callback)
+            return
+
+
+def _resource_path(name: str) -> Path:
+    frozen_root = getattr(sys, "_MEIPASS", "")
+    if frozen_root:
+        return Path(frozen_root) / "docs" / name
+    root = Path(__file__).resolve().parents[2]
+    if name == "PLUGIN_SDK.md":
+        return root / "docs" / name
+    return root / "packaging" / name
+
+
+def _open_bundled_document(window, title: str, name: str) -> None:
+    path = _resource_path(name)
+    try:
+        content = path.read_text(encoding="utf-8")
+    except OSError as error:
+        QMessageBox.warning(window, title, f"Unable to open bundled documentation:\n{error}")
+        return
+    window._show_text_dialog(title, content[:20000])
+
+
+def _show_about(window) -> None:
+    QMessageBox.about(
+        window,
+        "About MyLoAI",
+        "MyLoAI Control Center\n\nA desktop control center for local and remote LLM services.\n\n"
+        f"Version {__version__}",
+    )
+
+
+def _choose_theme(window) -> None:
+    choice, ok = QInputDialog.getItem(
+        window,
+        "Theme",
+        "Select application theme:",
+        ["MyLoAI Dark", "System"],
+        0 if window.config.ui.theme == "dark" else 1,
+        False,
+    )
+    if not ok:
+        return
+    if choice == "MyLoAI Dark":
+        window.config.ui.theme = "dark"
+        window.setStyleSheet(dark_qss(window.config.ui.font_size))
+    else:
+        window.config.ui.theme = "system"
+        window.setStyleSheet("")
+    window.config.save()
+
+
+def _import_agent(window) -> None:
+    path, _ = QFileDialog.getOpenFileName(window, "Import Agent", "", "JSON (*.json)")
+    if not path:
+        return
+    try:
+        agent = AgentProfile(**json.loads(Path(path).read_text(encoding="utf-8")))
+        window.agents.upsert(agent)
+        QMessageBox.information(window, "Import Agent", f"Imported agent: {agent.name}")
+    except (OSError, ValueError, TypeError, KeyError) as error:
+        QMessageBox.critical(window, "Import Agent", str(error))
+
+
+def _export_agent(window) -> None:
+    agents = window.agents.list()
+    if not agents:
+        QMessageBox.information(window, "Export Agent", "There are no saved agents to export.")
+        return
+    names = [agent.name for agent in agents]
+    name, ok = QInputDialog.getItem(window, "Export Agent", "Agent:", names, 0, False)
+    if not ok:
+        return
+    agent = agents[names.index(name)]
+    path, _ = QFileDialog.getSaveFileName(
+        window, "Export Agent", f"{agent.name}.json", "JSON (*.json)"
+    )
+    if not path:
+        return
+    try:
+        Path(path).write_text(json.dumps(asdict(agent), indent=2), encoding="utf-8")
+        QMessageBox.information(window, "Export Agent", f"Exported agent: {agent.name}")
+    except OSError as error:
+        QMessageBox.critical(window, "Export Agent", str(error))
+
+
+def _show_model_browser(window) -> None:
+    ram = psutil.virtual_memory().total / 1024**3
+    recommended = (
+        "gemma3:1b"
+        if ram < 6
+        else "qwen3.5:4b"
+        if ram < 12
+        else "mistral:7b"
+        if ram < 24
+        else "deepseek-r1:7b"
+    )
+    ModelBrowserDialog(window, recommended).exec()
+
+
+def _build_diagnostics_submenu(window, developer: QMenu | None) -> None:
+    if developer is None:
+        return
+
+    diagnostics_menu = _submenu(developer, "Diagnostics")
+
+    for text in (
+        "Logs",
+        "Console",
+        "Operations",
+        "Request Viewer",
+        "Token Viewer",
+        "Request Inspector",
+    ):
+        _remove_action(developer, text)
+
+    if diagnostics_menu is None:
+        _remove_action(developer, "Diagnostics")
+        try:
+            diagnostics_menu = developer.addMenu("Diagnostics")
+        except RuntimeError:
+            return
+    else:
+        try:
+            diagnostics_menu.clear()
+        except RuntimeError:
+            return
+
+    for text, callback in (
+        ("Logs", window.show_logs_dock),
+        ("Console", window.show_console_dock),
+        ("Operations", window.show_operations_dock),
+        ("Request Viewer", window.show_request_dock),
+        ("Token Viewer", window.show_token_dock),
+    ):
+        try:
+            action = diagnostics_menu.addAction(text)
+            action.triggered.connect(callback)
+        except RuntimeError:
+            return
+
+
+def _add_ai_model_settings(settings, window) -> None:
+    _remove_action(settings, "Model Settings")
+    _remove_action(settings, "AI Model Settings...")
+    action = QAction("AI Model Settings...", window)
+    action.triggered.connect(window.open_parameters)
+    settings.addAction(action)
+
+
+def apply_production_fixes(window, first_run: bool = False) -> None:
+    window.setWindowTitle("MyLoAI Control Center")
+
+    developer = _menu(window, "Developer")
+    if developer is not None:
+        _build_diagnostics_submenu(window, developer)
+
+    view_menu = _menu(window, "View")
+    _remove_action(view_menu, "Diagnostics")
+
+    help_menu = _menu(window, "Help")
+    _remove_action(help_menu, "Diagnostics")
+    _replace_action(help_menu, "Documentation", lambda: _open_bundled_document(window, "Documentation", "USER_MANUAL.md"))
+    _replace_action(help_menu, "About", lambda: _show_about(window))
+
+    settings = _menu(window, "Settings")
+    _add_ai_model_settings(settings, window)
+    _replace_action(settings, "Themes", lambda: _choose_theme(window))
+
+    agents = _menu(window, "Agents")
+    _replace_action(agents, "Import", lambda: _import_agent(window))
+    _replace_action(agents, "Export", lambda: _export_agent(window))
+
+    models = _menu(window, "Models")
+    if models is not None:
+        browser_action = QAction("Browse & Pull Models...", window)
+        browser_action.triggered.connect(lambda: _show_model_browser(window))
+        models.insertAction(models.actions()[0] if models.actions() else None, browser_action)
+
+    plugins = _menu(window, "Plugins")
+    _replace_action(plugins, "Developer Mode", lambda: _open_bundled_document(window, "Plugin SDK", "PLUGIN_SDK.md"))
+
+    if first_run:
+        from PySide6.QtCore import QTimer
+
+        QTimer.singleShot(250, lambda: FirstRunWizard(window.config, window).exec())
