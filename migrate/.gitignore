@@ -1,0 +1,112 @@
+# Prerequisites
+*.d
+# Generated application bundles
+/dist/
+/build/
+
+# Arch package build output
+/packaging/linux/src/
+/packaging/linux/pkg/
+/packaging/linux/*.pkg.tar.zst
+/packaging/linux/*.tar.gz
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Linker files
+*.ilk
+
+# Debugger Files
+*.pdb
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+*.so.*
+
+
+.directory
+.*~
+.*.desktop~
+.*.py~
+*.kdev4
+.*.pro~
+.*.stash
+moc_*.o
+moc_*.cpp
+moc_*.h
+*_*.o
+*.o
+.*.qrc~
+.*.cpp~
+.*.h~
+.*.qml~
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Build directories
+build/
+Build/
+build-*/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+install_manifest.txt
+compile_commands.json
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+*.swp
+
+# vcpkg
+vcpkg_installed/
+
+# debug information files
+*.dwo
+
+# test output & cache
+Testing/
+.cache/
+
+
+/home/lykthornyx/my-ollama/ollama_GUI/ollama-gui-qt/ollama-gui-qt
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+*.cpython-314.pyc
+
+# Generated PyInstaller and Arch package build output
+/dist/
+/build/
+/packaging/linux/src/
+/packaging/linux/pkg/
+/packaging/linux/*.pkg.tar.zst
+/packaging/linux/*.tar.gz
