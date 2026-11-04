@@ -1,0 +1,172 @@
+from __future__ import annotations
+
+import json
+import time
+from collections.abc import AsyncIterator
+from typing import Any, ClassVar
+
+import httpx
+
+from locallama_gui.backends.base import BackendStatus, LLMBackend
+from locallama_gui.core.domain import ChatMessage, ModelInfo
+
+
+class OllamaBackend(LLMBackend):
+    name = "ollama"
+    SUPPORTED_OPTIONS: ClassVar[set[str]] = {
+        "temperature",
+        "top_k",
+        "top_p",
+        "min_p",
+        "repeat_penalty",
+        "repeat_last_n",
+        "num_predict",
+        "seed",
+        "stop",
+        "num_ctx",
+        "num_batch",
+        "num_gpu",
+        "num_keep",
+        "typical_p",
+        "presence_penalty",
+        "frequency_penalty",
+        "main_gpu",
+        "use_mmap",
+        "num_thread",
+    }
+
+    @classmethod
+    def sanitize_options(cls, options: dict[str, Any]) -> dict[str, Any]:
+        sanitized: dict[str, Any] = {}
+        for key, value in options.items():
+            if key not in cls.SUPPORTED_OPTIONS:
+                continue
+            if value is None:
+                continue
+            if key == "stop":
+                stop_values = [item.strip() for item in value if str(item).strip()]
+                if stop_values:
+                    sanitized[key] = stop_values
+                continue
+            sanitized[key] = value
+        return sanitized
+
+    @staticmethod
+    def sanitize_request_fields(options: dict[str, Any]) -> dict[str, Any]:
+        request_fields: dict[str, Any] = {}
+        if options.get("think") is True:
+            request_fields["think"] = True
+        return request_fields
+
+    @classmethod
+    def build_chat_payload(
+        cls,
+        model: str,
+        messages: list[ChatMessage],
+        options: dict[str, Any],
+        stream: bool,
+    ) -> dict[str, Any]:
+        return {
+            "model": model,
+            "messages": [{"role": message.role, "content": message.content} for message in messages],
+            "options": cls.sanitize_options(options),
+            "stream": stream,
+            **cls.sanitize_request_fields(options),
+        }
+
+    async def test_connection(self) -> BackendStatus:
+        started = time.perf_counter()
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                response = await client.get(f"{self.base_url}/api/tags")
+                response.raise_for_status()
+            return BackendStatus("connected", (time.perf_counter() - started) * 1000, self.base_url)
+        except Exception as exc:  # noqa: BLE001 - surfaced to diagnostics UI
+            return BackendStatus("disconnected", (time.perf_counter() - started) * 1000, str(exc))
+
+    async def list_models(self) -> list[ModelInfo]:
+        async with httpx.AsyncClient(timeout=15) as client:
+            response = await client.get(f"{self.base_url}/api/tags")
+            response.raise_for_status()
+        models: list[ModelInfo] = []
+        for item in response.json().get("models", []):
+            details = item.get("details", {}) or {}
+            models.append(
+                ModelInfo(
+                    name=item.get("name", ""),
+                    size=item.get("size", 0),
+                    parameter_size=details.get("parameter_size", ""),
+                    quantization=details.get("quantization_level", ""),
+                    context_size=(item.get("model_info", {}) or {}).get("llama.context_length", 0),
+                    backend="Ollama",
+                    metadata=item,
+                )
+            )
+        return models
+
+    async def chat(
+        self,
+        model: str,
+        messages: list[ChatMessage],
+        options: dict[str, Any],
+        stream: bool,
+    ) -> AsyncIterator[str]:
+        payload = self.build_chat_payload(model, messages, options, stream)
+        async with httpx.AsyncClient(timeout=None) as client:
+            if stream:
+                async with client.stream("POST", f"{self.base_url}/api/chat", json=payload) as response:
+                    response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if not line:
+                            continue
+                        data = json.loads(line)
+                        if data.get("message", {}).get("content"):
+                            yield data["message"]["content"]
+                        if data.get("done"):
+                            break
+            else:
+                response = await client.post(f"{self.base_url}/api/chat", json=payload)
+                response.raise_for_status()
+                yield response.json().get("message", {}).get("content", "")
+
+    async def pull_model(self, name: str) -> AsyncIterator[str]:
+        async for text in self._stream_endpoint("/api/pull", {"name": name, "stream": True}):
+            yield text
+
+    async def push_model(self, name: str) -> AsyncIterator[str]:
+        async for text in self._stream_endpoint("/api/push", {"name": name, "stream": True}):
+            yield text
+
+    async def delete_model(self, name: str) -> None:
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.request("DELETE", f"{self.base_url}/api/delete", json={"name": name})
+            response.raise_for_status()
+
+    async def copy_model(self, source: str, destination: str) -> None:
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(f"{self.base_url}/api/copy", json={"source": source, "destination": destination})
+            response.raise_for_status()
+
+    async def create_model(self, name: str, modelfile: str) -> AsyncIterator[str]:
+        async for text in self._stream_endpoint("/api/create", {"name": name, "modelfile": modelfile, "stream": True}):
+            yield text
+
+    async def show_model(self, name: str) -> dict[str, Any]:
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(f"{self.base_url}/api/show", json={"name": name})
+            response.raise_for_status()
+            return response.json()
+
+    async def _stream_endpoint(self, path: str, payload: dict[str, Any]) -> AsyncIterator[str]:
+        async with httpx.AsyncClient(timeout=None) as client, client.stream(
+            "POST", f"{self.base_url}{path}", json=payload
+        ) as response:
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if not line:
+                    continue
+                data = json.loads(line)
+                error = str(data.get("error") or "").strip()
+                if error:
+                    raise RuntimeError(error)
+                yield json.dumps(data, separators=(",", ":"))
