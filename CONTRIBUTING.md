@@ -31,3 +31,7 @@ These trees are historical storage, not active product roots. Changes there are 
 ## Packaging and user documentation contributions
 
 All changes to package formats, metadata, build scripts, installers, release payloads, configuration, CLI help, man pages, and user manuals MUST comply with the Cross-Platform Packaging and User Documentation Contract in `AGENTS.md`. Inspect every supported package path, preserve parity across package formats, update user documentation and payload tests, and report the precise validation performed. Do not claim parity from a successful build of only one format.
+
+## Project-specific standards
+
+Read [PROJECT_STANDARDS.md](docs/PROJECT_STANDARDS.md) before making changes that affect this project's public behavior, configuration, packaging, documentation, or release process. These standards supplement the existing contribution requirements.
