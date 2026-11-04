@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">LocalLama GUI</title>
+  <desc id="desc">Split brain mark with cyan circuit traces on the left and violet neural pathways on the right.</desc>
+  <defs>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#16e0ff"/>
+      <stop offset="0.52" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#c43cff"/>
+    </linearGradient>
+    <linearGradient id="left" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1eeaff"/>
+      <stop offset="1" stop-color="#0878ff"/>
+    </linearGradient>
+    <linearGradient id="right" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9be7ff"/>
+      <stop offset="0.45" stop-color="#6b7cff"/>
+      <stop offset="1" stop-color="#d044ff"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="88" fill="#050b18"/>
+  <circle cx="256" cy="256" r="218" fill="none" stroke="url(#ring)" stroke-width="18" opacity=".95" filter="url(#glow)"/>
+  <path d="M245 89c-20-1-35 9-43 26-26-3-49 12-54 38-27 5-43 25-40 51-23 10-35 31-30 56-17 14-22 36-14 56 8 18 21 28 39 34-3 25 10 47 33 56 8 3 17 5 26 4 8 20 27 34 49 34h34V89z" fill="#071126" stroke="url(#left)" stroke-width="11" stroke-linejoin="round" filter="url(#glow)"/>
+  <path d="M267 89c20-1 35 9 43 26 26-3 49 12 54 38 27 5 43 25 40 51 23 10 35 31 30 56 17 14 22 36 14 56-8 18-21 28-39 34 3 25-10 47-33 56-8 3-17 5-26 4-8 20-27 34-49 34h-34V89z" fill="#0a1027" stroke="url(#right)" stroke-width="11" stroke-linejoin="round" filter="url(#glow)"/>
+  <path d="M256 82V430" stroke="url(#ring)" stroke-width="9" stroke-linecap="round"/>
+  <g fill="none" stroke="#18dfff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M151 155v45l31 31v54h48v42l-25 25v45"/>
+    <path d="M111 224v35l39 39v51h50v40"/>
+    <path d="M93 314h55l31 31v54"/>
+    <path d="M164 397v30"/>
+    <path d="M202 119v38"/>
+  </g>
+  <g fill="#d9fbff" stroke="#18dfff" stroke-width="5">
+    <circle cx="151" cy="155" r="11"/>
+    <circle cx="111" cy="224" r="11"/>
+    <circle cx="93" cy="314" r="11"/>
+    <circle cx="202" cy="119" r="11"/>
+  </g>
+  <g fill="none" stroke="#d17aff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M286 118c16 15 17 34 4 52-15 21-17 38-2 58 13 18 11 34-4 49-14 14-17 29-7 44 10 15 12 29 5 43"/>
+    <path d="M326 152c-10 24-2 42 18 53 18 10 23 25 14 43-8 17-3 31 13 41"/>
+    <path d="M361 208c-8 20-1 35 18 44 15 7 19 19 14 34-6 16-1 29 13 37"/>
+    <path d="M330 300c-14 13-14 29 1 42 13 11 15 23 7 38"/>
+  </g>
+</svg>
