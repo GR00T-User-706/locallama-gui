@@ -124,16 +124,11 @@ class GenerationParameters:
     normal_mode: bool = True
 
     def __post_init__(self) -> None:
-        if self.reasoning_mode not in {"normal", "thinking", "plan"}:
-            self.reasoning_mode = "normal"
-        if self.reasoning_mode == "normal":
-            if self.thinking_mode:
-                self.reasoning_mode = "thinking"
-            elif self.plan_mode:
-                self.reasoning_mode = "plan"
-        self.thinking_mode = self.reasoning_mode == "thinking"
-        self.plan_mode = self.reasoning_mode == "plan"
-        self.normal_mode = self.reasoning_mode == "normal"
+        # Preserve legacy fields for config compatibility, but suspend these modes.
+        self.reasoning_mode = "normal"
+        self.thinking_mode = False
+        self.plan_mode = False
+        self.normal_mode = True
 
     def to_backend_options(self) -> dict[str, Any]:
         options = {
@@ -150,8 +145,6 @@ class GenerationParameters:
             "num_batch": self.num_batch,
             "num_gpu": self.num_gpu,
         }
-        if self.reasoning_mode == "thinking":
-            options["think"] = True
         return options
 
 

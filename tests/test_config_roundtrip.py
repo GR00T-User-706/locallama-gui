@@ -69,7 +69,7 @@ def test_config_load_save_roundtrip(monkeypatch, tmp_path):
     assert loaded.global_system_prompt == "system"
 
 
-def test_reasoning_mode_persists_in_config(monkeypatch, tmp_path):
+def test_legacy_reasoning_mode_is_normalized_on_config_roundtrip(monkeypatch, tmp_path):
     def _fake_create():
         base = tmp_path / "app"
         return AppPaths(
@@ -87,20 +87,29 @@ def test_reasoning_mode_persists_in_config(monkeypatch, tmp_path):
     paths = _fake_create()
     paths.config_dir.mkdir(parents=True, exist_ok=True)
 
-    cfg = AppConfig(paths=paths, parameters=GenerationParameters(reasoning_mode="plan"))
+    cfg = AppConfig(
+        paths=paths,
+        parameters=GenerationParameters(reasoning_mode="plan", thinking_mode=True, plan_mode=True),
+    )
     cfg.save()
     loaded = AppConfig.load()
 
-    assert loaded.parameters.reasoning_mode == "plan"
+    assert loaded.parameters.reasoning_mode == "normal"
+    assert loaded.parameters.thinking_mode is False
+    assert loaded.parameters.plan_mode is False
+    assert loaded.parameters.normal_mode is True
 
 
-def test_reasoning_mode_is_exclusive_via_single_enum():
-    params = GenerationParameters(reasoning_mode="thinking")
+def test_legacy_reasoning_values_are_forced_to_normal_mode():
+    params = GenerationParameters(reasoning_mode="thinking", thinking_mode=True)
 
-    assert params.reasoning_mode == "thinking"
-    assert params.thinking_mode is True
+    assert params.reasoning_mode == "normal"
+    assert params.thinking_mode is False
     assert params.plan_mode is False
-    assert params.normal_mode is False
+    assert params.normal_mode is True
+    options = params.to_backend_options()
+    assert "think" not in options
+    assert "plan" not in options
 
 
 def test_legacy_generation_parameters_load_but_do_not_emit_strict_backend_options():
@@ -108,7 +117,10 @@ def test_legacy_generation_parameters_load_but_do_not_emit_strict_backend_option
 
     options = params.to_backend_options()
 
-    assert params.reasoning_mode == "plan"
+    assert params.reasoning_mode == "normal"
+    assert params.thinking_mode is False
+    assert params.plan_mode is False
+    assert "think" not in options
     assert "plan" not in options
     assert "mirostat" not in options
     assert "mirostat_eta" not in options

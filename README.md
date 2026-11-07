@@ -44,8 +44,8 @@ myloai
 | **Model operations** | Pull, push, clone, delete, inspect Ollama templates and metadata |
 | **Modelfile editor** | Syntax highlighting, validation, version history, config preview |
 | **System prompts** | Library with categories, favorites, import/export, search, version control |
-| **Generation profiles** | Sampling, context, GPU layers, stop sequences, reasoning mode |
-| **Agents** | Visual agent builder: model, tools, plugins, memory, reasoning, execution policy |
+| **Generation profiles** | Sampling, context, GPU layers, stop sequences |
+| **Agents** | Visual agent builder: model, tools, plugins, memory, execution policy |
 | **Plugins** | Drop-in Python modules for tools, commands, interceptors, UI panels, memory providers |
 | **Diagnostics** | Structured logs, captured console output, model operations, request viewer, token stream, backend status |
 | **Desktop UX** | Dockable panels, dark theme, keyboard shortcuts, menu bar, layout presets |

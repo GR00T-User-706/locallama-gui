@@ -128,7 +128,7 @@ Backend availability, authentication, model availability, desktop environment, a
 | Parameters | Edit | implemented | Parameter dialog edits generation parameters. | `ui/dialogs.py` |
 | Parameters | Save | implemented | Parameter values persist through `AppConfig`. | `core/config.py` |
 | Parameters | Presets | implemented | Presets can be saved and loaded. | `ParameterDialog` |
-| Parameters | Reasoning mode | implemented | Reasoning mode is represented by a controlled enum and maps to supported backend options. | `GenerationParameters` |
+| Parameters | Reasoning mode | hidden | Temporarily disabled for beta compatibility. Legacy config fields are retained for compatibility, normalized to normal mode, and excluded from outgoing chat requests. | `GenerationParameters`, `ParameterDialog` |
 
 ## 10. Themes and view
 

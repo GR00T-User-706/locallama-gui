@@ -130,7 +130,7 @@ def test_test_connection_returns_disconnected_on_timeout(monkeypatch):
     assert "timeout" in status.detail
 
 
-def test_chat_payload_emits_only_selected_reasoning_mode(monkeypatch):
+def test_chat_payload_drops_legacy_reasoning_fields(monkeypatch):
     captured = {}
 
     class _CaptureClient(_FakeAsyncClient):
@@ -153,7 +153,8 @@ def test_chat_payload_emits_only_selected_reasoning_mode(monkeypatch):
         ).__anext__()
     )
 
-    assert captured["payload"]["think"] is True
+    assert "think" not in captured["payload"]
+    assert "plan" not in captured["payload"]
     assert "plan" not in captured["payload"]["options"]
     assert "think" not in captured["payload"]["options"]
     assert "mirostat" not in captured["payload"]["options"]
@@ -179,10 +180,17 @@ def test_sanitize_options_preserves_supported_and_filters_invalid_and_stop_fragm
     assert "think" not in sanitized
 
 
-def test_sanitize_request_fields_only_forwards_supported_top_level_fields():
-    request_fields = OllamaBackend.sanitize_request_fields({"think": True, "plan": True, "raw": True})
+def test_chat_payload_does_not_forward_legacy_reasoning_request_fields():
+    from locallama_gui.core.domain import ChatMessage
 
-    assert request_fields == {"think": True}
+    payload = OllamaBackend.build_chat_payload(
+        "llama3", [ChatMessage("user", "Hello")], {"think": True, "plan": True}, False
+    )
+
+    assert "think" not in payload
+    assert "plan" not in payload
+    assert "think" not in payload["options"]
+    assert "plan" not in payload["options"]
 
 
 def test_stream_endpoint_raises_for_successful_http_response_with_error_payload(monkeypatch):

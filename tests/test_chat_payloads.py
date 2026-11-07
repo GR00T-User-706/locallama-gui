@@ -1,4 +1,5 @@
 from locallama_gui.backends.ollama import OllamaBackend
+from locallama_gui.core.config import GenerationParameters
 from locallama_gui.core.domain import ChatMessage
 
 # Reserved for direct OpenAI payload coverage when that test path is restored.
@@ -56,3 +57,34 @@ def test_invalid_role_is_rejected() -> None:
         assert "Invalid chat message role" in str(exc)
     else:
         raise AssertionError("Expected invalid role to be rejected")
+
+
+def test_legacy_reasoning_settings_are_forced_to_normal_mode() -> None:
+    parameters = GenerationParameters(
+        reasoning_mode="thinking",
+        thinking_mode=True,
+        plan_mode=True,
+    )
+
+    assert parameters.reasoning_mode == "normal"
+    assert parameters.thinking_mode is False
+    assert parameters.plan_mode is False
+    assert parameters.normal_mode is True
+    options = parameters.to_backend_options()
+    assert "think" not in options
+    assert "plan" not in options
+
+
+def test_ollama_chat_payload_never_sends_reasoning_fields() -> None:
+    payload = OllamaBackend.build_chat_payload(
+        "test-model",
+        [ChatMessage("user", "Hello")],
+        {"temperature": 0.7, "think": True, "plan": True},
+        False,
+    )
+
+    assert "think" not in payload
+    assert "plan" not in payload
+    assert "think" not in payload["options"]
+    assert "plan" not in payload["options"]
+

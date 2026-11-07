@@ -73,16 +73,14 @@ class EndpointDialog(QDialog):
         profile = profile or ProviderProfile(name="New Endpoint", provider_type="ollama")
         r = self.table.rowCount()
         self.table.insertRow(r)
-        for c, value in enumerate(
-            [
-                profile.name,
-                profile.provider_type,
-                profile.base_url,
-                profile.api_key,
-                str(profile.enabled),
-            ]
-        ):
+        for c, value in enumerate([profile.name, profile.provider_type, profile.base_url]):
             self.table.setItem(r, c, QTableWidgetItem(value))
+        api_key = QLineEdit(profile.api_key)
+        api_key.setEchoMode(QLineEdit.EchoMode.Password)
+        api_key.setPlaceholderText("Stored in the OS credential store")
+        api_key.setAccessibleName("API key")
+        self.table.setCellWidget(r, 3, api_key)
+        self.table.setItem(r, 4, QTableWidgetItem(str(profile.enabled)))
 
     def accept(self) -> None:
         profiles = []
@@ -92,7 +90,7 @@ class EndpointDialog(QDialog):
                     name=self.table.item(r, 0).text(),
                     provider_type=self.table.item(r, 1).text(),
                     base_url=self.table.item(r, 2).text(),
-                    api_key=self.table.item(r, 3).text(),
+                    api_key=self.table.cellWidget(r, 3).text(),
                     enabled=self.table.item(r, 4).text().lower() == "true",
                 )
             )
@@ -332,8 +330,7 @@ class AgentBuilderDialog(QDialog):
         self.name = QLineEdit("New Agent")
         self.model = QComboBox()
         self.model.addItems(models)
-        self.reasoning = QComboBox()
-        self.reasoning.addItems(["normal", "thinking", "planner"])
+        self.agent_reasoning_mode = "normal"
         self.behavior = QComboBox()
         self.behavior.addItems(["constrained", "planner", "executor", "autonomous"])
         self.memory = QComboBox()
@@ -346,7 +343,6 @@ class AgentBuilderDialog(QDialog):
         for label, widget in [
             ("Name", self.name),
             ("Model", self.model),
-            ("Reasoning", self.reasoning),
             ("Behavior", self.behavior),
             ("Memory", self.memory),
             ("Execution Policy", self.policy),
@@ -384,7 +380,7 @@ class AgentBuilderDialog(QDialog):
         self.current_id = a.id
         self.name.setText(a.name)
         self.model.setCurrentText(a.model)
-        self.reasoning.setCurrentText(a.reasoning_mode)
+        self.agent_reasoning_mode = a.reasoning_mode
         self.behavior.setCurrentText(a.behavior)
         self.memory.setCurrentText(a.memory_mode)
         self.policy.setCurrentText(a.execution_policy)
@@ -393,6 +389,7 @@ class AgentBuilderDialog(QDialog):
 
     def new(self) -> None:
         self.current_id = ""
+        self.agent_reasoning_mode = "normal"
         self.name.setText("New Agent")
 
     def _agent(self) -> AgentProfile:
@@ -402,7 +399,7 @@ class AgentBuilderDialog(QDialog):
             tools=[x.strip() for x in self.tools.text().split(",") if x.strip()],
             plugins=[x.strip() for x in self.plugins.text().split(",") if x.strip()],
             memory_mode=self.memory.currentText(),
-            reasoning_mode=self.reasoning.currentText(),
+            reasoning_mode=self.agent_reasoning_mode,
             behavior=self.behavior.currentText(),
             execution_policy=self.policy.currentText(),
             id=self.current_id or AgentProfile("x").id,
@@ -528,15 +525,6 @@ class ParameterDialog(QDialog):
         form.addRow("stop (| separated)", self.stop)
         self.preset_name = QLineEdit("default")
         form.addRow("preset name", self.preset_name)
-        self.reasoning_mode = QComboBox()
-        self.reasoning_mode.addItems(["normal", "thinking"])
-        self.reasoning_mode.setCurrentText(p.reasoning_mode)
-        self.reasoning_mode.setToolTip(
-            "Reasoning mode for the next request. "
-            "'thinking' maps to the capability-gated Ollama request field think=true. "
-            "'normal' is app-default mode (no mode field sent)."
-        )
-        form.addRow("reasoning mode", self.reasoning_mode)
         save_preset = QPushButton("Save Preset")
         save_preset.clicked.connect(self.save_preset)
         load_preset = QPushButton("Load Preset")
@@ -560,7 +548,6 @@ class ParameterDialog(QDialog):
         for name, widget in self.widgets.items():
             values[name] = widget.value() if isinstance(widget, QSpinBox) else float(widget.text())
         values["stop"] = [x for x in self.stop.text().split("|") if x]
-        values["reasoning_mode"] = self.reasoning_mode.currentText()
         return values
 
     def save_preset(self) -> None:
@@ -581,10 +568,6 @@ class ParameterDialog(QDialog):
                 else:
                     widget.setText(str(value))
         self.stop.setText("|".join(preset.get("stop", [])))
-        preset_mode = str(preset.get("reasoning_mode", "normal"))
-        if preset_mode not in {"normal", "thinking"}:
-            preset_mode = "thinking" if bool(preset.get("thinking_mode", False)) else "normal"
-        self.reasoning_mode.setCurrentText(preset_mode)
 
     def accept(self) -> None:
         p = self.config.parameters
